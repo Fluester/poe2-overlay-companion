@@ -1,0 +1,42 @@
+<Window x:Class="Poe2OverlayCompanion.MiniHudWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="PoE 2 Overlay Mini-HUD"
+        Height="34"
+        Left="18"
+        Top="14"
+        SizeToContent="Width"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        ResizeMode="NoResize">
+    <Border Background="#F50B0C0E"
+            BorderBrush="#FF6E5932"
+            BorderThickness="1"
+            CornerRadius="2"
+            Padding="9,4"
+            MouseLeftButtonDown="Hud_MouseLeftButtonDown">
+        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <Ellipse Width="6" Height="6" Fill="#FFC8A25A" Margin="0,0,7,0"/>
+            <TextBlock x:Name="HudBuildText" Text="PoE 2" Foreground="#FFD4B06A"
+                       FontWeight="SemiBold" FontSize="11.5" VerticalAlignment="Center"/>
+            <TextBlock x:Name="HudInfoText" Text="" Foreground="#FFE6E8ED"
+                       FontSize="11" Margin="6,0,8,0" VerticalAlignment="Center"/>
+            <TextBlock x:Name="HudBuffText" Text="" Foreground="#FF4ECF8F"
+                       FontWeight="SemiBold" FontSize="11" Margin="0,0,8,0" VerticalAlignment="Center"/>
+
+            <Button x:Name="BtnHudAi" Content="AI F11" Focusable="False" Cursor="Hand"
+                    Background="#FF172130" Foreground="#FF69ACEC" BorderBrush="#FF344D70" BorderThickness="1"
+                    FontSize="10" FontWeight="SemiBold" Padding="8,2" Margin="0,0,4,0" Click="AiClick"/>
+            <Button x:Name="BtnHudLock" Content="F10" Focusable="False" Cursor="Hand"
+                    Background="#FF13261E" Foreground="#FF4ECF8F" BorderBrush="#FF2A5A44" BorderThickness="1"
+                    FontSize="10" FontWeight="SemiBold" Padding="8,2" Margin="0,0,4,0" Click="LockClick"/>
+            <Button x:Name="BtnHudExpand" Content="Expand" Focusable="False" Cursor="Hand"
+                    Background="#FF1C202A" Foreground="#FFE6E8ED" BorderBrush="#FF303747" BorderThickness="1"
+                    FontSize="10" FontWeight="SemiBold" Padding="9,2" Click="ExpandClick"/>
+        </StackPanel>
+    </Border>
+</Window>

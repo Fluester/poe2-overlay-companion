@@ -1,0 +1,34 @@
+<Window x:Class="Poe2OverlayCompanion.ToastWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        ResizeMode="NoResize"
+        SizeToContent="WidthAndHeight"
+        MaxWidth="420">
+    <Border x:Name="CardBorder"
+            Background="#F70B0C0E"
+            BorderBrush="#FF6E5932"
+            BorderThickness="1"
+            CornerRadius="2"
+            Padding="11,8"
+            Margin="4">
+        <StackPanel>
+            <TextBlock x:Name="TitleText"
+                       FontSize="12"
+                       FontWeight="SemiBold"
+                       Foreground="#FFC8A462"
+                       TextWrapping="Wrap"/>
+            <TextBlock x:Name="BodyText"
+                       Margin="0,4,0,0"
+                       FontSize="11"
+                       Foreground="#FFE4DFD5"
+                       TextWrapping="Wrap"
+                       LineHeight="16"/>
+        </StackPanel>
+    </Border>
+</Window>

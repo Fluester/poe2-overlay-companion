@@ -1,0 +1,20 @@
+# .NET / WPF build artifacts
+bin/
+obj/
+publish/
+dist/
+*.user
+*.suo
+*.cache
+.vs/
+TestResults/
+
+# Local secrets & user settings (never commit API keys!)
+overlay_config.json
+build_profiles.json
+.env
+*.secret
+
+# Logs & temp
+*.log
+scratch/
