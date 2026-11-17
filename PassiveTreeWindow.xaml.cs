@@ -6,7 +6,7 @@ namespace Poe2OverlayCompanion;
 
 public partial class PassiveTreeWindow : Window
 {
-    public PassiveTreeWindow(string title, PassiveDiffResult? diff, int? weaponSetFilter)
+    public PassiveTreeWindow(string title, PassiveDiffResult? diff, int? weaponSetFilter, string? activeClassName = null)
     {
         InitializeComponent();
         TitleText.Text = title;
@@ -15,8 +15,9 @@ public partial class PassiveTreeWindow : Window
         Loaded += (_, _) =>
         {
             FullTreeCanvas.SetWeaponSetFilter(weaponSetFilter);
-            FullTreeCanvas.SetTreeData(diff, preserveViewport: false);
+            FullTreeCanvas.SetTreeData(diff, preserveViewport: false, activeClassName: activeClassName);
         };
+        Closed += (_, _) => FullTreeCanvas.ReleaseCachedTexture();
     }
 
     private void ZoomIn_Click(object sender, RoutedEventArgs e) => FullTreeCanvas.ZoomBy(1.3);

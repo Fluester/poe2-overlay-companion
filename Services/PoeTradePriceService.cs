@@ -15,7 +15,8 @@ namespace Poe2OverlayCompanion.Services;
 public static class PoeTradePriceService
 {
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(8) };
-    private static readonly ConcurrentDictionary<string, (DateTime cachedUtc, string summary)> PriceCache = new();
+    private static readonly ConcurrentDictionary<string, (DateTime cachedUtc, string summary, List<TradePriceListing> listings)> PriceCache = new();
+    private static readonly ConcurrentDictionary<string, (DateTime cachedUtc, double exPerDiv, double exPerChaos)> RateCache = new();
     private static List<string> _cachedLeagues = ["Forbidden Rites", "HC Forbidden Rites", "Runes of Aldur", "HC Runes of Aldur", "Standard", "Hardcore"];
 
     static PoeTradePriceService()
@@ -60,11 +61,25 @@ public static class PoeTradePriceService
         string cacheKey = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes($"{safeLeague}|{ev.ItemName}|{ev.ItemClass}|{(int)ev.TotalDps}|{(int)ev.EnergyShield}|{(int)ev.MovementSpeed}|{ev.PlusSkillLevel}|{(int)ev.SpiritBonus}")));
 
         if (PriceCache.TryGetValue(cacheKey, out var cached) && (DateTime.UtcNow - cached.cachedUtc).TotalMinutes < 5)
+        {
+            ev.LiveListings = [.. cached.listings];
             return cached.summary;
+        }
 
+        string queryJson = BuildPriceCheckPayload(ev);
+        return await ExecuteTradeSearchAndFetchAsync(ev, safeLeague, queryJson, cacheKey, isCustom: false, ct);
+    }
+
+    private static async Task<string> ExecuteTradeSearchAndFetchAsync(
+        ItemEvaluation ev,
+        string safeLeague,
+        string queryJson,
+        string cacheKey,
+        bool isCustom,
+        CancellationToken ct)
+    {
         try
         {
-            string queryJson = BuildPriceCheckPayload(ev);
             string url = $"https://www.pathofexile.com/api/trade2/search/{Uri.EscapeDataString(safeLeague)}";
             using var content = new StringContent(queryJson, Encoding.UTF8, "application/json");
             using var sResp = await Http.PostAsync(url, content, ct);
@@ -77,17 +92,20 @@ public static class PoeTradePriceService
 
             if (string.IsNullOrEmpty(queryId) || !sDoc.RootElement.TryGetProperty("result", out var resArr) || resArr.GetArrayLength() == 0)
             {
-                string emptyMsg = Loc.T($"Trade 2 ({safeLeague}): лотів не знайдено (0)", $"Trade 2 ({safeLeague}): no listings found", $"Trade 2 ({safeLeague}): лотов не найдено (0)");
-                PriceCache[cacheKey] = (DateTime.UtcNow, emptyMsg);
+                string emptyMsg = isCustom
+                    ? Loc.T($"Trade 2 ({safeLeague}): 0 лотів під вибрані моди", $"Trade 2 ({safeLeague}): 0 listings for selected mods", $"Trade 2 ({safeLeague}): 0 лотов по модам")
+                    : Loc.T($"Trade 2 ({safeLeague}): лотів не знайдено (0)", $"Trade 2 ({safeLeague}): no listings found", $"Trade 2 ({safeLeague}): лотов не найдено (0)");
+                PriceCache[cacheKey] = (DateTime.UtcNow, emptyMsg, []);
+                ev.LiveListings = [];
                 return emptyMsg;
             }
 
-            var topIds = new List<string>(5);
+            var topIds = new List<string>(8);
             foreach (var item in resArr.EnumerateArray())
             {
                 string? s = item.GetString();
                 if (!string.IsNullOrEmpty(s)) topIds.Add(s);
-                if (topIds.Count >= 5) break;
+                if (topIds.Count >= 8) break;
             }
 
             string fetchUrl = $"https://www.pathofexile.com/api/trade2/fetch/{string.Join(",", topIds)}?query={Uri.EscapeDataString(queryId)}";
@@ -95,47 +113,63 @@ public static class PoeTradePriceService
             if (!fResp.IsSuccessStatusCode)
             {
                 string countOnly = $"Trade 2 ({safeLeague}): ~{total} {Loc.T("лотів", "listings", "лотов")}";
-                PriceCache[cacheKey] = (DateTime.UtcNow, countOnly);
+                PriceCache[cacheKey] = (DateTime.UtcNow, countOnly, []);
                 return countOnly;
             }
 
             string fJson = await fResp.Content.ReadAsStringAsync(ct);
             using var fDoc = JsonDocument.Parse(fJson);
-            var prices = new List<(double amount, string currency)>();
+            var listings = new List<TradePriceListing>();
             if (fDoc.RootElement.TryGetProperty("result", out var fArr))
             {
                 foreach (var entry in fArr.EnumerateArray())
                 {
-                    if (entry.TryGetProperty("listing", out var lst) &&
-                        lst.TryGetProperty("price", out var pr) &&
-                        pr.TryGetProperty("amount", out var amt) &&
-                        pr.TryGetProperty("currency", out var cur))
-                    {
-                        prices.Add((amt.GetDouble(), cur.GetString() ?? "exalted"));
-                    }
+                    if (!entry.TryGetProperty("listing", out var lst) || !lst.TryGetProperty("price", out var pr)) continue;
+                    if (!pr.TryGetProperty("amount", out var amt) || !pr.TryGetProperty("currency", out var cur)) continue;
+                    string age = FormatListingAge(lst.TryGetProperty("indexed", out var idxEl) ? idxEl.GetString() : null);
+                    string acc = lst.TryGetProperty("account", out var accEl) && accEl.TryGetProperty("name", out var nEl)
+                        ? nEl.GetString() ?? ""
+                        : "";
+                    listings.Add(new TradePriceListing(amt.GetDouble(), cur.GetString() ?? "exalted", age, acc));
                 }
             }
 
             string summary;
-            if (prices.Count > 0)
+            if (listings.Count > 0)
             {
-                string priceRange = prices.Count >= 2 && prices[0] != prices[^1]
-                    ? $"{prices[0].amount:0.#} {prices[0].currency} – {prices[^1].amount:0.#} {prices[^1].currency}"
-                    : $"~{prices[0].amount:0.#} {prices[0].currency}";
-                summary = $"Trade 2 ({safeLeague}): {priceRange} ({total})";
+                var first = listings[0];
+                var last = listings[^1];
+                string priceRange = listings.Count >= 2 && (first.Amount != last.Amount || first.Currency != last.Currency)
+                    ? $"{first.Amount:0.#} {first.Currency} – {last.Amount:0.#} {last.Currency}"
+                    : $"~{first.Amount:0.#} {first.Currency}";
+                string ages = string.Join("/", listings.Take(3).Select(l => l.AgeText).Where(a => a.Length > 0));
+                string ageNote = ages.Length > 0 ? $" · {ages}" : "";
+                summary = $"Trade 2 ({safeLeague}): {priceRange} ({total}{ageNote})";
             }
             else
             {
                 summary = $"Trade 2 ({safeLeague}): {total} {Loc.T("лотів", "listings", "лотов")}";
             }
 
-            PriceCache[cacheKey] = (DateTime.UtcNow, summary);
+            ev.LiveListings = listings;
+            PriceCache[cacheKey] = (DateTime.UtcNow, summary, listings);
             return summary;
         }
         catch
         {
             return "";
         }
+    }
+
+    private static string FormatListingAge(string? indexedIso)
+    {
+        if (string.IsNullOrWhiteSpace(indexedIso) || !DateTime.TryParse(indexedIso, out var dt))
+            return "";
+        var span = DateTime.UtcNow - dt.ToUniversalTime();
+        if (span.TotalMinutes < 2) return "now";
+        if (span.TotalHours < 1) return $"{(int)span.TotalMinutes}m";
+        if (span.TotalDays < 1) return $"{(int)span.TotalHours}h";
+        return $"{(int)span.TotalDays}d";
     }
 
     public static string BuildCustomTradeQueryJson(
@@ -198,83 +232,81 @@ public static class PoeTradePriceService
         string cacheKey = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes($"CUSTOM|{safeLeague}|{ev.ItemName}|{ev.ItemClass}|{includeItemCategory}|{modSig}")));
 
         if (PriceCache.TryGetValue(cacheKey, out var cached) && (DateTime.UtcNow - cached.cachedUtc).TotalMinutes < 3)
+        {
+            ev.LiveListings = [.. cached.listings];
             return cached.summary;
-
-        try
-        {
-            string queryJson = BuildCustomTradeQueryJson(ev, selectedMods, includeItemCategory);
-            string url = $"https://www.pathofexile.com/api/trade2/search/{Uri.EscapeDataString(safeLeague)}";
-            using var content = new StringContent(queryJson, Encoding.UTF8, "application/json");
-            using var sResp = await Http.PostAsync(url, content, ct);
-            if (!sResp.IsSuccessStatusCode) return "";
-
-            string sJson = await sResp.Content.ReadAsStringAsync(ct);
-            using var sDoc = JsonDocument.Parse(sJson);
-            string? queryId = sDoc.RootElement.TryGetProperty("id", out var idEl) ? idEl.GetString() : null;
-            int total = sDoc.RootElement.TryGetProperty("total", out var totEl) ? totEl.GetInt32() : 0;
-
-            if (string.IsNullOrEmpty(queryId) || !sDoc.RootElement.TryGetProperty("result", out var resArr) || resArr.GetArrayLength() == 0)
-            {
-                string emptyMsg = Loc.T($"Trade 2 ({safeLeague}): 0 лотів під вибрані моди", $"Trade 2 ({safeLeague}): 0 listings for selected mods", $"Trade 2 ({safeLeague}): 0 лотов по модам");
-                PriceCache[cacheKey] = (DateTime.UtcNow, emptyMsg);
-                return emptyMsg;
-            }
-
-            var topIds = new List<string>(5);
-            foreach (var item in resArr.EnumerateArray())
-            {
-                string? s = item.GetString();
-                if (!string.IsNullOrEmpty(s)) topIds.Add(s);
-                if (topIds.Count >= 5) break;
-            }
-
-            string fetchUrl = $"https://www.pathofexile.com/api/trade2/fetch/{string.Join(",", topIds)}?query={Uri.EscapeDataString(queryId)}";
-            using var fResp = await Http.GetAsync(fetchUrl, ct);
-            if (!fResp.IsSuccessStatusCode) return $"Trade 2 ({safeLeague}): {total}";
-
-            string fJson = await fResp.Content.ReadAsStringAsync(ct);
-            using var fDoc = JsonDocument.Parse(fJson);
-            var prices = new List<(double amount, string currency)>();
-            if (fDoc.RootElement.TryGetProperty("result", out var fArr))
-            {
-                foreach (var entry in fArr.EnumerateArray())
-                {
-                    if (entry.TryGetProperty("listing", out var lst) &&
-                        lst.TryGetProperty("price", out var pr) &&
-                        pr.TryGetProperty("amount", out var amt) &&
-                        pr.TryGetProperty("currency", out var cur))
-                    {
-                        prices.Add((amt.GetDouble(), cur.GetString() ?? "exalted"));
-                    }
-                }
-            }
-
-            string summary = prices.Count > 0
-                ? $"Trade 2 ({safeLeague}): {(prices.Count >= 2 && prices[0] != prices[^1] ? $"{prices[0].amount:0.#} {prices[0].currency} – {prices[^1].amount:0.#} {prices[^1].currency}" : $"~{prices[0].amount:0.#} {prices[0].currency}")} ({total})"
-                : $"Trade 2 ({safeLeague}): {total}";
-
-            PriceCache[cacheKey] = (DateTime.UtcNow, summary);
-            return summary;
         }
-        catch
-        {
-            return "";
-        }
+
+        string queryJson = BuildCustomTradeQueryJson(ev, selectedMods, includeItemCategory);
+        return await ExecuteTradeSearchAndFetchAsync(ev, safeLeague, queryJson, cacheKey, isCustom: true, ct);
     }
 
-    public static async Task<double> EstimateExaltedPerDivineAsync(string league, CancellationToken ct = default)
+    public static async Task<(double exPerDiv, double exPerChaos)> FetchKeyExchangeRatesAsync(string league, CancellationToken ct = default, bool forceRefresh = false)
+    {
+        string safeLeague = string.IsNullOrWhiteSpace(league) ? "Standard" : league.Trim();
+        if (!forceRefresh && RateCache.TryGetValue(safeLeague, out var cached) && (DateTime.UtcNow - cached.cachedUtc).TotalMinutes < 5)
+            return (cached.exPerDiv, cached.exPerChaos);
+
+        // Первинне джерело: poe.ninja PoE 2 Currency Overview (миттєво, без жорсткого 5:15:60 ліміту Trade 2 API)
+        var ninjaRates = await TryFetchPoeNinjaRatesAsync(safeLeague, ct);
+        if (ninjaRates is (double nDiv, double nChaos) && nDiv > 0 && nChaos > 0)
+        {
+            RateCache[safeLeague] = (DateTime.UtcNow, nDiv, nChaos);
+            return (nDiv, nChaos);
+        }
+
+        // Резерв: послідовний запит до Trade 2 Exchange (щоб не тригерити 429 паралельними запитами)
+        double? exDiv = await TryFetchExchangeRatioAsync(safeLeague, "exalted", "divine", ct);
+        if (exDiv != null) await Task.Delay(250, ct);
+        double? exChaos = await TryFetchExchangeRatioAsync(safeLeague, "exalted", "chaos", ct);
+        double resolvedDiv = exDiv ?? 120.0;
+        double resolvedChaos = exChaos ?? 3.5;
+        if (exDiv != null && exChaos != null)
+            RateCache[safeLeague] = (DateTime.UtcNow, resolvedDiv, resolvedChaos);
+        return (resolvedDiv, resolvedChaos);
+    }
+
+    public static async Task<double> EstimateExaltedPerDivineAsync(string league, CancellationToken ct = default) =>
+        (await FetchKeyExchangeRatesAsync(league, ct)).exPerDiv;
+
+    private static async Task<(double exPerDiv, double exPerChaos)?> TryFetchPoeNinjaRatesAsync(string safeLeague, CancellationToken ct)
     {
         try
         {
-            string safeLeague = string.IsNullOrWhiteSpace(league) ? "Standard" : league.Trim();
+            string url = $"https://poe.ninja/poe2/api/economy/exchange/current/overview?league={Uri.EscapeDataString(safeLeague)}&type=Currency";
+            using var resp = await Http.GetAsync(url, ct);
+            if (!resp.IsSuccessStatusCode) return null;
+
+            string json = await resp.Content.ReadAsStringAsync(ct);
+            using var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.TryGetProperty("core", out var core) &&
+                core.TryGetProperty("rates", out var rates))
+            {
+                double exPerDiv = rates.TryGetProperty("exalted", out var exEl) ? exEl.GetDouble() : 0;
+                double chaosPerDiv = rates.TryGetProperty("chaos", out var chEl) ? chEl.GetDouble() : 0;
+                if (exPerDiv > 0 && chaosPerDiv > 0.01)
+                {
+                    double exPerChaos = Math.Round(exPerDiv / chaosPerDiv, 1);
+                    return (Math.Round(exPerDiv, 1), Math.Max(0.1, exPerChaos));
+                }
+            }
+        }
+        catch { }
+        return null;
+    }
+
+    private static async Task<double?> TryFetchExchangeRatioAsync(string safeLeague, string haveCurrency, string wantCurrency, CancellationToken ct)
+    {
+        try
+        {
             string url = $"https://www.pathofexile.com/api/trade2/exchange/{Uri.EscapeDataString(safeLeague)}";
             var payload = JsonSerializer.Serialize(new
             {
-                exchange = new { status = new { option = "online" }, have = new[] { "exalted" }, want = new[] { "divine" } }
+                exchange = new { status = new { option = "any" }, have = new[] { haveCurrency }, want = new[] { wantCurrency } }
             });
             using var content = new StringContent(payload, Encoding.UTF8, "application/json");
             using var resp = await Http.PostAsync(url, content, ct);
-            if (!resp.IsSuccessStatusCode) return 120.0;
+            if (!resp.IsSuccessStatusCode) return null;
 
             string json = await resp.Content.ReadAsStringAsync(ct);
             using var doc = JsonDocument.Parse(json);
@@ -291,10 +323,10 @@ public static class PoeTradePriceService
                             if (of.TryGetProperty("exchange", out var exch) && of.TryGetProperty("item", out var itm) &&
                                 exch.TryGetProperty("amount", out var exAmt) && itm.TryGetProperty("amount", out var itAmt))
                             {
-                                double exVal = exAmt.GetDouble();
-                                double divVal = itAmt.GetDouble();
-                                if (divVal > 0 && exVal > 0)
-                                    ratios.Add(exVal / divVal);
+                                double haveVal = exAmt.GetDouble();
+                                double wantVal = itAmt.GetDouble();
+                                if (wantVal > 0 && haveVal > 0)
+                                    ratios.Add(haveVal / wantVal);
                             }
                         }
                     }
@@ -307,7 +339,7 @@ public static class PoeTradePriceService
             }
         }
         catch { }
-        return 120.0;
+        return null;
     }
 
     private static string BuildPriceCheckPayload(ItemEvaluation ev)

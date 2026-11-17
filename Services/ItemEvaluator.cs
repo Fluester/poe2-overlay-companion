@@ -65,7 +65,8 @@ public static class ItemEvaluator
         BuildProfile? profile = null,
         int stageIndex = 0,
         IReadOnlyDictionary<string, string>? wornGear = null,
-        int characterLevel = 1)
+        int characterLevel = 1,
+        IReadOnlyDictionary<string, MapModSafety>? customMapTags = null)
     {
         if (string.IsNullOrWhiteSpace(rawText) || !rawText.Contains("Item Class:") || !rawText.Contains("--------"))
             return new ItemEvaluation { IsPoeItem = false };
@@ -126,6 +127,36 @@ public static class ItemEvaluator
         string profileLabel = profile != null && !string.IsNullOrWhiteSpace(profile.Name)
             ? profile.Name
             : Loc.T("Загальний PoE 2", "Universal PoE 2", "Общий PoE 2");
+
+        // 0. Waystones / Мапи (інтерактивний Map Mod Checker у стилі Exiled Exchange 2 / Sidekick)
+        if (ic.Contains("waystone") || ic == "maps" || (rawLower.Contains("waystone") && rawLower.Contains("area level")))
+        {
+            ev.IsWaystone = true;
+            var mods = WaystoneModChecker.EvaluateWaystone(rawText, profile, customMapTags);
+            ev.WaystoneMods.AddRange(mods);
+
+            int deadly = mods.Count(m => m.Safety == MapModSafety.Deadly);
+            int caution = mods.Count(m => m.Safety == MapModSafety.Caution);
+            int good = mods.Count(m => m.Safety == MapModSafety.Good);
+
+            foreach (var m in mods)
+            {
+                if (m.Safety == MapModSafety.Deadly) ev.Warnings.Add($"[DEADLY] {m.ModText} ({m.Reason})");
+                else if (m.Safety == MapModSafety.Caution) ev.Warnings.Add($"[CAUTION] {m.ModText}");
+                else ev.Positives.Add(m.ModText);
+            }
+
+            ev.Verdict = deadly > 0 ? ItemVerdict.Danger : caution >= 2 ? ItemVerdict.Warn : good >= 2 ? ItemVerdict.Great : ItemVerdict.Good;
+            ev.UpgradeVerdict = deadly > 0
+                ? Loc.T($"[!] НЕБЕЗПЕЧНА МАПА ({deadly} deadly)", $"[!] DEADLY WAYSTONE ({deadly} mods)", $"[!] ОПАСНАЯ КАРТА ({deadly})")
+                : caution >= 1
+                    ? Loc.T($"[~] ОБЕРЕЖНО ({caution} caution)", $"[~] RUN WITH CAUTION ({caution})", $"[~] ОСТОРОЖНО ({caution})")
+                    : Loc.T("[+] БЕЗПЕЧНА МАПА", "[+] SAFE WAYSTONE", "[+] БЕЗОПАСНАЯ КАРТА");
+            ev.Summary = Loc.T($"Перевірка Waystone: {deadly} небезпеч., {caution} обережно, {good} ок", $"Waystone Check: {deadly} deadly, {caution} caution, {good} good", $"Проверка карты: {deadly} опасн., {caution} остор., {good} ок");
+            ev.WikiUrl = $"https://poe2db.tw/us/search?q={Uri.EscapeDataString("Waystone")}";
+            ev.GeneratedTradeUrl = TradeLinkBuilder.BuildForCopiedItem("Standard", ev);
+            return ev;
+        }
 
         // 1. Flasks
         if (ic.Contains("mana flask"))
@@ -317,11 +348,75 @@ public static class ItemEvaluator
         // 3. Економічна вигода
         EvaluateMarketProfitability(ev, rawText, rawLower);
 
-        // 4. Моди для інтерактивного прайс-чеку з чекбоксами
+        // 4. Моди для інтерактивного прайс-чеку з чекбоксами (+ Pseudo Totals)
         PopulateSelectableMods(ev, rawText);
 
-        // 5. Trade2 лінк конкретно під цю річ
+        // 5. Affix Prefix/Suffix лічильник (Sidekick стиль) та прямий лінк на PoE2DB / Wiki (EE2 Alt+W)
+        PopulateWikiAndAffixes(ev, rawText);
+
+        // 6. Trade2 лінк конкретно під цю річ
         ev.GeneratedTradeUrl = TradeLinkBuilder.BuildForCopiedItem("Standard", ev);
+    }
+
+    private static string ExtractModBody(string rawText)
+    {
+        int sepIdx = rawText.IndexOf("--------", StringComparison.Ordinal);
+        return sepIdx >= 0 ? rawText[(sepIdx + 8)..] : rawText;
+    }
+
+    private static void PopulateWikiAndAffixes(ItemEvaluation ev, string rawText)
+    {
+        string wikiQuery = ev.Rarity.Equals("Unique", StringComparison.OrdinalIgnoreCase)
+            ? ev.ItemName.Split(" — ")[0].Trim()
+            : ev.RawBaseType;
+        if (string.IsNullOrWhiteSpace(wikiQuery)) wikiQuery = ev.ItemClass;
+        ev.WikiUrl = $"https://poe2db.tw/us/search?q={Uri.EscapeDataString(wikiQuery)}";
+
+        if (!ev.Rarity.Equals("Rare", StringComparison.OrdinalIgnoreCase) &&
+            !ev.Rarity.Equals("Magic", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        int maxPerSide = ev.Rarity.Equals("Magic", StringComparison.OrdinalIgnoreCase) ? 1 : 3;
+        int pCount = 0, sCount = 0;
+
+        string modSectionText = ExtractModBody(rawText);
+        foreach (string rawLine in modSectionText.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
+        {
+            string line = rawLine.Trim();
+            if (line.Length < 5 || line.Contains(':') || line.StartsWith("--------") || line.StartsWith("{")) continue;
+            if (line.Contains("(implicit)", StringComparison.OrdinalIgnoreCase) ||
+                line.Contains("(enchant)", StringComparison.OrdinalIgnoreCase) ||
+                line.Contains("(rune)", StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            string low = line.ToLowerInvariant();
+            if (low.Contains("resistance") || low.Contains("strength") || low.Contains("dexterity") ||
+                low.Contains("intelligence") || low.Contains("all attributes") ||
+                low.Contains("attack speed") || low.Contains("cast speed") ||
+                low.Contains("critical") || low.Contains("level of all") ||
+                low.Contains("regenerate") || low.Contains("leech") || low.Contains("accuracy") ||
+                low.Contains("stun threshold") || low.Contains("reduced attribute"))
+            {
+                sCount++;
+            }
+            else if (low.Contains("maximum life") || low.Contains("maximum mana") ||
+                     low.Contains("energy shield") || low.Contains("evasion") || low.Contains("armour") ||
+                     low.Contains("movement speed") || low.Contains("physical damage") ||
+                     low.Contains("adds ") || low.Contains("spell damage") || low.Contains("rarity of items") ||
+                     low.Contains("spirit"))
+            {
+                pCount++;
+            }
+        }
+
+        ev.EstimatedPrefixes = Math.Min(maxPerSide, pCount);
+        ev.EstimatedSuffixes = Math.Min(maxPerSide, sCount);
+        int openP = Math.Max(0, maxPerSide - ev.EstimatedPrefixes);
+        int openS = Math.Max(0, maxPerSide - ev.EstimatedSuffixes);
+        int totalOpen = openP + openS;
+        ev.AffixSummary = totalOpen > 0
+            ? Loc.T($"Афікси ~{ev.EstimatedPrefixes}P/{ev.EstimatedSuffixes}S · вільно {totalOpen} ({openP}P/{openS}S під Exalt)", $"Affixes ~{ev.EstimatedPrefixes}P/{ev.EstimatedSuffixes}S · {totalOpen} open ({openP}P/{openS}S Exalt)", $"Аффиксы ~{ev.EstimatedPrefixes}P/{ev.EstimatedSuffixes}S · своб. {totalOpen}")
+            : Loc.T($"Афікси ~{ev.EstimatedPrefixes}P/{ev.EstimatedSuffixes}S (повна)", $"Affixes ~{ev.EstimatedPrefixes}P/{ev.EstimatedSuffixes}S (full)", $"Аффиксы ~{ev.EstimatedPrefixes}P/{ev.EstimatedSuffixes}S (полная)");
     }
 
     private static readonly (Regex pattern, string statId, bool defaultCheck)[] TradeModMatchers =
@@ -405,11 +500,65 @@ public static class ItemEvaluator
             });
         }
 
+        // Pseudo сумарні моди (як в Exiled Exchange 2: сумарні елементальні резисти, атрибути)
+        int eleResTotal = 0;
+        int attrTotal = 0;
+        string modBody = ExtractModBody(rawText);
         var addedIds = new HashSet<string>(StringComparer.Ordinal);
-        foreach (string rawLine in rawText.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
+        foreach (string rawLine in modBody.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
         {
             string line = rawLine.Trim();
             if (line.Length < 5 || line.Contains(':') || line.StartsWith("--------")) continue;
+            string cleanLine = Regex.Replace(line, @"\s*\((?:implicit|fractured|enchant|rune|desecrated)\)\s*$", "", RegexOptions.IgnoreCase).Trim();
+
+            var mAllEle = Regex.Match(cleanLine, @"([+\-]?\d+)% to all Elemental Resistances", RegexOptions.IgnoreCase);
+            if (mAllEle.Success && int.TryParse(mAllEle.Groups[1].Value, out int ae)) eleResTotal += ae * 3;
+            else
+            {
+                var mSingleEle = Regex.Match(cleanLine, @"([+\-]?\d+)% to (?:Fire|Cold|Lightning) Resistance", RegexOptions.IgnoreCase);
+                if (mSingleEle.Success && int.TryParse(mSingleEle.Groups[1].Value, out int se)) eleResTotal += se;
+            }
+
+            var mAllAttr = Regex.Match(cleanLine, @"([+\-]?\d+) to all Attributes", RegexOptions.IgnoreCase);
+            if (mAllAttr.Success && int.TryParse(mAllAttr.Groups[1].Value, out int aa)) attrTotal += aa * 3;
+            else
+            {
+                var mSingleAttr = Regex.Match(cleanLine, @"([+\-]?\d+) to (?:Strength|Dexterity|Intelligence)$", RegexOptions.IgnoreCase);
+                if (mSingleAttr.Success && int.TryParse(mSingleAttr.Groups[1].Value, out int sa)) attrTotal += sa;
+            }
+        }
+
+        if (eleResTotal >= 25)
+        {
+            int minPseudoEle = Math.Max(20, (int)Math.Floor(eleResTotal * 0.80));
+            ev.SelectableMods.Add(new ItemModFilterOption
+            {
+                DisplayText = $"+{eleResTotal}% Total Elemental Resistance (Pseudo)",
+                TradeStatId = "pseudo.pseudo_total_elemental_resistance",
+                NumericValue = eleResTotal,
+                MinSuggested = minPseudoEle,
+                IsDefaultChecked = eleResTotal >= 40,
+                Category = "Pseudo"
+            });
+        }
+        if (attrTotal >= 22)
+        {
+            int minPseudoAttr = Math.Max(15, (int)Math.Floor(attrTotal * 0.80));
+            ev.SelectableMods.Add(new ItemModFilterOption
+            {
+                DisplayText = $"+{attrTotal} Total Attributes (Pseudo)",
+                TradeStatId = "pseudo.pseudo_total_attributes",
+                NumericValue = attrTotal,
+                MinSuggested = minPseudoAttr,
+                IsDefaultChecked = false,
+                Category = "Pseudo"
+            });
+        }
+
+        foreach (string rawLine in modBody.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
+        {
+            string line = rawLine.Trim();
+            if (line.Length < 5 || line.Contains(':') || line.StartsWith("--------") || line.StartsWith("{")) continue;
             string cleanLine = Regex.Replace(line, @"\s*\((?:implicit|fractured|enchant|rune|desecrated)\)\s*$", "", RegexOptions.IgnoreCase).Trim();
 
             foreach (var (rx, statId, defCheck) in TradeModMatchers)
@@ -417,14 +566,18 @@ public static class ItemEvaluator
                 var m = rx.Match(cleanLine);
                 if (!m.Success || !addedIds.Add(statId)) continue;
                 if (!double.TryParse(m.Groups[1].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out double v)) continue;
-                int minSug = statId.Contains("Level") ? Math.Max(1, (int)v) : Math.Max(1, (int)Math.Floor(v * 0.82));
+                int minSug = cleanLine.Contains("Level", StringComparison.OrdinalIgnoreCase)
+                    ? Math.Max(1, (int)v)
+                    : Math.Max(1, (int)Math.Floor(v * 0.82));
+                bool isSingleEleRes = statId is "explicit.stat_3372524247" or "explicit.stat_4220027924" or "explicit.stat_1671376347";
+                bool checkByDef = defCheck && !(isSingleEleRes && eleResTotal >= 40) && ev.SelectableMods.Count(x => x.IsDefaultChecked) < 4;
                 ev.SelectableMods.Add(new ItemModFilterOption
                 {
-                    DisplayText = $"{cleanLine}  [min {minSug}]",
+                    DisplayText = cleanLine,
                     TradeStatId = statId,
                     NumericValue = v,
                     MinSuggested = minSug,
-                    IsDefaultChecked = defCheck && ev.SelectableMods.Count(x => x.IsDefaultChecked) < 4,
+                    IsDefaultChecked = checkByDef,
                     Category = "Explicit"
                 });
                 break;
@@ -496,6 +649,7 @@ public static class ItemEvaluator
 
         // B) Еталон поточного етапу білду
         string? buildRef = profile != null ? FindReferenceSlotText(profile, stageIndex, slotKey) : null;
+        ev.MatchedWornText = wornRef ?? "";
         ev.ComparedAgainstWornGear = !string.IsNullOrWhiteSpace(wornRef);
 
         if (!string.IsNullOrWhiteSpace(wornRef))

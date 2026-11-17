@@ -51,10 +51,15 @@ public sealed class OverlayConfig
     public bool FocusOverlayOnCtrlC { get; set; } = false;
     public int LastKnownLevel { get; set; } = 1;
     public string PoeAccountName { get; set; } = "";
+    public string PoeCharacterId { get; set; } = "";
     public string PoeCharacterName { get; set; } = "";
     public string PoeCharacterClass { get; set; } = "";
     public int PoeCharacterLevel { get; set; } = 0;
+    public long PoeCharacterExperience { get; set; } = 0;
+    public string PoeCharacterStatsSummary { get; set; } = "";
+    public DateTime PoeLastSyncUtc { get; set; } = DateTime.MinValue;
     public Dictionary<string, string> WornGearBySlot { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+    public List<string> PoeCharacterSkills { get; set; } = [];
 
     // Trade Helper, Command Wheel (F8) та Stash Net-Worth трекер
     public bool TradeHelperEnabled { get; set; } = true;
@@ -65,6 +70,7 @@ public sealed class OverlayConfig
     public DateTime LastStashScanUtc { get; set; } = DateTime.MinValue;
     public List<string> LastStashTopLines { get; set; } = [];
     public HashSet<string> CompletedCampaignRewards { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, MapModSafety> CustomWaystoneModTags { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 }
 
 public sealed class GeminiAdvisorService

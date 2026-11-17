@@ -11,24 +11,24 @@
         SizeToContent="WidthAndHeight"
         MaxWidth="420">
     <Border x:Name="CardBorder"
-            Background="#F70B0C0E"
-            BorderBrush="#FF6E5932"
+            Background="#FA212529"
+            BorderBrush="#FF495057"
             BorderThickness="1"
-            CornerRadius="2"
-            Padding="11,8"
+            CornerRadius="6"
+            Padding="13,9"
             Margin="4">
         <StackPanel>
             <TextBlock x:Name="TitleText"
-                       FontSize="12"
+                       FontSize="12.5"
                        FontWeight="SemiBold"
-                       Foreground="#FFC8A462"
+                       Foreground="#FF6EA8FE"
                        TextWrapping="Wrap"/>
             <TextBlock x:Name="BodyText"
                        Margin="0,4,0,0"
-                       FontSize="11"
-                       Foreground="#FFE4DFD5"
+                       FontSize="11.5"
+                       Foreground="#FFDEE2E6"
                        TextWrapping="Wrap"
-                       LineHeight="16"/>
+                       LineHeight="17"/>
         </StackPanel>
     </Border>
 </Window>

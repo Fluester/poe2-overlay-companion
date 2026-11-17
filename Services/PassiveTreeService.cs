@@ -10,14 +10,16 @@ public sealed class PassiveTreeIndex
     public IReadOnlyList<PassiveNodeInfo> AllNodes { get; }
     public IReadOnlyDictionary<string, PassiveNodeInfo> ByNumericId { get; }
     public IReadOnlyDictionary<string, PassiveNodeInfo> ByStringId { get; }
+    public double[] OrbitRadii { get; }
     public double MinX { get; }
     public double MaxX { get; }
     public double MinY { get; }
     public double MaxY { get; }
 
-    public PassiveTreeIndex(List<PassiveNodeInfo> nodes)
+    public PassiveTreeIndex(List<PassiveNodeInfo> nodes, double[]? orbitRadii = null)
     {
         AllNodes = nodes;
+        OrbitRadii = orbitRadii ?? [0, 82, 162, 335, 493, 662, 846, 251, 1080, 1322];
         var num = new Dictionary<string, PassiveNodeInfo>(nodes.Count, StringComparer.OrdinalIgnoreCase);
         var str = new Dictionary<string, PassiveNodeInfo>(nodes.Count, StringComparer.OrdinalIgnoreCase);
         double minX = double.MaxValue, maxX = double.MinValue, minY = double.MaxValue, maxY = double.MinValue;
@@ -50,39 +52,13 @@ public sealed class PassiveTreeIndex
 
 /// <summary>
 /// Завантажує дерево пасивок із компактного бінарного ресурсу poe2_tree_05.bin.gz (без JsonDocument алокацій)
-/// і тримає кеш у WeakReference, щоб звільняти RAM при неактивності.
+/// у потокобезпечному лінивому кеші.
 /// </summary>
 public static class PassiveTreeService
 {
-    private static readonly object Sync = new();
-    private static WeakReference<PassiveTreeIndex>? _weakCache;
-    private static PassiveTreeIndex? _pinnedWhileActive;
+    private static readonly Lazy<PassiveTreeIndex> LazyIndex = new(LoadBinaryTree, isThreadSafe: true);
 
-    public static PassiveTreeIndex Index
-    {
-        get
-        {
-            lock (Sync)
-            {
-                if (_weakCache != null && _weakCache.TryGetTarget(out var cached))
-                    return cached;
-
-                var loaded = LoadBinaryTree();
-                _weakCache = new WeakReference<PassiveTreeIndex>(loaded);
-                _pinnedWhileActive = loaded;
-                return loaded;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Відпускає сильне посилання на індекс (залишається WeakReference, який GC може звільнити при простої).
-    /// </summary>
-    public static void UnpinCache()
-    {
-        lock (Sync)
-            _pinnedWhileActive = null;
-    }
+    public static PassiveTreeIndex Index => LazyIndex.Value;
 
     private static PassiveTreeIndex LoadBinaryTree()
     {
@@ -105,10 +81,19 @@ public static class PassiveTreeService
                 return new PassiveTreeIndex(nodes);
 
             byte version = br.ReadByte();
-            if (version != 1) return new PassiveTreeIndex(nodes);
+            if (version is not (1 or 2)) return new PassiveTreeIndex(nodes);
 
             int count = br.ReadInt32();
             nodes.Capacity = count;
+
+            double[]? orbitRadii = null;
+            if (version >= 2)
+            {
+                byte rCount = br.ReadByte();
+                orbitRadii = new double[rCount];
+                for (int r = 0; r < rCount; r++)
+                    orbitRadii[r] = br.ReadSingle();
+            }
 
             for (int i = 0; i < count; i++)
             {
@@ -120,6 +105,17 @@ public static class PassiveTreeService
                 float y = br.ReadSingle();
                 string asc = br.ReadString();
 
+                ushort groupId = 0;
+                byte orbit = 0;
+                float groupX = 0, groupY = 0;
+                if (version >= 2)
+                {
+                    groupId = br.ReadUInt16();
+                    orbit = br.ReadByte();
+                    groupX = br.ReadSingle();
+                    groupY = br.ReadSingle();
+                }
+
                 byte statCount = br.ReadByte();
                 var stats = statCount == 0 ? [] : new string[statCount];
                 for (int s = 0; s < statCount; s++)
@@ -127,8 +123,13 @@ public static class PassiveTreeService
 
                 byte connCount = br.ReadByte();
                 var conns = connCount == 0 ? [] : new string[connCount];
+                var connOrbits = connCount == 0 ? [] : new sbyte[connCount];
                 for (int c = 0; c < connCount; c++)
+                {
                     conns[c] = br.ReadInt32().ToString();
+                    if (version >= 2)
+                        connOrbits[c] = br.ReadSByte();
+                }
 
                 nodes.Add(new PassiveNodeInfo
                 {
@@ -140,9 +141,15 @@ public static class PassiveTreeService
                     Y = y,
                     Stats = stats,
                     AscendancyName = asc,
-                    Connections = conns
+                    GroupId = groupId,
+                    Orbit = orbit,
+                    GroupX = groupX,
+                    GroupY = groupY,
+                    Connections = conns,
+                    ConnectionOrbits = connOrbits
                 });
             }
+            return new PassiveTreeIndex(nodes, orbitRadii);
         }
         catch { }
         return new PassiveTreeIndex(nodes);

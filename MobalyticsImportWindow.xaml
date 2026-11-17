@@ -5,13 +5,13 @@
         Title="Mobalytics Direct Build Import — PoE 2 Overlay Companion"
         Width="1040" Height="720" MinWidth="760" MinHeight="520"
         WindowStartupLocation="CenterOwner"
-        Background="#FF0E1117" Foreground="#FFE6E8ED" FontFamily="Segoe UI">
+        Background="#FF16191D" Foreground="#FFDEE2E6" FontFamily="Segoe UI">
 
     <Window.Resources>
         <Style x:Key="MobaBtn" TargetType="Button">
-            <Setter Property="Background" Value="#FF1A1F29"/>
-            <Setter Property="Foreground" Value="#FFE6E8ED"/>
-            <Setter Property="BorderBrush" Value="#FF2D3443"/>
+            <Setter Property="Background" Value="#FF2B3035"/>
+            <Setter Property="Foreground" Value="#FFDEE2E6"/>
+            <Setter Property="BorderBrush" Value="#FF495057"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="10,5"/>
             <Setter Property="FontSize" Value="11"/>
@@ -20,12 +20,12 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#FF242B39"/>
+                                <Setter Property="Background" Value="#FF343A40"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -34,20 +34,20 @@
         </Style>
 
         <Style x:Key="MobaBrassBtn" TargetType="Button" BasedOn="{StaticResource MobaBtn}">
-            <Setter Property="Background" Value="#FFC49E57"/>
-            <Setter Property="Foreground" Value="#FF111318"/>
-            <Setter Property="BorderBrush" Value="#FFD8B872"/>
+            <Setter Property="Background" Value="#FF0D6EFD"/>
+            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+            <Setter Property="BorderBrush" Value="#FF0D6EFD"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="6" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#FFD4B06A"/>
+                                <Setter Property="Background" Value="#FF0B5ED7"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -64,7 +64,7 @@
         </Grid.RowDefinitions>
 
         <!-- Навігація + Кнопки прямого імпорту -->
-        <Border Grid.Row="0" Background="#FF141820" BorderBrush="#FF232834" BorderThickness="0,0,0,1" Padding="10,8">
+        <Border Grid.Row="0" Background="#FF212529" BorderBrush="#FF343A40" BorderThickness="0,0,0,1" Padding="10,8">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -75,11 +75,11 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Text="MOBALYTICS" Foreground="#FFD4B06A" FontWeight="Bold" FontSize="11.5"
+                <TextBlock Text="Mobalytics" Foreground="#FF6EA8FE" FontWeight="SemiBold" FontSize="12"
                            VerticalAlignment="Center" Margin="0,0,10,0"/>
 
-                <TextBox x:Name="UrlBox" Grid.Column="1" Background="#FF0B0D11" Foreground="#FFE6E8ED"
-                         BorderBrush="#FF2A3140" BorderThickness="1" Padding="8,5" FontSize="11"
+                <TextBox x:Name="UrlBox" Grid.Column="1" Background="#FF16191D" Foreground="#FFDEE2E6"
+                         BorderBrush="#FF495057" BorderThickness="1" Padding="8,5" FontSize="11"
                          VerticalContentAlignment="Center" KeyDown="UrlBox_KeyDown"/>
 
                 <Button x:Name="BtnNavigate" Grid.Column="2" Content="Відкрити" Style="{StaticResource MobaBtn}"
@@ -89,22 +89,22 @@
                         Style="{StaticResource MobaBrassBtn}" Margin="0,0,6,0" Click="ImportCurrent_Click"/>
 
                 <Button x:Name="BtnImportAll" Grid.Column="4" Content="Імпортувати ВСІ варіанти (етапи)"
-                        Style="{StaticResource MobaBtn}" Foreground="#FF4ECF8F" BorderBrush="#FF2A5A44"
+                        Style="{StaticResource MobaBtn}" Foreground="#FF75B798" BorderBrush="#FF0F5132"
                         Margin="0,0,6,0" Click="ImportAllVariants_Click"/>
 
                 <Button x:Name="BtnClipFallback" Grid.Column="5" Content="З буфера (Ctrl+A Ctrl+C)"
-                        Style="{StaticResource MobaBtn}" Foreground="#FF69ACEC" Click="ImportFromClipboard_Click"/>
+                        Style="{StaticResource MobaBtn}" Foreground="#FF6EA8FE" Click="ImportFromClipboard_Click"/>
             </Grid>
         </Border>
 
         <!-- Статус-рядок -->
-        <Border Grid.Row="1" Background="#FF11151C" BorderBrush="#FF232834" BorderThickness="0,0,0,1" Padding="10,5">
+        <Border Grid.Row="1" Background="#FF1B1F23" BorderBrush="#FF343A40" BorderThickness="0,0,0,1" Padding="10,5">
             <TextBlock x:Name="StatusText"
                        Text="Відкрий будь-який білд на mobalytics.gg/poe-2/builds (за потреби пройди перевірку браузера) і натисни «Імпортувати»."
-                       Foreground="#FF8B93A5" FontSize="10.5" TextWrapping="Wrap"/>
+                       Foreground="#FFADB5BD" FontSize="10.5" TextWrapping="Wrap"/>
         </Border>
 
         <!-- Інтерактивний WebView2 -->
-        <wv2:WebView2 x:Name="WebView" Grid.Row="2" DefaultBackgroundColor="#FF0E1117"/>
+        <wv2:WebView2 x:Name="WebView" Grid.Row="2" DefaultBackgroundColor="#FF16191D"/>
     </Grid>
 </Window>

@@ -182,23 +182,83 @@ public static class Poe2KnowledgeDb
                 return entry;
         }
 
-        // 2. Універсальний рівень-орієнтований розбір (не радимо ilvl 81+ гравцю 7 рівня!)
-        bool isBoots = slotLower.Contains("boot") || lower.Contains("boots") || lower.Contains("sandals") || lower.Contains("greaves");
-        bool isWeapon = slotLower.Contains("weapon") || lower.Contains("spear") || lower.Contains("quarterstaff") || lower.Contains("wand") || lower.Contains("bow") || lower.Contains("sceptre") || lower.Contains("staff") || lower.Contains("mace") || lower.Contains("crossbow") || lower.Contains("talisman");
-        bool isAmulet = slotLower.Contains("amulet") || lower.Contains("amulet");
-        bool isRing = slotLower.Contains("ring") || lower.Contains("ring");
-        bool isBelt = slotLower.Contains("belt") || lower.Contains("belt");
-        bool isJewel = slotLower.Contains("jewel") || lower.Contains("diamond") || lower.Contains("emerald") || lower.Contains("ruby") || lower.Contains("sapphire");
-        bool isFlask = slotLower.Contains("flask") || lower.Contains("flask");
-        bool isHelm = slotLower.Contains("helm") || lower.Contains("helmet") || lower.Contains("circlet") || lower.Contains("cap");
-        bool isBody = slotLower.Contains("body") || lower.Contains("armour") || lower.Contains("robe") || lower.Contains("vestment");
-        bool isGloves = slotLower.Contains("glove") || lower.Contains("wrappings") || lower.Contains("gauntlet");
+        // 2. Універсальний рівень-орієнтований розбір (спочатку явні Flask/Charm/Offhand/Jewel і цілі слова, щоб 'simmeRING' не падав в Jewellery!)
+        static bool HasWord(string hay, string word) =>
+            System.Text.RegularExpressions.Regex.IsMatch(hay, $@"\b{System.Text.RegularExpressions.Regex.Escape(word)}\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+        bool isFlask = slotLower.Contains("flask") || HasWord(lower, "flask");
+        bool isCharm = !isFlask && (slotLower.Contains("charm") || HasWord(lower, "charm"));
+        bool isOffhand = !isFlask && !isCharm && (slotLower.Contains("offhand") || HasWord(lower, "shield") || HasWord(lower, "buckler") || HasWord(lower, "focus") || HasWord(lower, "quiver"));
+        bool isJewel = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("jewel") || HasWord(lower, "diamond") || HasWord(lower, "emerald") || HasWord(lower, "ruby") || HasWord(lower, "sapphire"));
+        bool isBoots = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("boot") || HasWord(lower, "boots") || HasWord(lower, "sandals") || HasWord(lower, "greaves") || HasWord(lower, "shoes"));
+        bool isBody = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("body") || HasWord(lower, "armour") || HasWord(lower, "robe") || HasWord(lower, "vestment") || HasWord(lower, "cuirass") || HasWord(lower, "brigandine"));
+        bool isHelm = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("helm") || HasWord(lower, "helmet") || HasWord(lower, "circlet") || HasWord(lower, "cap") || HasWord(lower, "hood") || HasWord(lower, "crown"));
+        bool isGloves = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("glove") || HasWord(lower, "gloves") || HasWord(lower, "wrappings") || HasWord(lower, "gauntlets") || HasWord(lower, "mitts") || HasWord(lower, "bracers"));
+        bool isAmulet = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("amulet") || HasWord(lower, "amulet"));
+        bool isRing = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("ring") || HasWord(lower, "ring"));
+        bool isBelt = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("belt") || HasWord(lower, "belt") || HasWord(lower, "sash"));
+        bool isWeapon = !isFlask && !isCharm && !isOffhand && !isBoots && !isBody && !isHelm && !isGloves && !isAmulet && !isRing && !isBelt && !isJewel &&
+            (slotLower.Contains("weapon") || HasWord(lower, "spear") || HasWord(lower, "quarterstaff") || HasWord(lower, "quarterstaves") ||
+             HasWord(lower, "wand") || HasWord(lower, "bow") || HasWord(lower, "sceptre") || HasWord(lower, "staff") || HasWord(lower, "staves") ||
+             HasWord(lower, "mace") || HasWord(lower, "crossbow") || HasWord(lower, "talisman") || HasWord(lower, "flail") ||
+             HasWord(lower, "sword") || HasWord(lower, "axe") || HasWord(lower, "dagger") || HasWord(lower, "claw"));
 
         string reqWindow = curLvl < 65
             ? $"Lvl ~{Math.Max(1, curLvl - 2)}–{curLvl + 3} (ilvl {curLvl}+)"
             : curLvl < 78
                 ? $"ilvl {curLvl}–77 (Early Waystones T1–T8)"
                 : "ilvl 78–82+ (Waystones T11–T16)";
+
+        if (isFlask)
+        {
+            return new PoeItemObtainInfo(
+                "Life / Mana Flask", "Flask", curLvl < 65 ? $"Відповідна до Lvl {curLvl} фляга у торговця" : "ilvl 65+ (Ultimate / Colossal)",
+                curLvl < 65
+                    ? "Не забувай міняти старі фласки в торговця (Lesser → Medium → Greater → Grand) що 10–12 рівнів + ролити Instant Recovery через Transmutation!"
+                    : "Дроп Ultimate/Colossal Flasks на мапах + Transmutation/Augmentation. Якщо граєш через CI — уникай 'removed from Life'!",
+                curLvl < 65
+                    ? "Upgrade flask tier at town vendors every 10 levels and roll Instant Recovery!"
+                    : "Drop Ultimate Flasks on Maps; roll Instant Recovery and verify NO 'removed from Life' if CI.",
+                curLvl < 65
+                    ? "Обновляй тир фласок у торговца каждые ~10 уровней и ролль Instant Recovery!"
+                    : "Фарм Ultimate-фласок на картах + ролл Instant Recovery (остерегайся 'removed from Life' при CI).",
+                "Найкращі моди: 'Instant Recovery', збільшене відновлення та набір зарядів.",
+                "Best prefixes/suffixes: Instant Recovery, Charges Gained, Increased Amount Recovered.",
+                "Лучшие моды: Instant Recovery и набор зарядов."
+            );
+        }
+
+        if (isCharm)
+        {
+            return new PoeItemObtainInfo(
+                "Charm", "Charm", curLvl < 65 ? $"Lvl ~{curLvl} (Anti-Freeze / Anti-Stun)" : "ilvl 65+ (Endgame Charm)",
+                "Світовий дроп, торговці в місті та скрині. Для комфортного проходження тримай Thawing (Freeze), Grounding (Shock) або Stone (Stun) Charm.",
+                "World drops, town vendors, and chests. Prioritize Freeze (Thawing), Stun (Stone), or Bleed immunity charms.",
+                "Мировой дроп, торговцы и сундуки. Лучше всего Thawing (от заморозки) и Stone (от оглушения).",
+                "Шукай збільшену тривалість і зниження витрати зарядів.",
+                "Look for increased duration and reduced charges used.",
+                "Ищи увеличенную длительность и меньше трату зарядов."
+            );
+        }
+
+        if (isOffhand)
+        {
+            return new PoeItemObtainInfo(
+                "Offhand (Shield / Focus / Quiver)", "Offhand", reqWindow,
+                curLvl < 65
+                    ? "Торговці в місті щоразу при ап-левелі, гемблінг за золото та рідкісний дроп. На щитах/фокусах шукай Life, +% Block / ES та 1–2 резисти."
+                    : "Waystones / Rog Expedition / Trade 2. На щитах цінується +ES/Armour, Block% та резисти; на Quiver — Flat Dmg + Attack Speed +Bow Skills.",
+                curLvl < 65
+                    ? "Level-up vendors, Gold gambling, or campaign drops. Look for Life/ES, Block/Resistances (or Flat Dmg on Quiver)."
+                    : "Waystones, Rog Expeditions, or Trade 2 for high ES/Block Shields or +Skills Quivers.",
+                curLvl < 65
+                    ? "Вендоры при апе уровня, гемблинг и дроп в актах: ищи Life/ES, резисты и Block (или плоский урон на Quiver)."
+                    : "Waystones / Trade 2: высокий ES/Block на щитах и фокусах или +Skills на Quiver.",
+                "Додай Artificer's Orb + руну в оффхенд, щоб закрити блок або стихійний опір.",
+                "Socket a Rune into your offhand to plug resistance or defence gaps early.",
+                "Вставь руну в сокет оффхенда, чтобы быстро добрать защиту или резист."
+            );
+        }
 
         if (isWeapon)
         {
@@ -359,25 +419,6 @@ public static class Poe2KnowledgeDb
                 "Шукай Max Energy Shield %, Crit Damage Bonus, Attack/Cast Speed або Mana on Kill (2%).",
                 "Look for % ES / Crit Bonus / Elemental Dmg / Attack Speed / Gain Mana on Kill.",
                 "Ищи % ES, Crit Bonus, скорость и Mana on Kill."
-            );
-        }
-
-        if (isFlask)
-        {
-            return new PoeItemObtainInfo(
-                "Life / Mana Flask", "Flask", curLvl < 65 ? $"Відповідна до Lvl {curLvl} фляга у торговця" : "ilvl 65+ (Ultimate / Colossal)",
-                curLvl < 65
-                    ? "Не забувай міняти старі фласки в торговця (Lesser → Medium → Greater → Grand) що 10–12 рівнів + ролити Instant Recovery через Transmutation!"
-                    : "Дроп Ultimate/Colossal Flasks на мапах + Transmutation/Augmentation. Якщо граєш через CI — уникай 'removed from Life'!",
-                curLvl < 65
-                    ? "Upgrade flask tier at town vendors every 10 levels and roll Instant Recovery!"
-                    : "Drop Ultimate Flasks on Maps; roll Instant Recovery and verify NO 'removed from Life' if CI.",
-                curLvl < 65
-                    ? "Обновляй тир фласок у торговца каждые ~10 уровней и ролль Instant Recovery!"
-                    : "Фарм Ultimate-фласок на картах + ролл Instant Recovery (остерегайся 'removed from Life' при CI).",
-                "Найкращі моди: 'Instant Recovery', збільшене відновлення та набір зарядів.",
-                "Best prefixes/suffixes: Instant Recovery, Charges Gained, Increased Amount Recovered.",
-                "Лучшие моды: Instant Recovery и набор зарядов."
             );
         }
 

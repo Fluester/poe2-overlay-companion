@@ -132,22 +132,6 @@ public static class Win32OverlayHelper
     [DllImport("user32.dll", SetLastError = true)]
     public static extern bool PostMessageW(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
-    [DllImport("kernel32.dll")]
-    private static extern IntPtr GetCurrentProcess();
-
-    [DllImport("kernel32.dll", SetLastError = true)]
-    private static extern bool SetProcessWorkingSetSize(IntPtr hProcess, IntPtr dwMinimumWorkingSetSize, IntPtr dwMaximumWorkingSetSize);
-
-    public static void TrimWorkingSet()
-    {
-        try
-        {
-            GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, blocking: false);
-            SetProcessWorkingSetSize(GetCurrentProcess(), new IntPtr(-1), new IntPtr(-1));
-        }
-        catch { }
-    }
-
     public static readonly IntPtr HWND_BROADCAST = new(0xFFFF);
 
     public static bool IsKeyDown(int vKey) => (GetAsyncKeyState(vKey) & 0x8000) != 0;

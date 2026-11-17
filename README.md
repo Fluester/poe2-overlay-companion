@@ -1,6 +1,6 @@
 # PoE 2 Overlay Companion (C# / .NET 8 WPF)
 
-A clean, hardware-accelerated, non-activating Windows desktop overlay for **Path of Exile 2** (`v1.0.0`), built for **any build** with **zero hardcoded presets or bundled loot filters**.
+A clean, hardware-accelerated, non-activating Windows desktop overlay for **Path of Exile 2** (`v1.1.0`), built for **any build** with **zero hardcoded presets or bundled loot filters**.
 
 Supports **Українська / English / Русский** (both UI and build breakdowns), **batch `.build` / PoB2 / `pobb.in` / guide URL import**, an **interactive 2D Passive Tree viewer with Mobalytics-style leveling diff**, **AI Loot Filter generator & `.filter` validator**, live **`Ctrl+C` item evaluation**, **Trade 2 search**, a **Farm Session Tracker**, **comprehensive build update diffing**, and an optional **multimodal AI Advisor**.
 
@@ -9,11 +9,10 @@ Supports **Українська / English / Русский** (both UI and build 
 ## Features
 
 - **Zero Built-in Build or Filter Bias:** Clean universal PoE 2 tool out of the box — import your own builds via **Drag & Drop**, multi-file `.build` selection, folder import, **PoB2** codes / **`pobb.in`** / **`pastebin`** URLs, or guide links.
-- **Interactive 2D Passive Tree (`poe2_tree_05.bin.gz` — 4,535 nodes):**
-  - Fast compact binary reader (`BinaryReader`) + `WeakReference` cache & working-set memory trimming (`SetProcessWorkingSetSize`) when hidden/collapsed.
-  - Zoomable and pannable dark canvas with hover tooltips (node name, Keystone/Notable/Ascendancy type, localized stats).
-  - **Step-by-Step Leveling & Respec Diff:** Scrub through exact passive allocation steps (`1..N`) or compare **Current Stage vs Previous Stage** (`+ Take` in emerald, `Kept` in brass, `- Respec` in crimson).
-  - Side panel with searchable **Keystones / Notables / Ascendancy order**.
+- **Interactive 2D Passive Tree (`poe2_tree_05.bin.gz` v2 — 4,546 nodes & 120+ FPS):**
+  - Official `0_5/tree.json` geometry with true concentric orbital arcs (`ArcTo`), attribute-colored sockets, central Class Medallion, multi-layer glowing gold paths, and `WeakReference` cache + pre-baked `RenderTargetBitmap` texture for silky-smooth pan/zoom.
+  - **Step-by-Step Leveling & Respec Diff:** Scrub through exact passive allocation steps (`1..N`) or compare **Current Stage vs Previous Stage** (`+ Take` in emerald, `Kept` in brass, `- Respec` in crimson, plus `Set 1 / Set 2` filter).
+  - Side panel with searchable **Keystones / Notables / Ascendancy order** and shortest-path (`+N pts`) BFS hover preview.
 - **AI Loot Filter Generator & Custom `.filter` Manager:**
   - Generate PoE 2 loot filters from your active build's damage scaling, armor/ES/evasion bases, and strictness tier (`1–4`) via AI, validate syntax (`LinkedSockets` PoE1 warnings, block count), edit live, and install straight to `Documents\My Games\Path of Exile 2\`.
   - Drag & Drop or browse any existing `.filter` file to validate and install it.
@@ -21,9 +20,12 @@ Supports **Українська / English / Русский** (both UI and build 
 - **Batch Build Import & In-Game `BuildPlanner` Sync:**
   - Reads `.build` files strictly from `Documents\My Games\Path of Exile 2\BuildPlanner\` (live `FileSystemWatcher`).
   - Batch-adding `.build` files/folders automatically copies them into PoE 2's `BuildPlanner\` folder and lets you merge progression stages into **one multi-level profile** or keep them separate.
-- **Universal `Ctrl+C` Item Evaluator, Interactive Mod Price-Check & Dynamic PoE 2 Trade:**
+- **Universal `Ctrl+C` Item Evaluator, Waystone Mod Checker, Interactive Price-Check & PoE2DB Lookup (`Sidekick` / `Exiled Exchange 2` style):**
   - Compares items directly against your **actually worn gear** (`WornGearBySlot` via **"Equip as Mine"** or Official PoE 2 Account Sync) and displays explicit **`⬆ Better / ⬇ Worse (% delta)`** verdicts in the cursor Toast + asynchronous live Trade 2 price estimate.
-  - **Interactive Mod Checkboxes (`Alt+E` / PoE Overlay II style):** toggle individual explicit/defense mods to query or open an exact custom Trade 2 search, plus 1-click Vendor & Waystone Regex (`<50` chars).
+  - **Interactive Waystone / Map Mod Checker:** Automatically flags dangerous Waystone modifiers (`Deadly` / `Caution` / `Good`) for your build on `Ctrl+C`; click any mod in the Items tab to save custom overrides (`CustomWaystoneModTags`).
+  - **Live Trade 2 Listings with Age + Pseudo Mods & Editable `min` Thresholds:** Toggle explicit, defense, or pseudo-total stats (`Total Elemental Resistances`, `Total Attributes`), adjust numeric `min` boxes inline before searching, and inspect up to 8 live listing prices with listing ages (`4m`, `2h`, `6d`) to avoid stale price-fixers.
+  - **Affix Slot Counter & 1-Click `PoE2DB` Lookup:** Shows estimated `Prefix / Suffix` occupancy + open Exalt slots on Magic/Rare gear and opens the exact item/base on `poe2db.tw`.
+  - **Live Currency Exchange Ticker (`Farm` tab):** Displays live `Divine -> Exalted / Chaos` and `Chaos -> Exalted` market ratios for your active league (`FetchKeyExchangeRatesAsync`), plus 1-click Vendor & Waystone Regex (`<50` chars).
 - **Trade Helper Bar, Campaign Zone Guide (`Client.txt`), Stash Net-Worth & Command Wheel (`F8`):**
   - Parses incoming/outgoing PoE 2 trade whispers from `Client.txt` with a floating 1-click macro bar (*Invite*, *Trade*, *Hideout*, *1 min*, *Thx*, *Sold*).
   - Automatically displays permanent campaign zone rewards (`+30 Spirit`, `+2 Passives`, `+10% Resists`) and boss tips on zone transition.
@@ -50,9 +52,9 @@ Supports **Українська / English / Русский** (both UI and build 
 
 ## Quick Start (3 Release Downloads Explained)
 
-- **`Poe2OverlayCompanion_Setup_1.0.0.exe` (Windows Installer):** Checks [.NET 8 Desktop Runtime x64](https://dotnet.microsoft.com/en-us/download/dotnet/8.0), installs to `%LocalAppData%\Programs\PoE 2 Overlay Companion\`, creates Start Menu & Desktop shortcuts, adds standard Windows Uninstaller, and supports Launch with Windows.
+- **`Poe2OverlayCompanion_Setup_1.1.0.exe` (Windows Installer):** Checks [.NET 8 Desktop Runtime x64](https://dotnet.microsoft.com/en-us/download/dotnet/8.0), installs to `%LocalAppData%\Programs\PoE 2 Overlay Companion\`, creates Start Menu & Desktop shortcuts, adds standard Windows Uninstaller, and supports Launch with Windows.
 - **`Poe2OverlayCompanion.exe` (Standalone Single-File EXE):** Runs directly with 1 click without installation (stores config in `%LocalAppData%\Poe2OverlayCompanion\` unless launched with `--portable`).
-- **`Poe2OverlayCompanion_Portable_v1.0.0.zip` (Portable Archive):** Extracts anywhere with a `portable.mode` marker so config, builds, and WebView2 cache stay strictly inside `.\Data\` next to the `.exe`.
+- **`Poe2OverlayCompanion_Portable_v1.1.0.zip` (Portable Archive):** Extracts anywhere with a `portable.mode` marker so config, builds, and WebView2 cache stay strictly inside `.\Data\` next to the `.exe`.
 
 ### Option C — Build Standalone `.exe` & Installer from Source
 ```powershell

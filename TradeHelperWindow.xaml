@@ -9,42 +9,42 @@
         ShowActivated="False"
         Width="405"
         SizeToContent="Height"
-        Background="#FF0A0B0D">
+        Background="#FF212529">
 
-    <Border Background="#FF0A0B0D" BorderBrush="#FFD4B06A" BorderThickness="1" Padding="8,6">
+    <Border Background="#FF212529" BorderBrush="#FF495057" BorderThickness="1" Padding="10,8">
         <StackPanel>
             <!-- Верхній рядок: Заголовок, Навігація черги, Закрити -->
-            <DockPanel MouseLeftButtonDown="Header_MouseLeftButtonDown" Margin="0,0,0,4">
-                <TextBlock x:Name="TitleText" Text="TRADE HELPER" Foreground="#FFD4B06A" FontWeight="Bold" FontSize="10" VerticalAlignment="Center"/>
+            <DockPanel MouseLeftButtonDown="Header_MouseLeftButtonDown" Margin="0,0,0,6">
+                <TextBlock x:Name="TitleText" Text="Trade Helper" Foreground="#FF6EA8FE" FontWeight="SemiBold" FontSize="11" VerticalAlignment="Center"/>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="‹" Width="22" Height="18" Background="#FF171B24" Foreground="#FFE6E8ED" BorderBrush="#FF2A303E" Margin="0,0,2,0" FontSize="10" Cursor="Hand" Focusable="False" Click="Prev_Click"/>
-                    <TextBlock x:Name="CountText" Text="0/0" Foreground="#FF8B93A5" FontSize="10" VerticalAlignment="Center" Margin="3,0"/>
-                    <Button Content="›" Width="22" Height="18" Background="#FF171B24" Foreground="#FFE6E8ED" BorderBrush="#FF2A303E" Margin="0,0,4,0" FontSize="10" Cursor="Hand" Focusable="False" Click="Next_Click"/>
-                    <Button Content="✕" Width="20" Height="18" Background="#FF241416" Foreground="#FFEA6161" BorderBrush="#FF52282D" FontSize="9.5" Cursor="Hand" Focusable="False" Click="DismissCurrent_Click"/>
+                    <Button Content="‹" Width="24" Height="20" Background="#FF2B3035" Foreground="#FFDEE2E6" BorderBrush="#FF495057" Margin="0,0,2,0" FontSize="10.5" Cursor="Hand" Focusable="False" Click="Prev_Click"/>
+                    <TextBlock x:Name="CountText" Text="0/0" Foreground="#FFADB5BD" FontSize="10.5" VerticalAlignment="Center" Margin="4,0"/>
+                    <Button Content="›" Width="24" Height="20" Background="#FF2B3035" Foreground="#FFDEE2E6" BorderBrush="#FF495057" Margin="0,0,5,0" FontSize="10.5" Cursor="Hand" Focusable="False" Click="Next_Click"/>
+                    <Button Content="✕" Width="22" Height="20" Background="#FF2C0B0E" Foreground="#FFEA868F" BorderBrush="#FF842029" FontSize="10" Cursor="Hand" Focusable="False" Click="DismissCurrent_Click"/>
                 </StackPanel>
             </DockPanel>
 
             <!-- Інформація про запит -->
-            <Border Background="#FF13151B" BorderBrush="#FF232834" BorderThickness="1" CornerRadius="4" Padding="7,5" Margin="0,0,0,5">
+            <Border Background="#FF16191D" BorderBrush="#FF343A40" BorderThickness="1" CornerRadius="6" Padding="9,6" Margin="0,0,0,7">
                 <StackPanel>
                     <DockPanel>
-                        <TextBlock x:Name="PlayerText" Text="@Player" Foreground="#FF4ECF8F" FontWeight="SemiBold" FontSize="11.5"/>
-                        <TextBlock x:Name="PriceText" DockPanel.Dock="Right" HorizontalAlignment="Right" Text="" Foreground="#FFD4B06A" FontWeight="Bold" FontSize="11"/>
+                        <TextBlock x:Name="PlayerText" Text="@Player" Foreground="#FF75B798" FontWeight="SemiBold" FontSize="12"/>
+                        <TextBlock x:Name="PriceText" DockPanel.Dock="Right" HorizontalAlignment="Right" Text="" Foreground="#FFFFDA6A" FontWeight="SemiBold" FontSize="11.5"/>
                     </DockPanel>
-                    <TextBlock x:Name="ItemText" Text="" Foreground="#FFE6E8ED" FontSize="10.5" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
-                    <TextBlock x:Name="StashText" Text="" Foreground="#FF69ACEC" FontSize="9.5" Margin="0,2,0,0"/>
+                    <TextBlock x:Name="ItemText" Text="" Foreground="#FFDEE2E6" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                    <TextBlock x:Name="StashText" Text="" Foreground="#FF6EDFF6" FontSize="10" Margin="0,2,0,0"/>
                 </StackPanel>
             </Border>
 
-            <!-- Кнопки 1-клік (1 дія = 1 клік, відповідає GGG ToS) -->
+            <!-- Кнопки 1-клік (Bootstrap) -->
             <WrapPanel>
-                <Button x:Name="BtnInvite" Content="Invite" Padding="8,3" Margin="0,0,4,3" Background="#FF163225" Foreground="#FF4ECF8F" BorderBrush="#FF2A5A44" FontSize="10" FontWeight="SemiBold" Cursor="Hand" Focusable="False" Click="Invite_Click"/>
-                <Button x:Name="BtnTrade" Content="Trade" Padding="8,3" Margin="0,0,4,3" Background="#FFC49E57" Foreground="#FF111318" BorderBrush="#FFD8B872" FontSize="10" FontWeight="SemiBold" Cursor="Hand" Focusable="False" Click="Trade_Click"/>
-                <Button x:Name="BtnHideout" Content="Hideout" Padding="8,3" Margin="0,0,4,3" Background="#FF1A1F29" Foreground="#FFE6E8ED" BorderBrush="#FF2E3545" FontSize="10" Cursor="Hand" Focusable="False" Click="Hideout_Click"/>
-                <Button x:Name="BtnWait" Content="Wait" Padding="7,3" Margin="0,0,4,3" Background="#FF1A1F29" Foreground="#FFDFA74A" BorderBrush="#FF2E3545" FontSize="10" Cursor="Hand" Focusable="False" Click="Wait_Click"/>
-                <Button x:Name="BtnThanks" Content="Thx" Padding="7,3" Margin="0,0,4,3" Background="#FF1A1F29" Foreground="#FF69ACEC" BorderBrush="#FF2E3545" FontSize="10" Cursor="Hand" Focusable="False" Click="Thanks_Click"/>
-                <Button x:Name="BtnSold" Content="Sold" Padding="7,3" Margin="0,0,4,3" Background="#FF241416" Foreground="#FFEA6161" BorderBrush="#FF52282D" FontSize="10" Cursor="Hand" Focusable="False" Click="Sold_Click"/>
-                <Button x:Name="BtnKick" Content="Kick" Padding="7,3" Margin="0,0,0,3" Background="#FF171B24" Foreground="#FF8B93A5" BorderBrush="#FF2A303E" FontSize="10" Cursor="Hand" Focusable="False" Click="Kick_Click"/>
+                <Button x:Name="BtnInvite" Content="Invite" Padding="8,4" Margin="0,0,4,3" Background="#FF198754" Foreground="#FFFFFFFF" BorderBrush="#FF198754" FontSize="10.5" FontWeight="SemiBold" Cursor="Hand" Focusable="False" Click="Invite_Click"/>
+                <Button x:Name="BtnTrade" Content="Trade" Padding="8,4" Margin="0,0,4,3" Background="#FF0D6EFD" Foreground="#FFFFFFFF" BorderBrush="#FF0D6EFD" FontSize="10.5" FontWeight="SemiBold" Cursor="Hand" Focusable="False" Click="Trade_Click"/>
+                <Button x:Name="BtnHideout" Content="Hideout" Padding="8,4" Margin="0,0,4,3" Background="#FF2B3035" Foreground="#FFDEE2E6" BorderBrush="#FF495057" FontSize="10.5" Cursor="Hand" Focusable="False" Click="Hideout_Click"/>
+                <Button x:Name="BtnWait" Content="Wait" Padding="7,4" Margin="0,0,4,3" Background="#FF2B3035" Foreground="#FFFFDA6A" BorderBrush="#FF495057" FontSize="10.5" Cursor="Hand" Focusable="False" Click="Wait_Click"/>
+                <Button x:Name="BtnThanks" Content="Thx" Padding="7,4" Margin="0,0,4,3" Background="#FF2B3035" Foreground="#FF6EDFF6" BorderBrush="#FF495057" FontSize="10.5" Cursor="Hand" Focusable="False" Click="Thanks_Click"/>
+                <Button x:Name="BtnSold" Content="Sold" Padding="7,4" Margin="0,0,4,3" Background="#FFDC3545" Foreground="#FFFFFFFF" BorderBrush="#FFDC3545" FontSize="10.5" Cursor="Hand" Focusable="False" Click="Sold_Click"/>
+                <Button x:Name="BtnKick" Content="Kick" Padding="7,4" Margin="0,0,0,3" Background="#FF2B3035" Foreground="#FFADB5BD" BorderBrush="#FF495057" FontSize="10.5" Cursor="Hand" Focusable="False" Click="Kick_Click"/>
             </WrapPanel>
         </StackPanel>
     </Border>

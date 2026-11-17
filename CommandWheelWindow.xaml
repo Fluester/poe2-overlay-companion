@@ -9,29 +9,29 @@
         ShowActivated="False"
         Width="350"
         SizeToContent="Height"
-        Background="#FF0A0B0D">
+        Background="#FF212529">
 
-    <Border Background="#FF0A0B0D" BorderBrush="#FFD4B06A" BorderThickness="1.2" Padding="10">
+    <Border Background="#FF212529" BorderBrush="#FF495057" BorderThickness="1" Padding="11">
         <StackPanel>
-            <DockPanel Margin="0,0,0,7">
-                <TextBlock x:Name="TitleText" Text="QUICK COMMANDS (F8)" Foreground="#FFD4B06A" FontWeight="Bold" FontSize="10.5" VerticalAlignment="Center"/>
-                <Button Content="✕" DockPanel.Dock="Right" HorizontalAlignment="Right" Width="22" Height="18"
-                        Background="#FF241416" Foreground="#FFEA6161" BorderBrush="#FF52282D" FontSize="9.5"
+            <DockPanel Margin="0,0,0,8">
+                <TextBlock x:Name="TitleText" Text="Quick Commands (F8)" Foreground="#FF6EA8FE" FontWeight="SemiBold" FontSize="11.5" VerticalAlignment="Center"/>
+                <Button Content="✕" DockPanel.Dock="Right" HorizontalAlignment="Right" Width="24" Height="20"
+                        Background="#FF2C0B0E" Foreground="#FFEA868F" BorderBrush="#FF842029" FontSize="10"
                         Cursor="Hand" Focusable="False" Click="Close_Click"/>
             </DockPanel>
 
             <UniformGrid Columns="3" Rows="3">
-                <Button x:Name="BtnHideout" Content="Hideout" Margin="2" Padding="6,8" Background="#FF13151B" Foreground="#FFE6E8ED" BorderBrush="#FF2B3344" FontSize="10.5" FontWeight="SemiBold" Cursor="Hand" Focusable="False" Click="RunHideout_Click"/>
-                <Button x:Name="BtnKingsmarch" Content="Kingsmarch" Margin="2" Padding="6,8" Background="#FF13151B" Foreground="#FFE6E8ED" BorderBrush="#FF2B3344" FontSize="10.5" FontWeight="SemiBold" Cursor="Hand" Focusable="False" Click="RunKingsmarch_Click"/>
-                <Button x:Name="BtnRemaining" Content="/remaining" Margin="2" Padding="6,8" Background="#FF13151B" Foreground="#FF4ECF8F" BorderBrush="#FF2A5A44" FontSize="10.5" FontWeight="SemiBold" Cursor="Hand" Focusable="False" Click="RunRemaining_Click"/>
+                <Button x:Name="BtnHideout" Content="Hideout" Margin="2.5" Padding="6,8" Background="#FF2B3035" Foreground="#FFDEE2E6" BorderBrush="#FF495057" FontSize="10.5" FontWeight="SemiBold" Cursor="Hand" Focusable="False" Click="RunHideout_Click"/>
+                <Button x:Name="BtnKingsmarch" Content="Kingsmarch" Margin="2.5" Padding="6,8" Background="#FF2B3035" Foreground="#FFDEE2E6" BorderBrush="#FF495057" FontSize="10.5" FontWeight="SemiBold" Cursor="Hand" Focusable="False" Click="RunKingsmarch_Click"/>
+                <Button x:Name="BtnRemaining" Content="/remaining" Margin="2.5" Padding="6,8" Background="#FF051B11" Foreground="#FF75B798" BorderBrush="#FF0F5132" FontSize="10.5" FontWeight="SemiBold" Cursor="Hand" Focusable="False" Click="RunRemaining_Click"/>
 
-                <Button x:Name="BtnPassives" Content="/passives" Margin="2" Padding="6,8" Background="#FF13151B" Foreground="#FFD4B06A" BorderBrush="#FF6E5932" FontSize="10.5" Cursor="Hand" Focusable="False" Click="RunPassives_Click"/>
-                <Button x:Name="BtnDeaths" Content="/deaths" Margin="2" Padding="6,8" Background="#FF13151B" Foreground="#FFEA6161" BorderBrush="#FF52282D" FontSize="10.5" Cursor="Hand" Focusable="False" Click="RunDeaths_Click"/>
-                <Button x:Name="BtnLastThanks" Content="@Last Thx" Margin="2" Padding="6,8" Background="#FF16283B" Foreground="#FF69ACEC" BorderBrush="#FF344D70" FontSize="10.5" Cursor="Hand" Focusable="False" Click="RunLastThanks_Click"/>
+                <Button x:Name="BtnPassives" Content="/passives" Margin="2.5" Padding="6,8" Background="#FF031633" Foreground="#FF6EA8FE" BorderBrush="#FF084298" FontSize="10.5" Cursor="Hand" Focusable="False" Click="RunPassives_Click"/>
+                <Button x:Name="BtnDeaths" Content="/deaths" Margin="2.5" Padding="6,8" Background="#FF2C0B0E" Foreground="#FFEA868F" BorderBrush="#FF842029" FontSize="10.5" Cursor="Hand" Focusable="False" Click="RunDeaths_Click"/>
+                <Button x:Name="BtnLastThanks" Content="@Last Thx" Margin="2.5" Padding="6,8" Background="#FF032830" Foreground="#FF6EDFF6" BorderBrush="#FF087990" FontSize="10.5" Cursor="Hand" Focusable="False" Click="RunLastThanks_Click"/>
 
-                <Button x:Name="BtnLastWait" Content="@Last Wait" Margin="2" Padding="6,8" Background="#FF16283B" Foreground="#FFDFA74A" BorderBrush="#FF6E5932" FontSize="10.5" Cursor="Hand" Focusable="False" Click="RunLastWait_Click"/>
-                <Button x:Name="BtnCustom1" Content="Cmd 1" Margin="2" Padding="6,8" Background="#FF141820" Foreground="#FFC5CBD8" BorderBrush="#FF232834" FontSize="10" Cursor="Hand" Focusable="False" Click="RunCustom1_Click"/>
-                <Button x:Name="BtnCustom2" Content="Cmd 2" Margin="2" Padding="6,8" Background="#FF141820" Foreground="#FFC5CBD8" BorderBrush="#FF232834" FontSize="10" Cursor="Hand" Focusable="False" Click="RunCustom2_Click"/>
+                <Button x:Name="BtnLastWait" Content="@Last Wait" Margin="2.5" Padding="6,8" Background="#FF332701" Foreground="#FFFFDA6A" BorderBrush="#FF664D03" FontSize="10.5" Cursor="Hand" Focusable="False" Click="RunLastWait_Click"/>
+                <Button x:Name="BtnCustom1" Content="Cmd 1" Margin="2.5" Padding="6,8" Background="#FF2B3035" Foreground="#FFADB5BD" BorderBrush="#FF495057" FontSize="10" Cursor="Hand" Focusable="False" Click="RunCustom1_Click"/>
+                <Button x:Name="BtnCustom2" Content="Cmd 2" Margin="2.5" Padding="6,8" Background="#FF2B3035" Foreground="#FFADB5BD" BorderBrush="#FF495057" FontSize="10" Cursor="Hand" Focusable="False" Click="RunCustom2_Click"/>
             </UniformGrid>
         </StackPanel>
     </Border>

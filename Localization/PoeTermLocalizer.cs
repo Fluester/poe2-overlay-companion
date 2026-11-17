@@ -60,12 +60,14 @@ public static class PoeTermLocalizer
         "Amulet1" or "Amulet" => Loc.T("Амулет", "Amulet", "Амулет"),
         "Ring1" or "Ring 1" => Loc.T("Перстень 1", "Ring 1", "Кольцо 1"),
         "Ring2" or "Ring 2" => Loc.T("Перстень 2", "Ring 2", "Кольцо 2"),
+        "Ring3" or "Ring 3" => Loc.T("Перстень 3", "Ring 3", "Кольцо 3"),
+        "Trinket" or "Trinket1" => Loc.T("Артифакт (Trinket)", "Trinket", "Тринкет"),
         "Belt1" or "Belt" => Loc.T("Пояс", "Belt", "Пояс"),
         "Charm1" => Loc.T("Талісман 1", "Charm 1", "Чарм 1"),
         "Charm2" => Loc.T("Талісман 2", "Charm 2", "Чарм 2"),
         "Charm3" => Loc.T("Талісман 3", "Charm 3", "Чарм 3"),
-        "Flask 1" => Loc.T("Фласка 1", "Flask 1", "Флакон 1"),
-        "Flask 2" => Loc.T("Фласка 2", "Flask 2", "Флакон 2"),
+        "Flask1" or "Flask 1" => Loc.T("Фласка 1", "Flask 1", "Флакон 1"),
+        "Flask2" or "Flask 2" => Loc.T("Фласка 2", "Flask 2", "Флакон 2"),
         _ => rawSlot
     };
 
@@ -139,6 +141,7 @@ public static class PoeTermLocalizer
         BuildSourceKind.Pob2Import => Loc.T("Імпорт PoB2", "PoB2 Import", "Импорт PoB2"),
         BuildSourceKind.MobalyticsImport => "Mobalytics",
         BuildSourceKind.GuideUrlImport => Loc.T("Гайд URL", "Guide URL", "Гайд URL"),
+        BuildSourceKind.AccountSync => Loc.T("PoE 2 Акаунт", "PoE 2 Account", "PoE 2 Аккаунт"),
         _ => kind.ToString()
     };
 }

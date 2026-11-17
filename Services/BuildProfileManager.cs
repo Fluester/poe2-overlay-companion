@@ -38,6 +38,7 @@ public sealed class BuildProfileManager
     private void LoadProfiles()
     {
         Profiles.Clear();
+        bool removedAccountPseudoBuilds = false;
         try
         {
             if (File.Exists(_profilesPath))
@@ -48,6 +49,13 @@ public sealed class BuildProfileManager
                 {
                     foreach (var p in saved)
                     {
+                        // Акаунт персонажа не є білдом — мігруємо та прибираємо старі [Account] псевдо-профілі
+                        if (p.SourceKind == BuildSourceKind.AccountSync ||
+                            p.Name.StartsWith("[Account]", StringComparison.OrdinalIgnoreCase))
+                        {
+                            removedAccountPseudoBuilds = true;
+                            continue;
+                        }
                         NormalizeProfileStages(p);
                         Profiles.Add(p);
                     }
@@ -55,6 +63,7 @@ public sealed class BuildProfileManager
             }
         }
         catch { }
+        if (removedAccountPseudoBuilds) SaveProfiles();
     }
 
     public void SaveProfiles()

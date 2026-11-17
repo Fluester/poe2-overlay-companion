@@ -52,11 +52,11 @@ public partial class MobalyticsImportWindow : Window
                 return;
             }
 
-            string userData = AppPaths.GetWebView2CacheDirectory();
-
-            var env = await CoreWebView2Environment.CreateAsync(userDataFolder: userData);
+            var env = await WebView2Helper.GetEnvironmentAsync();
             await WebView.EnsureCoreWebView2Async(env);
             WebView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = true;
+            WebView.CoreWebView2.ProcessFailed += (_, pf) =>
+                Dispatcher.Invoke(() => StatusText.Text = $"WebView2 process restarted ({pf.ProcessFailedKind}).");
             WebView.NavigationCompleted += (_, args) =>
             {
                 Dispatcher.Invoke(() =>

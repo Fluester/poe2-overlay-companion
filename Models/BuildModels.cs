@@ -18,7 +18,8 @@ public enum BuildSourceKind
     BuildPlannerImport,
     Pob2Import,
     GuideUrlImport,
-    MobalyticsImport
+    MobalyticsImport,
+    AccountSync
 }
 
 public enum ItemVerdict
@@ -52,6 +53,7 @@ public sealed class ItemEvaluation
     public ItemVerdict Verdict { get; set; } = ItemVerdict.Info;
     public string Summary { get; set; } = "";
     public string MatchedBuildSlot { get; set; } = "";
+    public string MatchedWornText { get; set; } = "";
     public string UpgradeVerdict { get; set; } = "";
     public int UpgradeDeltaPct { get; set; }
     public string UpgradeComparisonNote { get; set; } = "";
@@ -62,12 +64,30 @@ public sealed class ItemEvaluation
     public string LivePriceSummary { get; set; } = "";
     public string ObtainInfo { get; set; } = "";
     public string GeneratedTradeUrl { get; set; } = "";
+    public string WikiUrl { get; set; } = "";
     public string RawCopiedText { get; set; } = "";
+    public bool IsWaystone { get; set; }
+    public int EstimatedPrefixes { get; set; }
+    public int EstimatedSuffixes { get; set; }
+    public string AffixSummary { get; set; } = "";
+    public List<WaystoneModEvaluation> WaystoneMods { get; } = [];
+    public List<TradePriceListing> LiveListings { get; set; } = [];
     public List<string> Positives { get; } = [];
     public List<string> Warnings { get; } = [];
     public List<string> Missing { get; } = [];
     public List<ItemModFilterOption> SelectableMods { get; } = [];
 }
+
+public enum MapModSafety
+{
+    Good,
+    Caution,
+    Deadly
+}
+
+public sealed record WaystoneModEvaluation(string ModText, string PatternKey, MapModSafety Safety, string Reason);
+
+public sealed record TradePriceListing(double Amount, string Currency, string AgeText, string AccountName);
 
 public sealed class ItemModFilterOption
 {
@@ -228,7 +248,12 @@ public sealed class PassiveNodeInfo
     public double Y { get; init; }
     public string[] Stats { get; init; } = [];
     public string AscendancyName { get; init; } = "";
+    public ushort GroupId { get; init; }
+    public byte Orbit { get; init; }
+    public double GroupX { get; init; }
+    public double GroupY { get; init; }
     public string[] Connections { get; init; } = [];
+    public sbyte[] ConnectionOrbits { get; init; } = [];
 }
 
 public enum PassiveDiffStatus
