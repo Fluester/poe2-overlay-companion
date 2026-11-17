@@ -43,7 +43,7 @@ public partial class MainWindow : Window
     private bool _autoSyncLevel = true;
     private readonly bool _startMinimized;
     private int _alphaIdx;
-    private readonly double[] _alphas = [0.95, 0.82, 1.0];
+    private readonly double[] _alphas = [0.95, 0.80, 0.65, 0.48, 1.0];
 
     private string _lastClipboard = "";
     private string _ignoreClipboardText = "";
@@ -69,6 +69,9 @@ public partial class MainWindow : Window
     private string _inspectorAiPrompt = "";
     private int _filterStrictness = 3;
     private bool _filterGenBusy;
+    private bool _itemsExtraExpanded;
+    private bool _aiHasResponse;
+    private bool _filterStatusCustom;
     private AppUpdateInfo? _pendingAppUpdate;
     private bool _appUpdateBusy;
     private Pob2Summary? _cachedActivePob;
@@ -378,12 +381,17 @@ public partial class MainWindow : Window
         ApplyLanguage();
 
         RefreshLogStatus(showZoneToast: false);
+        RefreshProfilesUi();
         RefreshOverview();
         if (_initializedTabs.Contains(NavBtnPassives)) RefreshPassiveTreeTab(resetSteps: false);
-        if (_initializedTabs.Contains(NavBtnItems)) RefreshWornSlotsStrip();
+        if (_initializedTabs.Contains(NavBtnItems))
+        {
+            RefreshDynamicTradeButtons();
+            RefreshWornSlotsStrip();
+        }
         if (_buildsPlannerInit) RenderPlannerCards();
         if (_initializedTabs.Contains(NavBtnFarm)) RefreshFarmStatsUi();
-        if (_buildsUpdatesInit) RenderUpdateHistory();
+        if (_buildsUpdatesInit) InitUpdateMonitorUi();
         if (_lastItemEval != null) CheckClipboard(force: true);
     }
 
@@ -408,11 +416,8 @@ public partial class MainWindow : Window
         BtnSubBuildsImport.Content = Loc.T("Профілі та імпорт", "Profiles & Import", "Профили и импорт");
         BtnSubBuildsPlanner.Content = Loc.T("Планувальник .build", ".build Planner", "Планировщик .build");
         BtnSubBuildsUpdates.Content = Loc.T("Оновлення", "Updates", "Обновления");
-        AlphaBtn.Content = Loc.T("Прозорість", "Opacity", "Прозрачность");
-        BtnCommandWheel.Content = Loc.T("Команди (F8)", "Commands (F8)", "Команды (F8)");
-        AiQuickBtn.Content = Loc.T("Скрін AI (F11)", "Screen AI (F11)", "Скрин AI (F11)");
-
-        LogBtn.Content = Loc.T("Обрати Client.txt", "Select Client.txt", "Выбрать Client.txt");
+        UpdateAlphaButtonLabel();
+        UpdateLogButtonUi();
 
         OverviewEmptyTitle.Text = Loc.T("Поки що немає доданого білду", "No Build Profile Loaded", "Пока нет добавленного билда");
         OverviewEmptyBody.Text = Loc.LblNoBuildsYet;
@@ -448,7 +453,10 @@ public partial class MainWindow : Window
         BtnAiGenerateFilter.Content = Loc.T("AI-генерувати", "AI Generate", "AI-генерировать");
         BtnLoadCustomFilter.Content = Loc.T("Завантажити .filter", "Load .filter", "Загрузить .filter");
         BtnSaveFilterToGame.Content = Loc.T("Зберегти в PoE 2", "Save to PoE 2", "Сохранить в PoE 2");
-        if (_initializedTabs.Contains(NavBtnItems)) RefreshInstalledFiltersLabel();
+        RefreshInstalledFiltersLabel();
+        if (!_filterStatusCustom)
+            FilterStatusText.Text = Loc.T("Згенеруй під білд через AI або завантаж власний .filter.", "Generate with AI for your build or load a custom .filter file.", "Сгенерируй под билд через AI или загрузи свой .filter.");
+        UpdateItemsExtraButtonUi();
         LblTradeTitle.Text = Loc.T("PoE 2 Trade та Regex", "PoE 2 Trade & Regex", "PoE 2 Trade и Regex");
         LblLeague.Text = Loc.T("Ліга:", "League:", "Лига:");
         LblSideCompareTitle.Text = Loc.T("ПОРІВНЯННЯ В ОВЕРЛЕЇ", "IN-OVERLAY COMPARISON", "СРАВНЕНИЕ В ОВЕРЛЕЕ");
@@ -458,12 +466,12 @@ public partial class MainWindow : Window
         {
             ItemVerdictText.Text = Loc.T("Наведи на предмет у PoE 2 і натисни Ctrl+C", "Hover an item in PoE 2 and press Ctrl+C", "Наведи на предмет в PoE 2 и нажми Ctrl+C");
             ItemDetailsText.Text = Loc.T("Перевірка предмета адаптується під активний білд та поточний етап.", "Evaluation adapts automatically to your active build and stage.", "Оценка предмета адаптируется под активный билд и текущий этап.");
+            CompareNewTitle.Text = Loc.T("Оцінюваний предмет", "Evaluated Item", "Оцениваемый предмет");
+            CompareWornTitle.Text = Loc.T("На тобі зараз", "Equipped Now", "Надето сейчас");
         }
 
         ChkPlannerFilterByLevel.Content = Loc.T("Фільтр за моїм рівнем (level_interval)", "Filter by my level (level_interval)", "Фильтр по моему уровню (level_interval)");
-        BtnImportBuildFiles.Content = Loc.T("+ Файли .build", "+ .build Files", "+ Файлы .build");
-        BtnImportBuildFolder.Content = Loc.T("+ З папки", "+ From Folder", "+ Из папки");
-        BtnPlannerMakeProfile.Content = Loc.T("Створити білд", "Make Active Build", "Создать билд");
+        BtnPlannerMakeProfile.Content = Loc.T("Активувати", "Make Active Build", "Активировать");
         BtnOpenPlannerDir.Content = Loc.T("Папка гри", "Game Folder", "Папка игры");
 
         LblFarmHeader.Text = Loc.T("Статистика сесії (Client.txt)", "Session Tracker (Client.txt)", "Статистика сессии (Client.txt)");
@@ -472,6 +480,11 @@ public partial class MainWindow : Window
         LblKpiZone.Text = Loc.T("Поточна зона", "Current Zone", "Текущая зона");
         LblKpiMaps.Text = Loc.T("Карт / Середній час", "Maps / Avg Clear", "Карт / Среднее время");
         LblKpiEncounters.Text = Loc.T("Енкаунтери / Смерті", "Encounters / Deaths", "Энкаунтеры / Смерти");
+        LblStashHeader.Text = Loc.T("Скриня (Net-Worth)", "Stash (Net-Worth)", "Тайник (Net-Worth)");
+        if (_lastRatesFetchUtc == DateTime.MinValue)
+            CurrencyRatesText.Text = Loc.T("Натисни «↻ Курси» для завантаження Divine / Chaos → Ex.", "Click '↻ Rates' to load Divine / Chaos -> Ex rates.", "Нажми «↻ Курсы» для загрузки курсов Divine / Chaos → Ex.");
+        if (_ai.Config.LastStashScanUtc == DateTime.MinValue)
+            StashBreakdownText.Text = Loc.T("Натисни «Оцінити скриню (Stash)».", "Click 'Scan Stash Net-Worth'.", "Нажми «Оценить тайник (Stash)».");
 
         ChkAutoUpdateMonitor.Content = Loc.T("Моніторити автоматично:", "Auto check:", "Проверять автоматически:");
         BtnInterval48.Content = Loc.T("2 дні", "2 days", "2 дня");
@@ -481,12 +494,16 @@ public partial class MainWindow : Window
         BtnOpenGuideUpd.Content = Loc.T("Відкрити гайд", "Open Guide", "Открыть гайд");
         BtnDiffClipboard.Content = Loc.T("Diff (Ctrl+C)", "Clipboard Diff", "Diff (Ctrl+C)");
         BtnAiDiff.Content = Loc.T("AI Diff (Ctrl+C)", "AI Diff", "AI Diff");
+        if (!_buildsUpdatesInit)
+            UpdateStatusText.Text = Loc.T("Відслідковування змін у .build, PoB2 і посиланнях.", "Tracks changes across .build files, PoB2, and guide URLs.", "Отслеживание изменений в .build, PoB2 и ссылках.");
 
         BtnSaveApi.Content = Loc.T("Зберегти", "Save", "Сохранить");
         BtnAiAsk.Content = Loc.T("Запитати", "Ask", "Спросить");
         BtnAiScreen.Content = Loc.T("Скрін + AI (F11)", "Screen + AI (F11)", "Скрин + AI (F11)");
         ChkAutoAi30.Content = Loc.T("Авто-скан 30хв", "Auto-scan 30m", "Авто-скан 30м");
         ChkAiOnlySafeZone.Content = Loc.T("Лише місто/Hideout", "Town/Hideout only", "Только город/Hideout");
+        if (!_aiHasResponse && !_aiBusy)
+            AiMetaText.Text = Loc.T("Натисни F11 у грі для аналізу екрану.", "Press F11 in-game to analyze your screen.", "Нажми F11 в игре для анализа экрана.");
 
         LblProfilesTitle.Text = Loc.T("Профілі білдів", "Build Profiles", "Профили билдов");
         BtnDeleteProfile.Content = Loc.T("Видалити обраний", "Delete Selected", "Удалить выбранный");
@@ -528,13 +545,18 @@ public partial class MainWindow : Window
         ChkAutostart.Content = Loc.T("Запуск з Windows", "Launch with Windows", "Запуск с Windows");
         InstallFilterBtn.Content = Loc.T("Встановити .filter", "Install .filter", "Установить .filter");
         ChkBuffTimer.Content = Loc.T("Таймер бафу:", "Buff Timer:", "Таймер баффа:");
+        LblSettingsHotkeysTitle.Text = Loc.T("Таймер бафу та гарячі клавіші", "Buff Timer & Hotkeys", "Таймер баффа и горячие клавиши");
+        LblSettingsHotkeyHint.Text = Loc.T("F8 Команди · F9 Згорнути · F10 Клік · F11 AI", "F8 Cmds · F9 Toggle · F10 Lock · F11 AI", "F8 Команды · F9 Свернуть · F10 Клик · F11 AI");
         LblCustomCmds.Text = Loc.T("F8 команди:", "F8 cmds:", "F8 команды:");
+        ApiKeyBox.ToolTip = Loc.T("Встав новий API-ключ, щоб зберегти або замінити поточний", "Paste an API key to save or replace the current one", "Вставь API-ключ, чтобы сохранить или заменить текущий");
+        BuffKeyBox.ToolTip = Loc.T("Клавіша активації (напр. X, R, Q)", "Trigger key (e.g. X, R, Q)", "Клавиша активации (напр. X, R, Q)");
+        BuffLabelBox.ToolTip = Loc.T("Назва бафу на таймері", "Timer display label", "Название баффа на таймере");
+        BuffSecBox.ToolTip = Loc.T("Тривалість у секундах", "Duration in seconds", "Длительность в секундах");
         BtnCheckAppUpdate.Content = Loc.T("↻ Оновлення (GitHub)", "↻ Check App Update", "↻ Обновление (GitHub)");
         BtnInstallAppUpdate.Content = _pendingAppUpdate is { HasUpdate: true }
             ? Loc.T($"Оновити до {_pendingAppUpdate.LatestTag}", $"Install {_pendingAppUpdate.LatestTag}", $"Обновить до {_pendingAppUpdate.LatestTag}")
             : Loc.T("Оновити зараз", "Update Now", "Обновить сейчас");
-        if (_pendingAppUpdate == null)
-            LblAppUpdateStatus.Text = $"v{AppUpdateService.GetCurrentVersionString()}";
+        UpdateAppUpdateStatusLabel();
 
         _tradeHelper.RefreshUi();
         UpdateTypingButtons();
@@ -550,6 +572,18 @@ public partial class MainWindow : Window
         Width = ExpandedWidth;
         Height = ExpandedHeight;
         HighlightSizePresetButtons(_ai.Config.OverlaySizePreset);
+
+        double targetAlpha = _ai.Config.WindowOpacity is > 0.2 and <= 1.0 ? _ai.Config.WindowOpacity : 0.95;
+        int bestAlphaIdx = 0;
+        double bestDiff = double.MaxValue;
+        for (int i = 0; i < _alphas.Length; i++)
+        {
+            double diff = Math.Abs(_alphas[i] - targetAlpha);
+            if (diff < bestDiff) { bestDiff = diff; bestAlphaIdx = i; }
+        }
+        _alphaIdx = bestAlphaIdx;
+        Win32OverlayHelper.SetWindowOpacity(this, _alphas[_alphaIdx]);
+        UpdateAlphaButtonLabel();
 
         ChkAutoAi30.IsChecked = _ai.Config.AutoScanEnabled;
         ChkAiOnlySafeZone.IsChecked = _ai.Config.AutoScanOnlySafeZone;
@@ -610,7 +644,10 @@ public partial class MainWindow : Window
         BtnRefreshLeagues.Content = "…";
         try
         {
-            var live = await PoeTradePriceService.FetchLeaguesAsync();
+            var liveTask = PoeTradePriceService.FetchLeaguesAsync();
+            var itemsTask = LivePoe2DataService.RefreshIfStaleAsync(force: true);
+            await Task.WhenAll(liveTask, itemsTask);
+            var live = liveTask.Result;
             string cur = string.IsNullOrWhiteSpace(LeagueCombo.Text) ? (live.FirstOrDefault() ?? "Forbidden Rites") : LeagueCombo.Text.Trim();
             PopulateLeagueCombo(live, cur);
         }
@@ -729,8 +766,26 @@ public partial class MainWindow : Window
             if (_initializedTabs.Contains(NavBtnItems)) RefreshWornSlotsStrip();
             RefreshLogStatus(showZoneToast: false);
             if (_lastItemEval != null) CheckClipboard(force: true);
-            _toast.ShowToast("PoE 2 Account", win.ResultMessage, Color.FromRgb(0x4E, 0xCF, 0x8F), nearCursor: false, seconds: 5.0);
+            _toast.ShowToast(Loc.T("PoE 2 Акаунт", "PoE 2 Account", "PoE 2 Аккаунт"), win.ResultMessage, Color.FromRgb(0x4E, 0xCF, 0x8F), nearCursor: false, seconds: 5.0);
         }
+    }
+
+    private string FormatAccountStatsSummary()
+    {
+        var parts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(_ai.Config.PoeCharacterStatsSummary))
+        {
+            string cleaned = System.Text.RegularExpressions.Regex.Replace(
+                _ai.Config.PoeCharacterStatsSummary,
+                @"(?:\s*·\s*)?\d+\s+(?:скілів|skills|скиллов)\b",
+                "",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase).Trim(' ', '·');
+            if (!string.IsNullOrWhiteSpace(cleaned))
+                parts.Add(cleaned);
+        }
+        if (_ai.Config.PoeCharacterSkills.Count > 0)
+            parts.Add($"{_ai.Config.PoeCharacterSkills.Count} {Loc.T("скілів", "skills", "скиллов")}");
+        return string.Join(" · ", parts);
     }
 
     private void UpdateAccountStatusLabel()
@@ -744,10 +799,9 @@ public partial class MainWindow : Window
             LblPoeAccountStatus.Foreground = UiBrushes.FgMuted;
             return;
         }
-        string extra = !string.IsNullOrWhiteSpace(_ai.Config.PoeCharacterStatsSummary)
-            ? $" · {_ai.Config.PoeCharacterStatsSummary}"
-            : "";
-        LblPoeAccountStatus.Text = $"{_ai.Config.PoeCharacterName} · Lv {_ai.Config.PoeCharacterLevel} ({_ai.Config.PoeCharacterClass}) · {_ai.Config.WornGearBySlot.Count} {Loc.T("слотів", "slots", "слотов")}{extra}";
+        string summary = FormatAccountStatsSummary();
+        string extra = !string.IsNullOrWhiteSpace(summary) ? $" · {summary}" : "";
+        LblPoeAccountStatus.Text = $"{_ai.Config.PoeCharacterName} · {Loc.LevelShort} {_ai.Config.PoeCharacterLevel} ({_ai.Config.PoeCharacterClass}) · {_ai.Config.WornGearBySlot.Count} {Loc.T("слотів", "slots", "слотов")}{extra}";
         LblPoeAccountStatus.Foreground = UiBrushes.FgEmerald;
     }
 
@@ -878,11 +932,12 @@ public partial class MainWindow : Window
 
             if (!string.IsNullOrWhiteSpace(_ai.Config.PoeCharacterName))
             {
+                string accSummary = FormatAccountStatsSummary();
                 OverviewCardsPanel.Children.Add(CreateSimpleRowCard(
-                    $"PoE 2 Account: {_ai.Config.PoeCharacterName} · Lv {_ai.Config.PoeCharacterLevel} {_ai.Config.PoeCharacterClass} ({_ai.Config.TradeLeague})",
-                    !string.IsNullOrWhiteSpace(_ai.Config.PoeCharacterStatsSummary)
-                        ? _ai.Config.PoeCharacterStatsSummary
-                        : $"{_ai.Config.WornGearBySlot.Count} slots"));
+                    $"{Loc.T("PoE 2 Акаунт", "PoE 2 Account", "PoE 2 Аккаунт")}: {_ai.Config.PoeCharacterName} · {Loc.LevelShort} {_ai.Config.PoeCharacterLevel} {_ai.Config.PoeCharacterClass} ({_ai.Config.TradeLeague})",
+                    !string.IsNullOrWhiteSpace(accSummary)
+                        ? accSummary
+                        : $"{_ai.Config.WornGearBySlot.Count} {Loc.T("слотів", "slots", "слотов")}"));
             }
 
             if (_ai.Config.PoeCharacterSkills.Count > 0)
@@ -954,11 +1009,12 @@ public partial class MainWindow : Window
 
             if (curLvl > 0 && !string.IsNullOrWhiteSpace(_ai.Config.PoeCharacterName))
             {
+                string accSummary = FormatAccountStatsSummary();
                 OverviewCardsPanel.Children.Add(CreateSimpleRowCard(
-                    $"PoE 2 Account: {_ai.Config.PoeCharacterName} · Lv {_ai.Config.PoeCharacterLevel} {_ai.Config.PoeCharacterClass} ({_ai.Config.TradeLeague})",
-                    !string.IsNullOrWhiteSpace(_ai.Config.PoeCharacterStatsSummary)
-                        ? _ai.Config.PoeCharacterStatsSummary
-                        : $"{_ai.Config.WornGearBySlot.Count} slots"));
+                    $"{Loc.T("PoE 2 Акаунт", "PoE 2 Account", "PoE 2 Аккаунт")}: {_ai.Config.PoeCharacterName} · {Loc.LevelShort} {_ai.Config.PoeCharacterLevel} {_ai.Config.PoeCharacterClass} ({_ai.Config.TradeLeague})",
+                    !string.IsNullOrWhiteSpace(accSummary)
+                        ? accSummary
+                        : $"{_ai.Config.WornGearBySlot.Count} {Loc.T("слотів", "slots", "слотов")}"));
             }
 
             if (livePlan != null)
@@ -2253,46 +2309,6 @@ public partial class MainWindow : Window
             PlannerCardsPanel.Children.Add(CreateGearTargetCard(g.RawSlotId, PoeTermLocalizer.SlotName(g.RawSlotId), PoeTermLocalizer.TranslateGearDescription(g.Text), g.Text));
     }
 
-    private void ImportBuildFilesToPlanner_Click(object sender, RoutedEventArgs e)
-    {
-        var dlg = new OpenFileDialog
-        {
-            Title = Loc.T("Пакетно додати .build файл(и) в гру", "Add .build file(s) to PoE 2 & Overlay", "Пакетно добавить .build файл(ы) в игру"),
-            Filter = "PoE 2 Build (*.build)|*.build|All (*.*)|*.*",
-            Multiselect = true
-        };
-        if (dlg.ShowDialog() == true)
-        {
-            var (copied, _) = BuildPlannerService.ImportToGameBuildPlanner(dlg.FileNames);
-            NotifyPlannerImport(copied);
-        }
-        Win32OverlayHelper.ApplyOverlayStyles(this, noActivate: !_allowTyping, clickThrough: _clickThrough);
-    }
-
-    private void ImportBuildFolderToPlanner_Click(object sender, RoutedEventArgs e)
-    {
-        var dlg = new OpenFolderDialog
-        {
-            Title = Loc.T("Скопіювати всі .build з папки в BuildPlanner гри", "Copy all .build from folder to PoE 2", "Скопировать все .build из папки в BuildPlanner игры")
-        };
-        if (dlg.ShowDialog() == true)
-        {
-            var (copied, _) = BuildPlannerService.ImportFolderToGameBuildPlanner(dlg.FolderName);
-            NotifyPlannerImport(copied);
-        }
-        Win32OverlayHelper.ApplyOverlayStyles(this, noActivate: !_allowTyping, clickThrough: _clickThrough);
-    }
-
-    private void NotifyPlannerImport(int copied)
-    {
-        LoadBuildPlannerFiles();
-        string title = Loc.T("Build Planner гри", "PoE 2 Build Planner", "Build Planner игры");
-        string msg = copied > 0
-            ? Loc.T($"Скопійовано {copied} .build у папку PoE 2 — доступні і в грі!", $"Copied {copied} .build to PoE 2 BuildPlanner!", $"Скопировано {copied} .build в папку PoE 2!")
-            : Loc.T("Файли вже в папці гри або не знайдено.", "Files already in game folder or none found.", "Файлы уже в папке игры или не найдены.");
-        _toast.ShowToast(title, msg, copied > 0 ? Color.FromRgb(0x4E, 0xCF, 0x8F) : Color.FromRgb(0x8B, 0x93, 0xA5), nearCursor: false, seconds: 4.0);
-    }
-
     private void ReloadBuildPlanner_Click(object sender, RoutedEventArgs e) => LoadBuildPlannerFiles();
 
     private void OpenBuildPlannerFolder_Click(object sender, RoutedEventArgs e)
@@ -2529,8 +2545,9 @@ public partial class MainWindow : Window
                         ? Color.FromRgb(0xEA, 0x61, 0x61)
                         : GetVerdictColor(ev.Verdict);
         var brush = UiBrushes.ForColor(col);
+        string slotDisplay = PoeTermLocalizer.SlotName(_overrideCompareSlotKey ?? ev.MatchedBuildSlot);
         string headlineVerdict = isWornItself
-            ? Loc.T($"[ЕКІП] {PoeTermLocalizer.SlotName(_overrideCompareSlotKey ?? ev.MatchedBuildSlot)}", $"[EQUIPPED] {ev.MatchedBuildSlot}", $"[НАДЕТО] {ev.MatchedBuildSlot}")
+            ? Loc.T($"[ЕКІП] {slotDisplay}", $"[EQUIPPED] {slotDisplay}", $"[НАДЕТО] {slotDisplay}")
             : !string.IsNullOrWhiteSpace(ev.UpgradeVerdict) ? ev.UpgradeVerdict : Loc.Verdict(ev.Verdict);
         ItemVerdictText.Text = $"{headlineVerdict}  ·  {ev.ItemName}";
         ItemVerdictText.Foreground = brush;
@@ -2746,7 +2763,27 @@ public partial class MainWindow : Window
             ItemModChecksPanel.Children.Add(row);
             _modFilterCheckboxes.Add((chk, minBox, mod));
         }
-        ItemModFilterBox.Visibility = Visibility.Visible;
+        ItemModFilterBox.Visibility = _itemsExtraExpanded ? Visibility.Visible : Visibility.Collapsed;
+        UpdateItemsExtraButtonUi();
+    }
+
+    private void ToggleItemsExtra_Click(object sender, RoutedEventArgs e)
+    {
+        _itemsExtraExpanded = !_itemsExtraExpanded;
+        TradeShortcutsBox.Visibility = _itemsExtraExpanded ? Visibility.Visible : Visibility.Collapsed;
+        ItemModFilterBox.Visibility = (_itemsExtraExpanded && _modFilterCheckboxes.Count > 0) ? Visibility.Visible : Visibility.Collapsed;
+        UpdateItemsExtraButtonUi();
+    }
+
+    private void UpdateItemsExtraButtonUi()
+    {
+        if (BtnToggleItemsExtra == null) return;
+        string arrow = _itemsExtraExpanded ? "▴" : "▾";
+        string cnt = _modFilterCheckboxes.Count > 0 ? $" ({_modFilterCheckboxes.Count})" : "";
+        BtnToggleItemsExtra.Content = Loc.T($"Trade / Моди{cnt} {arrow}", $"Trade / Mods{cnt} {arrow}", $"Trade / Моды{cnt} {arrow}");
+        BtnToggleItemsExtra.Background = _itemsExtraExpanded ? UiBrushes.BgBrass : UiBrushes.BgCard;
+        BtnToggleItemsExtra.Foreground = _itemsExtraExpanded ? UiBrushes.FgDark : UiBrushes.FgPrimary;
+        BtnToggleItemsExtra.BorderBrush = _itemsExtraExpanded ? UiBrushes.BorderBrass : UiBrushes.BorderSubtle;
     }
 
     private List<ItemModFilterOption> GetCheckedMods()
@@ -2818,8 +2855,6 @@ public partial class MainWindow : Window
         }
     }
 
-    private void OpenCommandWheel_Click(object sender, RoutedEventArgs e) => OpenCommandWheelNearCursor();
-
     private void OpenCommandWheelNearCursor()
     {
         string c1 = CustomCmd1Box?.Text ?? _ai.Config.CustomCmd1;
@@ -2864,14 +2899,14 @@ public partial class MainWindow : Window
     {
         string rx = RegexGeneratorService.BuildVendorRegex(_profiles.ActiveProfile);
         SetClipboardSafe(rx);
-        _toast.ShowToast("Vendor Regex", rx, Color.FromRgb(0xD4, 0xB0, 0x6A), nearCursor: false, seconds: 3.5);
+        _toast.ShowToast(Loc.T("Regex Торгівля", "Vendor Regex", "Regex Торговец"), rx, Color.FromRgb(0xD4, 0xB0, 0x6A), nearCursor: false, seconds: 3.5);
     }
 
     private void CopyWaystoneRegex_Click(object sender, RoutedEventArgs e)
     {
         string rx = RegexGeneratorService.BuildSafeWaystoneRegex(_profiles.ActiveProfile);
         SetClipboardSafe(rx);
-        _toast.ShowToast("Safe Waystone Regex", rx, Color.FromRgb(0x4E, 0xCF, 0x8F), nearCursor: false, seconds: 3.5);
+        _toast.ShowToast(Loc.T("Regex Мап", "Safe Waystone Regex", "Regex Карт"), rx, Color.FromRgb(0x4E, 0xCF, 0x8F), nearCursor: false, seconds: 3.5);
     }
 
     private void SetClipboardSafe(string text)
@@ -2947,7 +2982,7 @@ public partial class MainWindow : Window
         if (ShowStandaloneDialog(win) == true && win.ScannedStash is { Ok: true })
         {
             RefreshFarmStatsUi();
-            _toast.ShowToast("Stash Net-Worth", win.ResultMessage, Color.FromRgb(0x4E, 0xCF, 0x8F), nearCursor: false, seconds: 5.0);
+            _toast.ShowToast(Loc.T("Вартість скрині", "Stash Net-Worth", "Стоимость тайника"), win.ResultMessage, Color.FromRgb(0x4E, 0xCF, 0x8F), nearCursor: false, seconds: 5.0);
         }
     }
 
@@ -3147,11 +3182,7 @@ public partial class MainWindow : Window
 
             if (info.HasUpdate)
             {
-                LblAppUpdateStatus.Text = Loc.T(
-                    $"Доступна {info.LatestTag} (зараз v{info.CurrentVersion})",
-                    $"Available: {info.LatestTag} (current v{info.CurrentVersion})",
-                    $"Доступна {info.LatestTag} (сейчас v{info.CurrentVersion})");
-                LblAppUpdateStatus.Foreground = UiBrushes.FgEmerald;
+                UpdateAppUpdateStatusLabel();
                 BtnInstallAppUpdate.Content = Loc.T($"Оновити до {info.LatestTag}", $"Install {info.LatestTag}", $"Обновить до {info.LatestTag}");
                 BtnInstallAppUpdate.Visibility = Visibility.Visible;
                 _toast.ShowToast(
@@ -3162,14 +3193,44 @@ public partial class MainWindow : Window
             else
             {
                 BtnInstallAppUpdate.Visibility = Visibility.Collapsed;
-                if (!silent)
-                {
-                    LblAppUpdateStatus.Text = Loc.T($"Вже найновіша (v{info.CurrentVersion})", $"Up to date (v{info.CurrentVersion})", $"Последняя версия (v{info.CurrentVersion})");
-                    LblAppUpdateStatus.Foreground = UiBrushes.FgEmerald;
-                }
+                if (!silent) UpdateAppUpdateStatusLabel();
             }
         }
         finally { _appUpdateBusy = false; }
+    }
+
+    private void UpdateAppUpdateStatusLabel()
+    {
+        if (LblAppUpdateStatus == null || _appUpdateBusy) return;
+        var info = _pendingAppUpdate;
+        if (info == null)
+        {
+            LblAppUpdateStatus.Text = $"v{AppUpdateService.GetCurrentVersionString()}";
+            LblAppUpdateStatus.Foreground = UiBrushes.FgMuted;
+            return;
+        }
+        if (!info.Ok)
+        {
+            LblAppUpdateStatus.Text = $"v{info.CurrentVersion}";
+            LblAppUpdateStatus.Foreground = UiBrushes.FgMuted;
+            return;
+        }
+        if (info.HasUpdate)
+        {
+            LblAppUpdateStatus.Text = Loc.T(
+                $"Доступна {info.LatestTag} (зараз v{info.CurrentVersion})",
+                $"Available: {info.LatestTag} (current v{info.CurrentVersion})",
+                $"Доступна {info.LatestTag} (сейчас v{info.CurrentVersion})");
+            LblAppUpdateStatus.Foreground = UiBrushes.FgEmerald;
+        }
+        else
+        {
+            LblAppUpdateStatus.Text = Loc.T(
+                $"Вже найновіша (v{info.CurrentVersion})",
+                $"Up to date (v{info.CurrentVersion})",
+                $"Последняя версия (v{info.CurrentVersion})");
+            LblAppUpdateStatus.Foreground = UiBrushes.FgEmerald;
+        }
     }
 
     private async void InstallAppUpdate_Click(object sender, RoutedEventArgs e)
@@ -3288,11 +3349,21 @@ public partial class MainWindow : Window
         {
             AiStatusText.Text = $"{prov}: OK ({_ai.MaskedApiKey} · {model})";
             AiStatusText.Foreground = UiBrushes.FgEmerald;
+            if (LblSettingsAiStatus != null)
+            {
+                LblSettingsAiStatus.Text = Loc.T($"✓ Ключ: {_ai.MaskedApiKey}", $"✓ Key saved: {_ai.MaskedApiKey}", $"✓ Ключ: {_ai.MaskedApiKey}");
+                LblSettingsAiStatus.Foreground = UiBrushes.FgEmerald;
+            }
         }
         else
         {
             AiStatusText.Text = $"{prov}: {Loc.T("ключ не задано", "no API key", "ключ не задан")}";
             AiStatusText.Foreground = UiBrushes.FgAmber;
+            if (LblSettingsAiStatus != null)
+            {
+                LblSettingsAiStatus.Text = Loc.T("Ключ не задано", "No API key", "Ключ не задан");
+                LblSettingsAiStatus.Foreground = UiBrushes.FgAmber;
+            }
         }
     }
 
@@ -3334,7 +3405,8 @@ public partial class MainWindow : Window
         {
             Win32OverlayHelper.SetWindowOpacity(this, 0);
             if (miniVis) _miniHud.Opacity = 0;
-            await Task.Delay(20);
+            await Dispatcher.Yield(DispatcherPriority.Render);
+            await Task.Delay(35);
             return await ScreenCaptureService.CaptureScreenJpegAsync();
         }
         finally
@@ -3348,7 +3420,6 @@ public partial class MainWindow : Window
     {
         if (_aiBusy) return;
         _aiBusy = true;
-        AiQuickBtn.Content = "AI …";
         AiMetaText.Text = includeScreenshot ? Loc.T("Знімаю вікно PoE 2...", "Capturing PoE 2 screen...", "Снимаю экран PoE 2...") : Loc.T("Запит до AI...", "Asking AI...", "Запрос к AI...");
 
         try
@@ -3368,6 +3439,7 @@ public partial class MainWindow : Window
                 characterLevel: EffectiveLevel,
                 stageIndex: _overviewStageIdx,
                 wornGear: _ai.Config.WornGearBySlot);
+            _aiHasResponse = true;
             if (ok)
             {
                 AiMetaText.Text = $"{DateTime.Now:HH:mm:ss} ({model})";
@@ -3384,13 +3456,13 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            AiMetaText.Text = "Error";
+            _aiHasResponse = true;
+            AiMetaText.Text = Loc.T("Помилка", "Error", "Ошибка");
             AiResponseText.Text = ex.Message;
         }
         finally
         {
             _aiBusy = false;
-            AiQuickBtn.Content = "AI F11";
         }
     }
 
@@ -3430,6 +3502,7 @@ public partial class MainWindow : Window
             FilterEditorBox.Text = content;
             var val = LootFilterService.ValidateFilter(content);
             string warnSuffix = val.Warnings.Count > 0 ? $" · ⚠ {string.Join("; ", val.Warnings)}" : " · OK";
+            _filterStatusCustom = true;
             FilterStatusText.Text = Loc.T($"Встановлено: {Path.GetFileName(dst)} ({val.BlockCount} блоків{warnSuffix})", $"Installed: {Path.GetFileName(dst)} ({val.BlockCount} blocks{warnSuffix})", $"Установлен: {Path.GetFileName(dst)} ({val.BlockCount} блоков{warnSuffix})");
             FilterStatusText.Foreground = val.Warnings.Count > 0 ? UiBrushes.FgAmber : UiBrushes.FgEmerald;
             InstallFilterBtn.Content = Loc.T("✓ Встановлено!", "✓ Installed!", "✓ Установлено!");
@@ -3437,7 +3510,8 @@ public partial class MainWindow : Window
         }
         catch
         {
-            FilterStatusText.Text = "Error loading .filter";
+            _filterStatusCustom = true;
+            FilterStatusText.Text = Loc.T("Помилка завантаження .filter", "Error loading .filter", "Ошибка загрузки .filter");
             FilterStatusText.Foreground = UiBrushes.FgCrimson;
         }
     }
@@ -3501,6 +3575,7 @@ public partial class MainWindow : Window
     {
         if (_filterGenBusy) return;
         _filterGenBusy = true;
+        _filterStatusCustom = true;
         BtnAiGenerateFilter.Content = "AI …";
         FilterStatusText.Text = Loc.T("Генерую PoE 2 лутофільтр під активний білд...", "Generating PoE 2 loot filter for active build...", "Генерирую PoE 2 лутфильтр под активный билд...");
         FilterStatusText.Foreground = UiBrushes.FgBrass;
@@ -3530,6 +3605,7 @@ public partial class MainWindow : Window
     private void SaveFilterEditorToGame_Click(object sender, RoutedEventArgs e)
     {
         string text = FilterEditorBox.Text;
+        _filterStatusCustom = true;
         var val = LootFilterService.ValidateFilter(text);
         if (!val.IsValid)
         {
@@ -3754,7 +3830,7 @@ public partial class MainWindow : Window
             StatusText.Text = lvlTxt;
             StatusText.ToolTip = _watcher.LogPath ?? Loc.T("Обери Client.txt у Налаштуваннях", "Select Client.txt in Settings", "Выбери Client.txt в Настройках");
         }
-        if (LogBtn != null && _watcher.LogPath != null) LogBtn.ToolTip = _watcher.LogPath;
+        if (LogBtn != null) UpdateLogButtonUi();
 
         if (_autoSyncLevel && _profiles.ActiveProfile is { Stages.Count: > 1 } prof)
         {
@@ -3801,6 +3877,8 @@ public partial class MainWindow : Window
         {
             BodyGrid.Visibility = Visibility.Collapsed;
             ResizeGrip.Visibility = Visibility.Collapsed;
+            NavbarBorder.CornerRadius = new CornerRadius(5);
+            NavbarBorder.BorderThickness = new Thickness(0);
             MinHeight = CollapsedHeight;
             Height = CollapsedHeight;
             Width = ExpandedWidth;
@@ -3811,6 +3889,8 @@ public partial class MainWindow : Window
             MinHeight = 340;
             Height = ExpandedHeight;
             Width = ExpandedWidth;
+            NavbarBorder.CornerRadius = new CornerRadius(5, 5, 0, 0);
+            NavbarBorder.BorderThickness = new Thickness(0, 0, 0, 1);
             BodyGrid.Visibility = Visibility.Visible;
             ResizeGrip.Visibility = Visibility.Visible;
             CollapseBtn.Content = "F9";
@@ -3873,7 +3953,7 @@ public partial class MainWindow : Window
             UpdateTypingButtons();
             LockBtn.Content = "LOCK F10";
             LockBtn.Foreground = UiBrushes.FgAmber;
-            Win32OverlayHelper.SetWindowOpacity(this, 0.78);
+            Win32OverlayHelper.SetWindowOpacity(this, Math.Min(_alphas[_alphaIdx], 0.78));
         }
         else
         {
@@ -3888,7 +3968,38 @@ public partial class MainWindow : Window
     private void CycleAlpha_Click(object sender, RoutedEventArgs e)
     {
         _alphaIdx = (_alphaIdx + 1) % _alphas.Length;
+        _ai.Config.WindowOpacity = _alphas[_alphaIdx];
+        _ai.SaveConfig();
+        UpdateAlphaButtonLabel();
         if (!_clickThrough) Win32OverlayHelper.SetWindowOpacity(this, _alphas[_alphaIdx]);
+    }
+
+    private void UpdateAlphaButtonLabel()
+    {
+        if (AlphaBtn == null) return;
+        int pct = (int)Math.Round(_alphas[_alphaIdx] * 100);
+        AlphaBtn.Content = Loc.T($"Прозорість: {pct}%", $"Opacity: {pct}%", $"Прозрачность: {pct}%");
+    }
+
+    private void UpdateLogButtonUi()
+    {
+        if (LogBtn == null) return;
+        if (_watcher.LogPath != null)
+        {
+            LogBtn.Content = Loc.T("Client.txt ✓", "Client.txt ✓", "Client.txt ✓");
+            LogBtn.ToolTip = Loc.T(
+                $"Лог PoE 2 знайдено:\n{_watcher.LogPath}\n\nЗ нього оверлей автоматично бере поточну локацію, level-up, статистику сесії та Trade-шепіт. Натисни, щоб змінити шлях.",
+                $"PoE 2 log found:\n{_watcher.LogPath}\n\nUsed automatically for current zone, level-ups, session tracker, and Trade whispers. Click to change path.",
+                $"Лог PoE 2 найден:\n{_watcher.LogPath}\n\nИспользуется для текущей зоны, level-up, трекера сессии и Trade-шёпота. Нажми, чтобы изменить путь.");
+        }
+        else
+        {
+            LogBtn.Content = Loc.T("Обрати Client.txt", "Select Client.txt", "Выбрать Client.txt");
+            LogBtn.ToolTip = Loc.T(
+                "Лог Client.txt не знайдено автоматично.\nВкажи файл logs\\Client.txt з папки PoE 2 — з нього читаються локації, level-up, статистика сесії та Trade-шепіт.",
+                "Client.txt was not auto-detected.\nPick logs\\Client.txt from your PoE 2 folder to enable zone tracking, level-ups, session stats, and Trade whispers.",
+                "Файл Client.txt не найден автоматически.\nУкажи logs\\Client.txt из папки PoE 2 для отслеживания зон, level-up, статистики сессии и Trade-шёпота.");
+        }
     }
 
     private void ToggleTyping_Click(object sender, RoutedEventArgs e)

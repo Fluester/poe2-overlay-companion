@@ -48,6 +48,7 @@ public sealed class OverlayConfig
     public string OverlaySizePreset { get; set; } = "M";
     public double WindowWidth { get; set; } = 560;
     public double WindowHeight { get; set; } = 430;
+    public double WindowOpacity { get; set; } = 0.95;
     public bool FocusOverlayOnCtrlC { get; set; } = false;
     public int LastKnownLevel { get; set; } = 1;
     public string PoeAccountName { get; set; } = "";

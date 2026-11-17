@@ -40,9 +40,6 @@ public sealed class ClientLogWatcher : IDisposable
     private volatile bool _dirty = true;
     private readonly List<TradeWhisperEntry> _pendingWhispers = [];
 
-    private static IntPtr _lastFgHwnd;
-    private static bool _lastFgIsPoe;
-
     public string? LogPath { get; private set; }
     public int? CurrentLevel { get; private set; }
     public void SetManualLevel(int level) => CurrentLevel = Math.Clamp(level, 1, 100);
@@ -67,12 +64,6 @@ public sealed class ClientLogWatcher : IDisposable
 
     [StructLayout(LayoutKind.Sequential)]
     private struct RECT { public int Left, Top, Right, Bottom; }
-
-    [DllImport("user32.dll")]
-    private static extern IntPtr GetForegroundWindow();
-
-    [DllImport("user32.dll")]
-    private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
     [DllImport("user32.dll", CharSet = CharSet.Unicode)]
     private static extern IntPtr FindWindowW(string? lpClassName, string? lpWindowName);
@@ -171,28 +162,6 @@ public sealed class ClientLogWatcher : IDisposable
                 }
             }
             return false;
-        }
-        catch { return false; }
-    }
-
-    public static bool IsPoe2Foreground()
-    {
-        try
-        {
-            IntPtr fg = GetForegroundWindow();
-            if (fg == IntPtr.Zero) return false;
-            if (fg == _lastFgHwnd) return _lastFgIsPoe;
-
-            GetWindowThreadProcessId(fg, out uint pid);
-            bool res = false;
-            if (pid != 0)
-            {
-                using var proc = Process.GetProcessById((int)pid);
-                res = proc.ProcessName.Contains("PathOfExile", StringComparison.OrdinalIgnoreCase);
-            }
-            _lastFgHwnd = fg;
-            _lastFgIsPoe = res;
-            return res;
         }
         catch { return false; }
     }

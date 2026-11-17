@@ -11,7 +11,7 @@ public sealed class AppUpdateInfo
 {
     public bool Ok { get; init; }
     public bool HasUpdate { get; init; }
-    public string CurrentVersion { get; init; } = "1.1.0";
+    public string CurrentVersion { get; init; } = "1.1.1";
     public string LatestTag { get; init; } = "";
     public string ReleaseUrl { get; init; } = "https://github.com/Fluester/poe2-overlay-companion/releases/latest";
     public string AssetName { get; init; } = "";
@@ -37,7 +37,7 @@ public static class AppUpdateService
     public static Version GetCurrentVersion()
     {
         var v = Assembly.GetExecutingAssembly().GetName().Version;
-        return v == null ? new Version(1, 1, 0) : new Version(v.Major, v.Minor, Math.Max(0, v.Build));
+        return v == null ? new Version(1, 1, 1) : new Version(v.Major, v.Minor, Math.Max(0, v.Build));
     }
 
     public static string GetCurrentVersionString()

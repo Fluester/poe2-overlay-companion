@@ -245,31 +245,61 @@ public static partial class PoeAccountService
     return inv;
   };
 
+  const cleanTag = (s) => String(s ?? '')
+    .replace(/<[^>]+>\{([^}]*)\}/g, '$1')
+    .replace(/\[(?:[^|\]]*\|)?([^\]]+)\]/g, '$1')
+    .trim();
+  const extractModText = (m) => {
+    if (typeof m === 'string') return cleanTag(m);
+    if (m && typeof m === 'object') return cleanTag(m.description || m.text || m.name || '');
+    return '';
+  };
+  const fmtProp = (p) => {
+    if (!p || !p.name) return '';
+    const nm = cleanTag(p.name);
+    const vals = Array.isArray(p.values)
+      ? p.values.map(v => Array.isArray(v) ? cleanTag(v[0]) : cleanTag(v)).filter(Boolean)
+      : [];
+    if (/\{\d+\}/.test(nm)) {
+      return nm.replace(/\{(\d+)\}/g, (_, idx) => vals[Number(idx)] ?? '').trim();
+    }
+    const vStr = vals.join(', ');
+    return vStr ? (nm + ': ' + vStr) : nm;
+  };
   const fmtItem = (it, slotOverride) => {
     const inv = slotOverride || it.inventoryId || '';
     const lines = [];
     lines.push('Item Class: ' + guessClass(inv, it));
     lines.push('Rarity: ' + rarityName(it.frameType));
-    if (it.name) lines.push(it.name);
-    if (it.typeLine) lines.push(it.typeLine);
+    if (it.name) lines.push(cleanTag(it.name));
+    if (it.typeLine) lines.push(cleanTag(it.typeLine));
     lines.push('--------');
-    const props = (it.properties || []).map(p => {
-      const vals = (p.values || []).map(v => v[0]).join(', ');
-      return vals ? (p.name + ': ' + vals) : p.name;
-    }).filter(Boolean);
+    const props = (it.properties || []).map(fmtProp).filter(Boolean);
     if (props.length) { lines.push(...props); lines.push('--------'); }
+    if (Array.isArray(it.requirements) && it.requirements.length) {
+      const reqParts = it.requirements.map(r => {
+        const rn = cleanTag(r?.name);
+        const rv = Array.isArray(r?.values) && r.values[0] ? cleanTag(r.values[0][0]) : '';
+        if (!rn || !rv) return rv || rn;
+        return /^Level$/i.test(rn) ? ('Level ' + rv) : (rv + ' ' + rn);
+      }).filter(Boolean);
+      if (reqParts.length) { lines.push('Requires: ' + reqParts.join(', ')); lines.push('--------'); }
+    }
     if (it.ilvl) { lines.push('Item Level: ' + it.ilvl); lines.push('--------'); }
-    const addBlock = (arr) => {
-      if (Array.isArray(arr) && arr.length) { lines.push(...arr); lines.push('--------'); }
+    const addBlock = (arr, suffix = '') => {
+      if (!Array.isArray(arr) || !arr.length) return;
+      const cleaned = arr.map(extractModText).filter(Boolean).map(t => suffix ? (t + suffix) : t);
+      if (cleaned.length) { lines.push(...cleaned); lines.push('--------'); }
     };
     addBlock(it.enchantMods);
+    addBlock(it.utilityMods);
     addBlock(it.implicitMods);
     addBlock(it.runeMods);
-    if (Array.isArray(it.socketedItems)) {
+    if (!(Array.isArray(it.runeMods) && it.runeMods.length) && Array.isArray(it.socketedItems)) {
       const runes = it.socketedItems.filter(s => s && s.support === undefined && !/Gem/i.test(s.typeLine || '') && s.frameType !== 4);
       for (const r of runes) {
-        const rMods = [].concat(r.explicitMods || [], r.runeMods || []);
-        if (rMods.length) addBlock(rMods.map(m => m + ' (rune)'));
+        const rMods = [].concat(r.explicitMods || [], r.runeMods || []).map(extractModText).filter(Boolean);
+        if (rMods.length) addBlock(rMods, ' (rune)');
       }
     }
     addBlock(it.fracturedMods);
@@ -339,14 +369,10 @@ public static partial class PoeAccountService
     if (v2Char && v2Char.data) v2Char = v2Char.data;
     if (v2Char && v2Char.character) v2Char = v2Char.character;
 
-    // 2. Класичний ендпоїнт предметів (якщо активна сесія pathofexile.com)
-    const cwItems = await safeJson('/character-window/get-items?realm=poe2&character=' + encodeURIComponent(cName) + qAcc)
-      || await safeJson('https://www.pathofexile.com/character-window/get-items?realm=poe2&character=' + encodeURIComponent(cName) + qAcc);
-
+    // Примітка: www.pathofexile.com/character-window/get-items підтримує лише PoE 1 (для PoE 2 повертає 404/CORS)
     const allItems = []
       .concat(Array.isArray(v2Char?.equipment) ? v2Char.equipment : [])
-      .concat(Array.isArray(v2Char?.inventory) ? v2Char.inventory : [])
-      .concat(Array.isArray(cwItems?.items) ? cwItems.items : []);
+      .concat(Array.isArray(v2Char?.inventory) ? v2Char.inventory : []);
 
     const equippedBySlot = {};
     for (const it of allItems) {
@@ -365,7 +391,19 @@ public static partial class PoeAccountService
         equippedBySlot[inv] = txt;
     }
 
-    const skillGroups = extractSkillsFromItems(allItems.concat(Array.isArray(v2Char?.skills) ? v2Char.skills : []));
+    const extraGranted = [];
+    for (const eq of allItems) {
+      if (!eq || !Array.isArray(eq.grantedSkills)) continue;
+      const existingNames = new Set((eq.socketedItems || []).map(s => String(s?.typeLine || s?.baseType || '').toLowerCase()).filter(Boolean));
+      for (const gs of eq.grantedSkills) {
+        const gName = Array.isArray(gs?.values) && Array.isArray(gs.values[0]) ? String(gs.values[0][0] || '').trim() : '';
+        if (gName && !existingNames.has(gName.toLowerCase())) {
+          extraGranted.push({ typeLine: gName, baseType: gName, frameType: 4, properties: [{ name: 'Level', values: [['1', 0]] }] });
+        }
+      }
+    }
+
+    const skillGroups = extractSkillsFromItems(allItems.concat(Array.isArray(v2Char?.skills) ? v2Char.skills : []).concat(extraGranted));
 
     return JSON.stringify({
       ok: true,
@@ -499,8 +537,6 @@ public static partial class PoeAccountService
         if (spirit > 0) parts.Add($"Spirit +{spirit:F0}");
         if (fRes > 0 || cRes > 0 || lRes > 0)
             parts.Add($"Res {fRes:F0}/{cRes:F0}/{lRes:F0}" + (chRes > 0 ? $" (Ch {chRes:F0})" : ""));
-        if (skillsCount > 0)
-            parts.Add(Loc.T($"{skillsCount} скілів", $"{skillsCount} skills", $"{skillsCount} скиллов"));
         return string.Join(" · ", parts);
     }
 
@@ -520,22 +556,22 @@ public static partial class PoeAccountService
 
         string actTip = lv switch
         {
-            <= 21 => Loc.T(
-                $"• Етап (Рів.{lv}, Акт 1 — {league}): шукай опціональні нагороди в Clearfell (Beira +10% Cold Res), Hunting Grounds (+2 пасивки), Freythorn (+30 Spirit) і Ogham Farmlands (+2 пасивки).",
+            <= 16 => Loc.T(
+                $"• Етап (Рів.{lv}, Акт 1 — {league}): шукай нагороди в Clearfell (Beira +10% Cold Res), Hunting Grounds (+2 пасивки), Freythorn (+30 Spirit) і Ogham Farmlands (+2 пасивки).",
                 $"• Act 1 Stage (Lv {lv}, {league}): Grab Beira (+10% Cold Res), Crowbell (+2 Passives), Freythorn (+30 Spirit) & Ogham Lute (+2 Passives).",
                 $"• Акт 1 (Ур.{lv}, {league}): забери Beira (+10% Cold Res), Crowbell (+2 пассивки), Freythorn (+30 Spirit) и лютню в Ogham (+2 пассивки)."),
-            <= 35 => Loc.T(
+            <= 32 => Loc.T(
                 $"• Етап (Рів.{lv}, Акт 2 — {league}): відкрий 1-й Ascendancy в Traitors' Passage, збери Keth (+2 пасивки), Deshar (+2 пасивки) та Spires of Deshar (+10% Light Res).",
                 $"• Act 2 Stage (Lv {lv}, {league}): Unlock 1st Ascendancy (Traitors' Passage), Keth (+2 Passives), Deshar (+2 Passives) & Sisters (+10% Light Res).",
                 $"• Акт 2 (Ур.{lv}, {league}): открой 1-е Восхождение в Traitors' Passage, Keth (+2 пассивки), Deshar (+2) и Sisters (+10% Light Res)."),
-            <= 55 => Loc.T(
-                $"• Етап (Рів.{lv}, Акт 3 / Cruel — {league}): не пропусти Azak Bog (+30 Spirit), Jungle Ruins (+2 пасивки), Venom Crypts (Servi Vial) і Trial of Chaos.",
-                $"• Act 3 / Cruel (Lv {lv}, {league}): Grab Azak Bog (+30 Spirit), Jungle Ruins (+2 Passives), Venom Crypts (Servi Vial) & Trial of Chaos.",
-                $"• Акт 3 / Cruel (Ур.{lv}, {league}): забери Azak Bog (+30 Spirit), Jungle Ruins (+2 пассивки), Servi Vial и Trial of Chaos."),
+            <= 46 => Loc.T(
+                $"• Етап (Рів.{lv}, Акт 3 — {league}): не пропусти Azak Bog (+30 Spirit), Jungle Ruins (+2 пасивки), Venom Crypts (Servi Vial), Jiquani (+10% Fire Res) і Trial of Chaos.",
+                $"• Act 3 Stage (Lv {lv}, {league}): Grab Azak Bog (+30 Spirit), Jungle Ruins (+2 Passives), Venom Crypts (Servi Vial), Jiquani (+10% Fire Res) & Trial of Chaos.",
+                $"• Акт 3 (Ур.{lv}, {league}): забери Azak Bog (+30 Spirit), Jungle Ruins (+2 пассивки), Servi Vial, Jiquani (+10% Fire Res) и Trial of Chaos."),
             <= 64 => Loc.T(
-                $"• Перехід в Ендгейм (Рів.{lv} — {league}): добий Elemental Res до ~75% через Runes/Bench, онови базу зброї та пройди 3-й Ascendancy перед Waystones.",
-                $"• Endgame Transition (Lv {lv}, {league}): Push Elemental Resistances toward 75%, refresh weapon base and grab 3rd Ascendancy before Waystones.",
-                $"• Выход в эндгейм (Ур.{lv}, {league}): подтяни стихийные резисты до 75%, обнови базу оружия и пройди 3-е Восхождение."),
+                $"• Акт 4 / Interludes (Рів.{lv} — {league}): забери Lythara в Interlude 3 Kriar Village (+40 Spirit, разом 100 бази!), добий резисти до ~75% та онови базу перед Waystones.",
+                $"• Act 4 / Interludes (Lv {lv}, {league}): Grab Lythara in Interlude 3 Kriar Village (+40 Spirit, 100 base total!), push Ele Res toward 75% & upgrade weapon before Waystones.",
+                $"• Акт 4 / Interludes (Ур.{lv}, {league}): забери Lythara в Interlude 3 Kriar Village (+40 Spirit = 100 базы!), подтяни резисты к 75% и обнови оружие."),
             _ => Loc.T(
                 $"• Ендгейм Waystones (Рів.{lv} — {league}): тримай Fire/Cold/Light Res 75%+, шукай ilvl 78–82+ бази, Artificer's Orbs на 2 сокети та +3..+5 Skills / високий pDPS+eDPS.",
                 $"• Endgame Waystones (Lv {lv}, {league}): Cap 75%+ Elemental Res, hunt ilvl 78–82+ bases, 2-socket Armour/Weapon with Runes & +Skill levels.",
@@ -623,11 +659,13 @@ public static partial class PoeAccountService
         var phys = Regex.Match(rawItemText, @"Physical Damage:\s*(\d+)\s*-\s*(\d+)", RegexOptions.IgnoreCase);
         double pdps = aps > 0 && phys.Success ? (int.Parse(phys.Groups[1].Value) + int.Parse(phys.Groups[2].Value)) / 2.0 * aps : 0;
         double edps = 0;
-        var elem = Regex.Match(rawItemText, @"Elemental Damage:\s*(.+)", RegexOptions.IgnoreCase);
-        if (aps > 0 && elem.Success)
+        if (aps > 0)
         {
-            foreach (Match r in Regex.Matches(elem.Groups[1].Value, @"(\d+)\s*-\s*(\d+)"))
-                edps += (int.Parse(r.Groups[1].Value) + int.Parse(r.Groups[2].Value)) / 2.0 * aps;
+            foreach (Match em in Regex.Matches(rawItemText, @"(?:Elemental|Fire|Cold|Lightning|Chaos)\s+Damage:\s*([^\r\n]+)", RegexOptions.IgnoreCase))
+            {
+                foreach (Match r in Regex.Matches(em.Groups[1].Value, @"(\d+)\s*-\s*(\d+)"))
+                    edps += (int.Parse(r.Groups[1].Value) + int.Parse(r.Groups[2].Value)) / 2.0 * aps;
+            }
         }
         if (pdps + edps > 1) tags.Add($"~{pdps + edps:F0} DPS");
 
@@ -663,6 +701,9 @@ public static partial class PoeAccountService
                         !l.StartsWith("Requires") && !l.StartsWith("Item Level:") && !l.StartsWith("Sockets:") &&
                         !l.StartsWith("Attacks per Second:") && !l.StartsWith("Critical Hit Chance:") &&
                         !l.StartsWith("Physical Damage:") && !l.StartsWith("Elemental Damage:") &&
+                        !l.StartsWith("Fire Damage:") && !l.StartsWith("Cold Damage:") &&
+                        !l.StartsWith("Lightning Damage:") && !l.StartsWith("Chaos Damage:") &&
+                        !l.StartsWith("Quality:") && !l.StartsWith("Block chance:") &&
                         !l.StartsWith("Energy Shield:") && !l.StartsWith("Evasion Rating:") && !l.StartsWith("Armour:"))
             .Skip(1) // пропустити рядок назви/бази
             .Take(3)

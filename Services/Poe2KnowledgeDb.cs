@@ -47,118 +47,118 @@ public static class Poe2KnowledgeDb
             "Дає +1..+3 до рівня конкретного вміння — метові скіли мають величезний попит.",
             "Grants +1 to +3 Levels of a specific meta Skill Gem — huge Trade value on popular skills.",
             "Даёт +1..+3 к уровню конкретного умения — очень высокий спрос на популярные камни."),
-        new("Hand of Wisdom and Action", "Unique Gloves (Furtive Wraps)", "Breach Boss: Xesht",
-            "Ексклюзивний дроп із Xesht, We That Are One (Breachstone / Twisted Domain).",
-            "Exclusive drop from Xesht, We That Are One (Breach Pinnacle Boss).",
-            "Эксклюзивный дроп с босса Разлома — Xesht (Twisted Domain).",
-            "Масштабує плоский урон блискавкою та швидкість атаки від Int/Dex — топ для Monk/Attribute-білдів.",
+        new("Hand of Wisdom and Action", "Unique Gloves (Spiral Wraps · Req Lv33)", "Breach Boss: Xesht",
+            "Ексклюзивний дроп із Xesht, We That Are One (Breachstone / Twisted Domain). Вимога: 33 рівень, 24 Dex, 24 Int.",
+            "Exclusive drop from Xesht, We That Are One (Breach Pinnacle Boss). Base: Spiral Wraps (Req Lvl 33).",
+            "Эксклюзивный дроп с босса Разлома — Xesht (Twisted Domain). База Spiral Wraps, ур. 33+.",
+            "Масштабує плоский урон блискавкою від Int та швидкість атаки від Dex — топ для Monk/Attribute-білдів.",
             "Scales Attack Speed per Dex & Lightning Damage per Int — premier attribute-stacking gloves.",
             "Даёт скорость от Dex и урон молнией от Int — топ-перчатки для attribute-билдов."),
-        new("Ingenuity", "Unique Belt (Utility Belt)", "Ritual Boss: King in the Mists",
-            "Бос-дроп із King in the Mists (An Audience with the King у Ritual).",
-            "Boss drop from The King in the Mists (An Audience with the King Ritual encounter).",
-            "Падает с Короля в Туманах (An Audience with the King, Ритуал).",
-            "Множить ефект обох кілець; шукай якомога вищий % бонусу та Corruption.",
-            "Amplifies bonuses from both equipped Rings — roll % is everything.",
-            "Усиливает эффекты обоих колец — решающее значение имеет высокий % ролла."),
-        new("Astramentis", "Unique Amulet (Stellar Amulet)", "World Drop T0 / Chance Orb (Stellar Amulet)",
-            "Ультра-рідкісний світовий дроп (Tier 0) або Орб Шансу (Orb of Chance) у білу базу Stellar Amulet!",
-            "Ultra-rare T0 World Drop or Orb of Chance into white Stellar Amulet bases.",
-            "Ультра-редкий мировой дроп (T0) или Orb of Chance в базу Stellar Amulet!",
-            "Ніколи не ігноруй білі Stellar Amulets — їх скуповують навіть пустими під крафт через Chance.",
-            "Always pick up white Stellar Amulet bases for gambling / selling in bulk.",
-            "Всегда подбирай белые базы Stellar Amulet — они ценятся на рынке."),
-        new("Headhunter", "Unique Belt (Heavy Belt)", "World Drop T0 / Chance Orb (Heavy Belt)",
-            "Ультра-рідкісний світовий дроп (високі карти/Chance Orb на Heavy Belt).",
-            "Ultra-rare T0 World Drop or Orb of Chance on white Heavy Belt.",
-            "Ультра-редкий мировой дроп или Orb of Chance на Heavy Belt.",
-            "Краде моди вбитих рідкісних монстрів на 60с — король швидкого кліру мап.",
+        new("Ingenuity", "Unique Belt (Utility Belt · Req Lv55)", "Ritual Boss: King in the Mists",
+            "Бос-дроп із King in the Mists (An Audience with the King у Ritual). База Utility Belt (рів. 55+).",
+            "Boss drop from The King in the Mists (An Audience with the King Ritual encounter). Req Lvl 55.",
+            "Падает с Короля в Туманах (An Audience with the King, Ритуал). База Utility Belt, ур. 55+.",
+            "Множить ефект лівого/правого кільця та фляг/чармів; шукай найвищий % ролу та кількість Charm-слотів.",
+            "Amplifies equipped Rings bonuses & Flask/Charm recovery — roll % & Charm slots matter most.",
+            "Усиливает эффекты колец и фласок — решающее значение имеет высокий % ролла."),
+        new("Astramentis", "Unique Amulet (Stellar Amulet · Req Lv24)", "World Drop T0 / Chance Orb (Stellar Amulet)",
+            "Ультра-рідкісний світовий дроп (Tier 0) або Орб Шансу (Orb of Chance) у білу базу Stellar Amulet (рів. 24+)!",
+            "Ultra-rare T0 World Drop or Orb of Chance into white Stellar Amulet bases (Req Lvl 24).",
+            "Ультра-редкий мировой дроп (T0) или Orb of Chance в базу Stellar Amulet (ур. 24+)!",
+            "До +100 to All Attributes (+імплісит) — ніколи не ігноруй білі Stellar Amulets.",
+            "Massive +to All Attributes — always pick up white Stellar Amulet bases for Chance / Trade.",
+            "Огромный бонус ко всем атрибутам — всегда подбирай белые базы Stellar Amulet."),
+        new("Headhunter", "Unique Belt (Heavy Belt · Req Lv50)", "World Drop T0 / Chance Orb (Heavy Belt)",
+            "Ультра-рідкісний світовий дроп (високі карти/Chance Orb на Heavy Belt, рів. 50+).",
+            "Ultra-rare T0 World Drop or Orb of Chance on white Heavy Belt (Req Lvl 50).",
+            "Ультра-редкий мировой дроп или Orb of Chance на Heavy Belt (ур. 50+).",
+            "Краде моди вбитих рідкісних монстрів — король швидкого кліру мап.",
             "Steals Rare monster modifiers on kill — unmatched speed-mapping belt.",
             "Крадёт свойства редких монстров при убийстве."),
-        new("Temporalis", "Unique Body Armour (Silk Robe)", "Sekhemas Hitless Run",
-            "Винагорода за проходження Trial of the Sekhemas з реліквією 'The Last Flame' без отримання урону (1 Honor).",
-            "Exclusive reward for no-hit Trial of the Sekhemas using 'The Last Flame' relic.",
-            "Уникальная награда за прохождение Trial of the Sekhemas без получения урона (1 Honor).",
-            "Зменшує перезарядку навичок (включно з Blink).",
+        new("Temporalis", "Unique Body Armour (Silk Robe · Req Lv64)", "Sekhemas Hitless Run",
+            "Винагорода за проходження Trial of the Sekhemas з реліквією 'The Last Flame' без отримання урону (1 Honor). Вимога: 64 рів.",
+            "Exclusive reward for no-hit Trial of the Sekhemas using 'The Last Flame' relic (Req Lvl 64).",
+            "Уникальная награда за прохождение Trial of the Sekhemas без получения урона (1 Honor, ур. 64+).",
+            "Різко зменшує перезарядку навичок (включно з Blink).",
             "Massive skill cooldown reduction enabling instant Blink setups.",
             "Резко снижает перезарядку умений (включая Blink)."),
-        new("Tangletongue", "Unique Spear (Forked Spear)", "World Drop / Gambling",
-            "Світовий дроп (кампанія / карти), гемблінг списів у торговця або Orb of Chance на Forked Spear.",
-            "Global world drop / Spear vendor gambling / Orb of Chance on Forked Spear base.",
-            "Мировой дроп, азартный обмен у торговца или Chance Orb в Forked Spear.",
-            "Високий базовий шанс кріта і Fork Критів роблять його одним із найкращих дешевих/середніх списів PoE 2.",
+        new("Tangletongue", "Unique Spear (Forked Spear · Req Lv26)", "World Drop / Gambling / Chance Orb",
+            "Світовий дроп (з ~26 рівня / Акт 2+), гемблінг списів або Orb of Chance на Forked Spear.",
+            "Global world drop (Req Lvl 26) / Spear vendor gambling / Orb of Chance on Forked Spear.",
+            "Мировой дроп (с 26 ур.), обмен у торговца или Chance Orb в Forked Spear.",
+            "Механіка подвійних крітів ('Forks Critical Hits') робить високий кріт-рол одним із найкращих списів.",
             "Double crit roll mechanic ('Forks Critical Hits') makes high crit rolls extremely strong.",
             "Двойной расчёт критов делает высокий ролл крита невероятно сильным."),
-        new("Pillar of the Caged God", "Unique Quarterstaff", "Act 1+ World Drop / Chance Orb",
-            "Частий ранній світовий дроп з Акту 1 або Orb of Chance; ідеальний для прокачки стакерів атрибутів.",
-            "Common early World Drop from Act 1+ or cheap Trade purchase.",
-            "Частый ранний дроп с 1-го Акта или дешёвый слот на трейде.",
-            "Синергує з плоским уроном на перснях/рукавичках та великою кількістю Str/Dex/Int.",
+        new("Pillar of the Caged God", "Unique Quarterstaff (Long Quarterstaff · Req Lv4)", "Act 1+ World Drop / Chance Orb",
+            "Ранній світовий дроп уже з 4-го рівня (Акт 1+) або Orb of Chance у Long Quarterstaff; топ для стакерів атрибутів.",
+            "Early World Drop (Req Lvl 4, Act 1+) or cheap Trade purchase.",
+            "Ранний дроп с 4-го уровня (Акт 1+) или дешёвый слот на трейде.",
+            "Синергує з плоским уроном на перснях/рукавичках та високими Str/Dex/Int.",
             "Scales AoE/Speed/Damage cleanly off flat added damage on Rings/Gloves and Attributes.",
             "Отлично масштабирует плоский урон с колец и перчаток от ваших атрибутов."),
-        new("Shavronne", "Unique Satchel / Flask / Belt", "World Drop / Campaign+",
-            "Світовий дроп (мапи / кампанія) або швидка покупка на Trade за кілька Exalt.",
-            "Global World Drop or inexpensive Trade purchase.",
-            "Мировой дроп или недорогая покупка на трейде.",
-            "Для CI-білдів дозволяє безпечно поповнювати ES від фляг — обов'язково уникай моду 'removed from Life' без ES-конверсії.",
-            "Crucial Life-to-ES interaction; verify flask mods carefully when playing Chaos Inoculation.",
-            "Полезно для CI, но внимательно проверяй отсутствие смертельных модов на фласках."),
-        new("Polcirkeln", "Unique Ring (Sapphire Ring)", "World Drop / Chance Orb",
-            "Світовий дроп (Акти/Waystones) або Orb of Chance на Sapphire Ring.",
-            "World Drop or Orb of Chance on Sapphire Ring.",
-            "Мировой дроп или Orb of Chance на Sapphire Ring.",
+        new("Shavronne", "Unique Belt (Fine Belt · Req Lv62)", "World Drop / Endgame Trade",
+            "Світовий дроп високого рівня (Shavronne's Satchel, рів. 62+) або покупка на PoE 2 Trade.",
+            "Endgame World Drop (Shavronne's Satchel, Req Lvl 62) or Trade purchase.",
+            "Высокоуровневый мировой дроп (Shavronne's Satchel, ур. 62+) или Trade.",
+            "Дозволяє Life Recovery з фляг поповнювати Energy Shield — рятує для CI/гібридів, але стеж за модами фляг.",
+            "Life Recovery from Flasks applies to Energy Shield — great for CI/ES sustain.",
+            "Позволяет фласкам здоровья восстанавливать Energy Shield — отлично для CI."),
+        new("Polcirkeln", "Unique Ring (Sapphire Ring · Req Lv12)", "World Drop / Chance Orb",
+            "Світовий дроп з 12+ рівня (Акт 1+) або Orb of Chance на Sapphire Ring.",
+            "World Drop (Req Lvl 12+) or Orb of Chance on Sapphire Ring.",
+            "Мировой дроп с 12+ ур. или Orb of Chance на Sapphire Ring.",
             "Охолоджені вороги розбиваються як заморожені — миттєвий запуск ланцюгів Herald of Ice.",
             "Chilled enemies shatter as if Frozen — unlocks huge Herald of Ice clears early.",
             "Охлаждённые враги раскалываются как замороженные — запускает цепочки Herald of Ice."),
-        new("Thief's Torment", "Unique Ring (Emerald Ring)", "World Drop / Chance Orb",
-            "Світовий дроп або Orb of Chance на Emerald Ring (займає обидва слоти кілець!).",
-            "Global Drop / Chance Orb on Emerald Ring (prevents using second ring).",
-            "Мировой дроп (запрещает использовать второе кольцо).",
-            "Дає величезний Life/Mana gain on Hit — топ для прокачки й складних босів до ендгейму.",
+        new("Thief's Torment", "Unique Ring (Emerald Ring · Req Lv26)", "World Drop / Chance Orb",
+            "Світовий дроп (рів. 26+) або Orb of Chance на Emerald Ring (займає обидва слоти кілець!).",
+            "Global Drop (Req Lvl 26+) / Chance Orb on Emerald Ring (prevents using second ring).",
+            "Мировой дроп (ур. 26+; запрещает использовать второе кольцо).",
+            "Дає величезний Life/Mana gain on Hit — топ для прокачки й босів до ендгейму.",
             "Massive Mana/Life gained on Hit solves sustain completely during leveling and bossing.",
             "Полностью решает проблему маны и здоровья при попадании."),
-        new("Beacon of Azis", "Unique Amulet (Solar Amulet)", "World Drop / Arbiter Pool",
-            "Світовий дроп високого рівня / боси Атласу; дозволяє критам повністю ігнорувати стихійні опори ворогів.",
-            "High-tier drop; Critical Hits ignore all enemy Elemental Resistances!",
-            "Высокоуровневый дроп; критические удары полностью игнорируют стихийные сопротивления.",
-            "Знімає потребу брати Exposure/Penetration на дереві для кріт-білдів.",
-            "Frees massive passive tree/curse budget since Crits treat enemy Ele Res as 0%.",
-            "Освобождает кучу очков пассивок, так как криты игнорируют резисты."),
-        new("Alpha's Howl", "Unique Helmet (Armoured Cap)", "World Drop T1+",
-            "Рідкісний світовий дроп високих рівнів; подвоює Presence radius або дає великий +Spirit (+100 Spirit).",
-            "High-tier World Drop granting +100 Spirit and doubled Presence area.",
-            "Редкий мировой дроп высокого уровня; даёт +100 Spirit и удваивает Presence.",
-            "Дозволяє включити зайву ауру/Trinity/Blink у Дух-резерві.",
-            "Unlocks an entire extra Spirit gem or Meta aura setup.",
-            "Позволяет включить дополнительный Spirit-бафф или ауру."),
-        new("Atziri's Disdain", "Unique Helmet (Gold Circlet)", "World Drop / Chance Orb",
-            "Світовий дроп або Orb of Chance; додає екстра Energy Shield від максимального Life.",
-            "World Drop / Chance Orb; grants Extra Maximum Energy Shield equal to % of Life.",
-            "Мировой дроп или Chance Orb; добавляет экстра ES от максимального здоровья.",
-            "Чудовий гібридний шолом перед повним переходом у CI.",
+        new("Beacon of Azis", "Unique Amulet (Solar Amulet · Req Lv30)", "World Drop / Endgame Pool",
+            "Світовий дроп (рів. 30+, частіше на пізній кампанії/мапах); критами повністю ігнорує стихійні опори ворогів.",
+            "World Drop (Req Lvl 30+, Solar Amulet); Critical Hits ignore all enemy Elemental Resistances!",
+            "Мировой дроп (ур. 30+, Solar Amulet); критические удары игнорируют стихийные сопротивления.",
+            "Дає до ~40–45 Spirit і знімає потребу качати Exposure/Penetration для кріт-білдів.",
+            "Grants high Spirit (~40–45) and frees Exposure/Penetration budget on Crit builds.",
+            "Даёт ~40–45 Spirit и освобождает от поиска Exposure/Penetration для крит-билдов."),
+        new("Alpha's Howl", "Unique Helmet (Plumed Cap · Req Lv61)", "World Drop (Lvl 61+ / Waystones)",
+            "Світовий дроп високого рівня (база Plumed Cap, рів. 61+, 86 Dex); дає +60 до Spirit та скіл Werewolf Pack.",
+            "High-tier World Drop (Plumed Cap, Req Lvl 61, 86 Dex) granting +60 Spirit & Werewolf Pack.",
+            "Высокоуровневый мировой дроп (Plumed Cap, ур. 61+, 86 Dex); даёт +60 к Spirit и умение Werewolf Pack.",
+            "Значно підвищує Evasion і дозволяє включити додатковий Spirit-баф.",
+            "High Evasion + Cold Res +60 Spirit helps fit extra persistent buffs.",
+            "Даёт высокий Evasion, Cold Res и +60 Spirit для дополнительной ауры."),
+        new("Atziri's Disdain", "Unique Helmet (Gold Circlet · Req Lv40)", "World Drop / Chance Orb",
+            "Світовий дроп (рів. 40+, 58 Int) або Orb of Chance на Gold Circlet; додає екстра ES від Max Life.",
+            "World Drop (Req Lvl 40, Gold Circlet) / Chance Orb; grants Extra Max ES from % of Life.",
+            "Мировой дроп (ур. 40+, Gold Circlet) или Chance Orb; добавляет экстра ES от здоровья.",
+            "Чудовий гібридний шолом до переходу в чистий CI.",
             "Outstanding mid-game ES/Life hybrid helmet before swapping to pure CI.",
             "Отличный переходный гибридный шлем до перехода на CI."),
-        new("Ghostwrithe", "Unique Body Armour (Tattered Robe)", "Early Act 1+ Drop",
-            "Дешевий ранній унiк з Акту 1+; конвертує 50% Life в Energy Shield.",
-            "Early Act 1+ World Drop; converts 50% Max Life to Energy Shield.",
-            "Ранний дроп с 1-го Акта; конвертирует 50% здоровья в Energy Shield.",
-            "Найкраща дешева броня для переходу в ES-білди ще в кампанії.",
-            "Best budget body armour for early ES / CI transitions during campaign.",
+        new("Ghostwrithe", "Unique Body Armour (Tattered Robe · Req Lv1)", "Early Act 1+ Drop",
+            "Ранній світовий дроп з 1-го рівня; дає +100 ES та конвертує 35% Max Life в Energy Shield.",
+            "Early Act 1+ World Drop (Req Lvl 1); +100 ES and converts 35% of Max Life to ES.",
+            "Ранний дроп с 1-го уровня (Акт 1+); +100 ES и конвертация 35% Max Life в Energy Shield.",
+            "Найкраща дешева броня для раннього старту через Energy Shield.",
+            "Best budget body armour for early ES transitions during campaign.",
             "Лучшая дешёвая броня для раннего старта через Energy Shield."),
-        new("Wanderlust", "Unique Boots (Wrapped Sandals)", "Act 1 World Drop / Gamble",
-            "Світовий дроп з 1-го рівня (Act 1 Mud Burrow / Clearfell) або гемблінг у Фінна (Finn).",
-            "Drops from Level 1+ anywhere in Act 1 or gamble Wrapped Sandals.",
-            "Падает с 1-го уровня (Акт 1) или выбивается через азарт у Фінна.",
-            "+20% Movement Speed та імунітет до Chill/Freeze (через Slow potency) з 1-го рівня.",
-            "+20% Movement Speed right at Level 1 — ideal campaign leveling boots.",
-            "+20% скорости бега уже с 1 уровня — лучшие стартовые сапоги."),
-        new("Goldrim", "Unique Helmet (Felt Cap)", "Act 1+ World Drop / Gamble",
-            "Світовий дроп з низьких рівнів або гемблінг шоломів.",
-            "Early Leveling World Drop / Gamble.",
-            "Ранний мировой дроп с низких уровней.",
-            "Дає +30–40% до ВСІХ стихійних опорів — перекриває дірки в резистах на всю кампанію.",
-            "Up to +40% All Elemental Resistances makes campaign resistance capping effortless.",
-            "До +40% ко всем стихийным сопротивлениям на всю кампанию."),
+        new("Wanderlust", "Unique Boots (Wrapped Sandals · Req Lv11)", "Act 1 World Drop / Gamble",
+            "Світовий дроп (з 11 рівня, 17 Int, кінець Акту 1+) або гемблінг Wrapped Sandals.",
+            "World Drop (Req Lvl 11, 17 Int — Wrapped Sandals) or boot vendor gambling.",
+            "Мировой дроп (с 11 уровня, 17 Int — Wrapped Sandals) или гемблинг у вендоров.",
+            "+20% Movement Speed та захист від Slow з ранньої кампанії.",
+            "+20% Movement Speed and immune to Slows — top campaign leveling boots.",
+            "+20% скорости бега и защита от замедлений — лучшие прокачные сапоги."),
+        new("Goldrim", "Unique Helmet (Felt Cap · Req Lv10)", "Act 1+ World Drop / Gamble",
+            "Ранній світовий дроп з 10-го рівня (17 Dex, Felt Cap) або гемблінг шоломів.",
+            "Early Leveling World Drop (Req Lvl 10, 17 Dex) / Gamble.",
+            "Ранний мировой дроп с 10-го уровня (17 Dex) / гемблинг.",
+            "Дає +25–35% до ВСІХ стихійних опорів — легко перекриває дірки в резистах у кампанії.",
+            "+25–35% All Elemental Resistances makes campaign resistance capping effortless.",
+            "+25–35% ко всем стихийным сопротивлениям на время кампании."),
         new("Sapphire Charm", "Utility Charm (Gold/Blue)", "Act 1+ / Trial Drops / Vendor",
             "Падає з мобів і скринь у кампанії/мапах; крафтиться Alteration/Transmutation/Augmentation.",
             "Drops globally in campaign & Waystones or check NPC vendors on level-up.",
@@ -175,33 +175,70 @@ public static class Poe2KnowledgeDb
         string slotLower = (slotId ?? "").ToLowerInvariant();
         int curLvl = Math.Clamp(characterLevel, 1, 100);
 
-        // 1. Пошук точного уніка або джевела у базі
+        // 1. Пошук точного уніка або джевела у кураторській базі (боси / унікальні механіки)
         foreach (var entry in CuratedItems)
         {
             if (lower.Contains(entry.ItemTitle.ToLowerInvariant()))
                 return entry;
         }
 
-        // 2. Універсальний рівень-орієнтований розбір (спочатку явні Flask/Charm/Offhand/Jewel і цілі слова, щоб 'simmeRING' не падав в Jewellery!)
+        // 1b. Пошук серед усіх 770+ офіційних унiків PoE 2 з живого GGG `/api/trade2/data/items`
+        if (LivePoe2DataService.TryMatchUnique(text, out var liveUniq))
+        {
+            string baseLbl = string.IsNullOrWhiteSpace(liveUniq.BaseType) ? liveUniq.Category : liveUniq.BaseType;
+            string catUk = liveUniq.Category switch
+            {
+                "weapon" => "Унікальна зброя",
+                "armour" => "Унікальна броня",
+                "accessory" => "Унікальна біжутерія",
+                "jewel" => "Унікальний самоцвіт",
+                "flask" => "Унікальна фласка / чарм",
+                _ => "Унікальний предмет"
+            };
+            string chanceHint = !string.IsNullOrWhiteSpace(liveUniq.BaseType) && liveUniq.Category is "weapon" or "armour" or "accessory"
+                ? $" / Orb of Chance у білу базу {liveUniq.BaseType}"
+                : "";
+            string chanceHintEn = !string.IsNullOrWhiteSpace(liveUniq.BaseType) && liveUniq.Category is "weapon" or "armour" or "accessory"
+                ? $" or Orb of Chance into white {liveUniq.BaseType}"
+                : "";
+            string chanceHintRu = !string.IsNullOrWhiteSpace(liveUniq.BaseType) && liveUniq.Category is "weapon" or "armour" or "accessory"
+                ? $" или Orb of Chance в белую базу {liveUniq.BaseType}"
+                : "";
+            return new PoeItemObtainInfo(
+                liveUniq.Name,
+                $"{catUk} ({baseLbl})",
+                $"Live GGG Catalog · Base: {baseLbl}",
+                $"Світовий дроп (Акти / Waystones), гемблінг у торговців за золото{chanceHint} або PoE 2 Trade.",
+                $"World Drop (Campaign / Waystones), Vendor Gold Gambling{chanceHintEn}, or PoE 2 Trade.",
+                $"Мировой дроп (Акты / Waystones), гемблинг за золото{chanceHintRu} или PoE 2 Trade.",
+                $"Перевір ціну та моди {liveUniq.Name} через кнопку Trade 2 / PoE2DB перед продажем або крафтом.",
+                $"Check live roll ranges and prices for {liveUniq.Name} via Trade 2 / PoE2DB before corrupting or selling.",
+                $"Проверь роллы и актуальную цену {liveUniq.Name} через Trade 2 / PoE2DB."
+            );
+        }
+
+        // 2. Універсальний рівень-орієнтований розбір + жива база GGG (`LivePoe2DataService`)
+        LivePoe2DataService.TryGetBaseCategory(text, out string liveCat);
         static bool HasWord(string hay, string word) =>
             System.Text.RegularExpressions.Regex.IsMatch(hay, $@"\b{System.Text.RegularExpressions.Regex.Escape(word)}\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
 
         bool isFlask = slotLower.Contains("flask") || HasWord(lower, "flask");
         bool isCharm = !isFlask && (slotLower.Contains("charm") || HasWord(lower, "charm"));
         bool isOffhand = !isFlask && !isCharm && (slotLower.Contains("offhand") || HasWord(lower, "shield") || HasWord(lower, "buckler") || HasWord(lower, "focus") || HasWord(lower, "quiver"));
-        bool isJewel = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("jewel") || HasWord(lower, "diamond") || HasWord(lower, "emerald") || HasWord(lower, "ruby") || HasWord(lower, "sapphire"));
-        bool isBoots = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("boot") || HasWord(lower, "boots") || HasWord(lower, "sandals") || HasWord(lower, "greaves") || HasWord(lower, "shoes"));
-        bool isBody = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("body") || HasWord(lower, "armour") || HasWord(lower, "robe") || HasWord(lower, "vestment") || HasWord(lower, "cuirass") || HasWord(lower, "brigandine"));
-        bool isHelm = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("helm") || HasWord(lower, "helmet") || HasWord(lower, "circlet") || HasWord(lower, "cap") || HasWord(lower, "hood") || HasWord(lower, "crown"));
-        bool isGloves = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("glove") || HasWord(lower, "gloves") || HasWord(lower, "wrappings") || HasWord(lower, "gauntlets") || HasWord(lower, "mitts") || HasWord(lower, "bracers"));
+        bool isBoots = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("boot") || HasWord(lower, "boots") || HasWord(lower, "sandals") || HasWord(lower, "greaves") || HasWord(lower, "shoes") || HasWord(lower, "slippers"));
+        bool isBody = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("body") || HasWord(lower, "armour") || HasWord(lower, "robe") || HasWord(lower, "vestment") || HasWord(lower, "cuirass") || HasWord(lower, "brigandine") || HasWord(lower, "jacket") || HasWord(lower, "garb") || HasWord(lower, "tunic") || HasWord(lower, "coat") || HasWord(lower, "vest") || HasWord(lower, "doublet") || HasWord(lower, "plate") || HasWord(lower, "mail") || HasWord(lower, "raiment") || HasWord(lower, "regalia") || HasWord(lower, "shroud"));
+        bool isHelm = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("helm") || HasWord(lower, "helmet") || HasWord(lower, "circlet") || HasWord(lower, "cap") || HasWord(lower, "hood") || HasWord(lower, "crown") || HasWord(lower, "tiara") || HasWord(lower, "mask") || HasWord(lower, "greathelm") || HasWord(lower, "visage") || HasWord(lower, "sallet"));
+        bool isGloves = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("glove") || HasWord(lower, "gloves") || HasWord(lower, "wrappings") || HasWord(lower, "gauntlets") || HasWord(lower, "mitts") || HasWord(lower, "bracers") || HasWord(lower, "wraps") || HasWord(lower, "fists"));
         bool isAmulet = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("amulet") || HasWord(lower, "amulet"));
         bool isRing = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("ring") || HasWord(lower, "ring"));
         bool isBelt = !isFlask && !isCharm && !isOffhand && (slotLower.Contains("belt") || HasWord(lower, "belt") || HasWord(lower, "sash"));
-        bool isWeapon = !isFlask && !isCharm && !isOffhand && !isBoots && !isBody && !isHelm && !isGloves && !isAmulet && !isRing && !isBelt && !isJewel &&
-            (slotLower.Contains("weapon") || HasWord(lower, "spear") || HasWord(lower, "quarterstaff") || HasWord(lower, "quarterstaves") ||
+        bool isWeapon = !isFlask && !isCharm && !isOffhand && !isBoots && !isBody && !isHelm && !isGloves && !isAmulet && !isRing && !isBelt &&
+            (liveCat == "weapon" || slotLower.Contains("weapon") || HasWord(lower, "spear") || HasWord(lower, "quarterstaff") || HasWord(lower, "quarterstaves") ||
              HasWord(lower, "wand") || HasWord(lower, "bow") || HasWord(lower, "sceptre") || HasWord(lower, "staff") || HasWord(lower, "staves") ||
              HasWord(lower, "mace") || HasWord(lower, "crossbow") || HasWord(lower, "talisman") || HasWord(lower, "flail") ||
              HasWord(lower, "sword") || HasWord(lower, "axe") || HasWord(lower, "dagger") || HasWord(lower, "claw"));
+        bool isJewel = !isFlask && !isCharm && !isOffhand && !isBoots && !isBody && !isHelm && !isGloves && !isAmulet && !isRing && !isBelt && !isWeapon &&
+            (liveCat == "jewel" || slotLower.Contains("jewel") || HasWord(lower, "jewel") || HasWord(lower, "time-lost") || HasWord(lower, "diamond") || HasWord(lower, "emerald") || HasWord(lower, "ruby") || HasWord(lower, "sapphire"));
 
         string reqWindow = curLvl < 65
             ? $"Lvl ~{Math.Max(1, curLvl - 2)}–{curLvl + 3} (ilvl {curLvl}+)"
@@ -214,8 +251,8 @@ public static class Poe2KnowledgeDb
             return new PoeItemObtainInfo(
                 "Life / Mana Flask", "Flask", curLvl < 65 ? $"Відповідна до Lvl {curLvl} фляга у торговця" : "ilvl 65+ (Ultimate / Colossal)",
                 curLvl < 65
-                    ? "Не забувай міняти старі фласки в торговця (Lesser → Medium → Greater → Grand) що 10–12 рівнів + ролити Instant Recovery через Transmutation!"
-                    : "Дроп Ultimate/Colossal Flasks на мапах + Transmutation/Augmentation. Якщо граєш через CI — уникай 'removed from Life'!",
+                    ? "Не забувай міняти старі фласки в торговця (Lesser → Medium → Greater → Grand → Giant → Colossal → Gargantuan → Transcendent → Ultimate) + ролити Instant Recovery!"
+                    : "Дроп Ultimate Flasks на мапах + Transmutation/Augmentation. Якщо граєш через CI — уникай 'removed from Life'!",
                 curLvl < 65
                     ? "Upgrade flask tier at town vendors every 10 levels and roll Instant Recovery!"
                     : "Drop Ultimate Flasks on Maps; roll Instant Recovery and verify NO 'removed from Life' if CI.",
@@ -280,10 +317,10 @@ public static class Poe2KnowledgeDb
             if (curLvl < 65)
             {
                 return new PoeItemObtainInfo(
-                    wepName, "Campaign Weapon", $"Req Lvl {Math.Max(1, curLvl - 3)}–{curLvl + 3} (Acts 2–3)",
-                    "Перевіряй торговців (Shambrin в Акту 2 / Servi у 3-му), гемблінг за золото або візьми готову синю/жовту пушку на PoE 2 Trade за 1 Exalt.",
-                    "Check Act 2–3 vendors on level-up, gamble weapons with excess Gold, use Lesser Essences on clean bases, or grab a 1-Exalt leveling weapon on Trade.",
-                    "Проверяй вендоров 2–3 Акта при апе уровня, гемблинг за золото или купи прокачную пушку на Trade 2 за 1 Exalt.",
+                    wepName, "Campaign Weapon", $"Req Lvl {Math.Max(1, curLvl - 3)}–{curLvl + 3} (Acts 2–4 / Interludes)",
+                    "Перевіряй торговців (Shambrin в Акті 2 / Servi у 3-му / Kingsmarch у 4-му), гемблінг за золото або візьми готову пушку на PoE 2 Trade за 1 Exalt.",
+                    "Check Act 2–4 / Interlude vendors on level-up, gamble weapons with excess Gold, use Essences, or grab a 1-Exalt weapon on Trade.",
+                    "Проверяй вендоров 2–4 Акта / Interludes при апе уровня, гемблинг или купи пушку на Trade 2 за 1 Exalt.",
                     "Вставляй Iron Runes (+% Phys) або Elemental Runes; не витрачай дорогі Divine/Exalt орби на тимчасову базу.",
                     "Add Iron or Elemental Runes for instant flat/phys scaling without wasting expensive currency.",
                     "Вставляй Iron или Elemental руны в сокеты и не трать дорогие орбы на временную базу."

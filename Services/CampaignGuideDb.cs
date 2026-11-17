@@ -253,6 +253,30 @@ public static class CampaignGuideDb
         },
         new()
         {
+            ZonePattern = "kingsmarch",
+            ActBadge = "Act 4",
+            BossName = "Ngamakanui Islands / Act 4",
+            RewardUk = "Сюжетні нагороди Акту 4 (+пасивки / татуювання)",
+            RewardEn = "Act 4 Island Quests (+Passives / Permanent Buffs)",
+            RewardRu = "Сюжетные награды 4-го Акта (+пассивки / баффы)",
+            TipUk = "Проходь острови в Act 4, оновлюй зброю та резисти перед переходом в Interludes.",
+            TipEn = "Clear Act 4 islands for quest passives and gear upgrades before Interludes.",
+            TipRu = "Проходи острова в 4 Акте и обновляй резисты перед Interludes."
+        },
+        new()
+        {
+            ZonePattern = "kriar",
+            ActBadge = "Interlude 3",
+            BossName = "Lythara, the Wayward Spear",
+            RewardUk = "+40 Spirit (Gemcrust Skull → разом 100 Spirit!)",
+            RewardEn = "+40 Spirit (Gemcrust Skull → 100 base Spirit total!)",
+            RewardRu = "+40 Spirit (Gemcrust Skull → всего 100 базы!)",
+            TipUk = "Обов'язково вбий Lythara у Kriar Village (Mount Kriar) заради останніх +40 Spirit!",
+            TipEn = "Slay Lythara in Kriar Village / Mount Kriar for +40 permanent Spirit (100 total!).",
+            TipRu = "Обязательно убей Lythara в Kriar Village ради финальных +40 Spirit!"
+        },
+        new()
+        {
             ZonePattern = "ziggurat",
             ActBadge = "Town / Atlas",
             BossName = "Ziggurat Refuge / Encampment",
@@ -293,7 +317,8 @@ public static class CampaignGuideDb
         new("a3_gorilla", "Act 3", "Jungle Ruins · Silverfist (+2 Пасивки)", "Jungle Ruins · Silverfist (+2 Passives)", "Jungle Ruins · Silverfist (+2 Пассивки)"),
         new("a3_venom", "Act 3", "Venom Crypts · Servi Vial (+Stun/Mana)", "Venom Crypts · Servi Vial (+Stun/Mana)", "Venom Crypts · Servi Vial (+Stun/Mana)"),
         new("a3_azak", "Act 3", "Azak Bog · Ignagduk (+30 Spirit)", "Azak Bog · Ignagduk (+30 Spirit)", "Azak Bog · Ignagduk (+30 Spirit)"),
-        new("a3_jiquani", "Act 3", "Jiquani · Blackjaw (+10% Fire Res)", "Jiquani · Blackjaw (+10% Fire Res)", "Jiquani · Blackjaw (+10% Fire Res)")
+        new("a3_jiquani", "Act 3", "Jiquani · Blackjaw (+10% Fire Res)", "Jiquani · Blackjaw (+10% Fire Res)", "Jiquani · Blackjaw (+10% Fire Res)"),
+        new("i3_kriar", "Interlude 3", "Kriar Village · Lythara (+40 Spirit)", "Kriar Village · Lythara (+40 Spirit)", "Kriar Village · Lythara (+40 Spirit)")
     ];
 
     public static CampaignZoneTip? Resolve(string? zoneName)

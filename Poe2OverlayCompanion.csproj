@@ -11,9 +11,9 @@
     <AssemblyName>Poe2OverlayCompanion</AssemblyName>
     <RootNamespace>Poe2OverlayCompanion</RootNamespace>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
-    <Version>1.1.0</Version>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
-    <FileVersion>1.1.0.0</FileVersion>
+    <Version>1.1.1</Version>
+    <AssemblyVersion>1.1.1.0</AssemblyVersion>
+    <FileVersion>1.1.1.0</FileVersion>
     <AssemblyTitle>PoE 2 Overlay Companion</AssemblyTitle>
     <Product>PoE 2 Overlay Companion</Product>
     <Authors>Poe2OverlayCompanion</Authors>
@@ -33,6 +33,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Assets\poe2_tree_05.bin.gz" WithCulture="false" LogicalName="Poe2OverlayCompanion.Assets.poe2_tree_05.bin.gz" />
+    <EmbeddedResource Include="Assets\poe2_gems_05.json.gz" WithCulture="false" LogicalName="Poe2OverlayCompanion.Assets.poe2_gems_05.json.gz" />
     <Resource Include="Assets\app.ico" />
   </ItemGroup>
 

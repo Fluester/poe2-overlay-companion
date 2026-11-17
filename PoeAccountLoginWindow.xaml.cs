@@ -18,6 +18,7 @@ public partial class PoeAccountLoginWindow : Window
     private List<PoeAccountCharacter> _chars = [];
     private bool _autoLoadingChars;
     private bool _pendingStashScan;
+    private bool _stashScanBusy;
     private bool _isClosed;
 
     public bool SyncedOk { get; private set; }
@@ -38,6 +39,10 @@ public partial class PoeAccountLoginWindow : Window
         BtnGoChars.Content = Loc.T("👤 Персонажі", "👤 Characters", "👤 Персонажи");
         BtnOpenExternal.Content = Loc.T("🌐 Браузер", "🌐 Browser", "🌐 Браузер");
         TxtSyncNote.Text = Loc.T("Оновлює персонажа (без перезапису білду)", "Syncs live character (keeps build separate)", "Обновляет персонажа (без замены билда)");
+        StatusText.Text = Loc.T(
+            "Натисни Sign In на pathofexile2.com нижче, увійди в акаунт PoE 2, потім відкрий «Персонажі» → «Завантажити персонажів».",
+            "Click Sign In on pathofexile2.com below, log in to your PoE 2 account, then click Load Characters.",
+            "Нажми Sign In на pathofexile2.com ниже, войди в аккаунт PoE 2, затем нажми «Загрузить персонажей».");
 
         Loaded += PoeAccountLoginWindow_Loaded;
         Closed += (_, _) =>
@@ -55,7 +60,7 @@ public partial class PoeAccountLoginWindow : Window
             string version = CoreWebView2Environment.GetAvailableBrowserVersionString();
             if (string.IsNullOrWhiteSpace(version))
             {
-                StatusText.Text = "Edge WebView2 Runtime missing.";
+                StatusText.Text = Loc.T("Edge WebView2 Runtime не знайдено.", "Edge WebView2 Runtime missing.", "Edge WebView2 Runtime не найден.");
                 return;
             }
 
@@ -105,38 +110,37 @@ public partial class PoeAccountLoginWindow : Window
                 }
 
                 bool onAccountPage = uri.Contains("pathofexile2.com/my-account", StringComparison.OrdinalIgnoreCase);
+                bool onPoe2Home = uri.StartsWith("https://pathofexile2.com/", StringComparison.OrdinalIgnoreCase) &&
+                                  !uri.Contains("/login", StringComparison.OrdinalIgnoreCase);
                 bool returnedAfterTradeLogin = _pendingStashScan && uri.Contains("/trade2", StringComparison.OrdinalIgnoreCase);
-                if (!onAccountPage && !returnedAfterTradeLogin && !_stashModeOnly && !_pendingStashScan) return;
+                if (!onAccountPage && !onPoe2Home && !returnedAfterTradeLogin && !_stashModeOnly && !_pendingStashScan) return;
 
                 await Task.Delay(700);
                 if (_isClosed) return;
-                if (_pendingStashScan && (onAccountPage || returnedAfterTradeLogin))
+                if (_pendingStashScan && (onAccountPage || onPoe2Home || returnedAfterTradeLogin))
                 {
                     _pendingStashScan = false;
                     await RunStashScanAsync(closeOnSuccess: true);
                     return;
                 }
-                if (onAccountPage)
+                if (!_stashModeOnly && (onAccountPage || onPoe2Home))
                     await TryAutoLoadCharactersAsync();
-                if (_stashModeOnly && !_isClosed)
-                    await RunStashScanAsync(closeOnSuccess: true);
             };
 
-            // Завжди стартуємо на pathofexile2.com (ніколи не кидаємо користувача на сайт PoE 1!)
-            string startUrl = _stashModeOnly
-                ? "https://pathofexile2.com/my-account/characters"
-                : "https://pathofexile2.com/";
+            // Завжди стартуємо з /my-account/characters на pathofexile2.com (ніколи не кидаємо на сайт PoE 1!)
+            string startUrl = "https://pathofexile2.com/my-account/characters";
             UrlBox.Text = startUrl;
-            WebView.CoreWebView2.Navigate(startUrl);
-            if (_stashModeOnly)
+            if (_stashModeOnly && !string.IsNullOrWhiteSpace(_ai.Config.PoeAccountName))
             {
-                _pendingStashScan = true;
-                _ = Task.Run(async () =>
-                {
-                    await Task.Delay(900);
-                    if (!_isClosed)
-                        await Dispatcher.InvokeAsync(async () => await RunStashScanAsync(closeOnSuccess: true));
-                });
+                await RunStashScanAsync(closeOnSuccess: true);
+                if (!_isClosed && !_pendingStashScan)
+                    WebView.CoreWebView2.Navigate(startUrl);
+            }
+            else
+            {
+                if (_stashModeOnly)
+                    _pendingStashScan = true;
+                WebView.CoreWebView2.Navigate(startUrl);
             }
         }
         catch (Exception ex)
@@ -256,15 +260,26 @@ public partial class PoeAccountLoginWindow : Window
             var details = JsonSerializer.Deserialize<PoeAccountSyncPayload>(unescaped, new JsonSerializerOptions { PropertyNameCaseInsensitive = true })
                           ?? new PoeAccountSyncPayload();
 
+            if (!details.ok && details.equippedBySlot.Count == 0)
+            {
+                StatusText.Text = !string.IsNullOrWhiteSpace(details.error)
+                    ? details.error
+                    : Loc.T(
+                        "Не вдалося завантажити предмети персонажа з сайту GGG. Спробуй оновити сторінку (🔄) та повторити.",
+                        "Failed to fetch character gear from GGG site. Try Reload (🔄) and Sync again.",
+                        "Не удалось загрузить экип персонажа с сайта GGG. Нажми Обновить (🔄) и повтори.");
+                return;
+            }
+
             PoeAccountService.ApplySyncedCharacterToConfig(_ai.Config, _accountName, chosen, details, out int slotCount);
             _ai.SaveConfig();
             PoeAccountService.RemoveAccountBuildProfiles(_profiles);
 
             SyncedOk = true;
             ResultMessage = Loc.T(
-                $"{chosen.name} · Lv {chosen.level} ({chosen.@class}, {chosen.league}) · {slotCount} слотів · {_ai.Config.PoeCharacterSkills.Count} скілів.",
-                $"{chosen.name} · Lv {chosen.level} ({chosen.@class}, {chosen.league}) · {slotCount} slots · {_ai.Config.PoeCharacterSkills.Count} skills.",
-                $"{chosen.name} · Ур.{chosen.level} ({chosen.@class}, {chosen.league}) · {slotCount} слотов · {_ai.Config.PoeCharacterSkills.Count} скиллов.");
+                $"{chosen.name} · Lv {chosen.level} ({chosen.@class}, {chosen.league}) · {slotCount} слотів · {_ai.Config.PoeCharacterSkills.Count} скілів (екіп і зброя; пасивки/несокетовані скіли GGG API ще не віддає).",
+                $"{chosen.name} · Lv {chosen.level} ({chosen.@class}, {chosen.league}) · {slotCount} slots · {_ai.Config.PoeCharacterSkills.Count} skills (gear & granted; GGG web API doesn't expose passives/unlisted gems).",
+                $"{chosen.name} · Ур.{chosen.level} ({chosen.@class}, {chosen.league}) · {slotCount} слотов · {_ai.Config.PoeCharacterSkills.Count} скиллов (экип и оружие; пассивки/камни GGG API не отдаёт).");
             DialogResult = true;
             Close();
         }
@@ -278,63 +293,105 @@ public partial class PoeAccountLoginWindow : Window
 
     private async Task RunStashScanAsync(bool closeOnSuccess)
     {
-        if (_isClosed || WebView.CoreWebView2 == null) return;
+        if (_isClosed || _stashScanBusy || WebView.CoreWebView2 == null) return;
+        _stashScanBusy = true;
 
         string league = string.IsNullOrWhiteSpace(_ai.Config.TradeLeague) ? "Standard" : _ai.Config.TradeLeague;
         StatusText.Text = Loc.T(
-            $"Сканую скриню PoE 2 ({league}, без відкриття сайту PoE 1)...",
-            $"Scanning PoE 2 stash ({league}, keeping PoE 2 view)...",
-            $"Сканирую тайник PoE 2 ({league})...");
+            $"Сканую виставлені лоти PoE 2 ({league}, Trade 2 API)...",
+            $"Scanning PoE 2 listed stash tabs ({league}, Trade 2 API)...",
+            $"Сканирую выставленные лоты PoE 2 ({league}, Trade 2 API)...");
         try
         {
-            // 1. Зчитуємо cookie з WebView2 для обох доменів GGG і пробуємо швидкий прямий запит (нуль навігації!)
-            var cookieList = new List<(string Domain, string Name, string Value)>();
+            string accName = !string.IsNullOrWhiteSpace(_accountName) ? _accountName : _ai.Config.PoeAccountName;
+            if (string.IsNullOrWhiteSpace(accName) &&
+                (WebView.Source?.ToString() ?? "").Contains("pathofexile2.com", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    string rawAcc = await WebView2Helper.ExecuteAsyncScriptAsync(WebView.CoreWebView2, PoeAccountService.FetchCharactersAndDataScript);
+                    if (!string.IsNullOrWhiteSpace(rawAcc))
+                    {
+                        var p = JsonSerializer.Deserialize<PoeAccountSyncPayload>(rawAcc, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        if (p is { ok: true } && !string.IsNullOrWhiteSpace(p.accountName))
+                        {
+                            accName = p.accountName;
+                            _accountName = accName;
+                            _ai.Config.PoeAccountName = accName;
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            var cookieList = new List<(string Name, string Value, string Domain)>();
             foreach (string domainUrl in new[] { "https://www.pathofexile.com", "https://pathofexile2.com" })
             {
                 try
                 {
                     var cookies = await WebView.CoreWebView2.CookieManager.GetCookiesAsync(domainUrl);
                     foreach (var c in cookies)
-                        cookieList.Add((c.Domain, c.Name, c.Value));
+                        cookieList.Add((c.Name, c.Value, c.Domain));
                 }
                 catch { }
             }
 
-            double exPerDiv = await PoeTradePriceService.EstimateExaltedPerDivineAsync(league);
+            var (exPerDiv, exPerChaos) = await PoeTradePriceService.FetchKeyExchangeRatesAsync(league);
             string ua = WebView.CoreWebView2.Settings.UserAgent;
-            var direct = await StashTrackerService.FetchStashDirectAsync(league, cookieList, ua, exPerDiv, maxTabs: 4);
+            var direct = await Trade2StashService.ScanListedStashAsync(league, accName, cookieList, ua, exPerDiv, exPerChaos);
             if (direct.Ok && direct.Scan != null)
             {
                 ApplyStashScanResult(direct.Scan, league, closeOnSuccess);
                 return;
             }
 
-            // 2. Тихий фоновий WebView2 1x1 прямо на JSON-ендпоінт скрині PoE 2 (ніколи не відкриває видиму сторінку PoE 1 /my-account!)
-            var hiddenScan = await FetchStashViaHiddenWebViewAsync(league, exPerDiv, maxTabs: 4);
-            if (hiddenScan.Scan is { Ok: true })
+            // Якщо Cloudflare/сесія заблокувала HttpClient — робимо запит із фонового WebView на www.pathofexile.com/trade2
+            if (direct.NeedBrowserFallback && !string.IsNullOrWhiteSpace(accName))
             {
-                ApplyStashScanResult(hiddenScan.Scan, league, closeOnSuccess);
-                return;
+                var hiddenScan = await FetchStashViaHiddenWebViewAsync(league, accName, exPerDiv, exPerChaos);
+                if (hiddenScan.Scan is { Ok: true })
+                {
+                    ApplyStashScanResult(hiddenScan.Scan, league, closeOnSuccess);
+                    return;
+                }
+                if (!string.IsNullOrWhiteSpace(hiddenScan.Error))
+                {
+                    StatusText.Text = hiddenScan.Error;
+                    return;
+                }
             }
 
-            _pendingStashScan = true;
-            StatusText.Text = !string.IsNullOrWhiteSpace(hiddenScan.Error)
-                ? hiddenScan.Error
-                : Loc.T(
-                    "Потрібна авторизація PoE 2: натисни «🔐 Sign In» вище (або «⚖ Trade 2» → Sign In) і увійди в акаунт.",
-                    "PoE 2 sign-in required: click '🔐 Sign In' (or '⚖ Trade 2' → Sign In) and log in.",
-                    "Требуется вход в PoE 2: нажми «🔐 Sign In» выше и войди в аккаунт.");
-
-            string curHost = WebView.Source?.ToString() ?? "";
-            if (!curHost.Contains("pathofexile2.com/login", StringComparison.OrdinalIgnoreCase) &&
-                !curHost.Contains("/trade2", StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(accName))
             {
-                NavigateTo("https://pathofexile2.com/login");
+                _pendingStashScan = true;
+                StatusText.Text = !string.IsNullOrWhiteSpace(direct.Error)
+                    ? direct.Error
+                    : Loc.T(
+                        "Потрібна авторизація PoE 2: увійди в акаунт нижче — скан продовжиться автоматично.",
+                        "PoE 2 sign-in required: sign in below — stash scan will resume automatically.",
+                        "Требуется вход PoE 2: войди в аккаунт ниже — скан продолжится автоматически.");
+
+                string curHost = WebView.Source?.ToString() ?? "";
+                if (!curHost.Contains("pathofexile2.com/login", StringComparison.OrdinalIgnoreCase) &&
+                    !curHost.Contains("/trade2", StringComparison.OrdinalIgnoreCase))
+                {
+                    NavigateTo("https://pathofexile2.com/login");
+                }
+            }
+            else
+            {
+                StatusText.Text = !string.IsNullOrWhiteSpace(direct.Error)
+                    ? direct.Error
+                    : Loc.T("Не вдалося просканувати публічний стеш Trade 2.", "Could not scan Trade 2 listed stash.", "Не удалось просканировать публичный тайник Trade 2.");
             }
         }
         catch (Exception ex)
         {
             StatusText.Text = ex.Message;
+        }
+        finally
+        {
+            _stashScanBusy = false;
         }
     }
 
@@ -361,7 +418,11 @@ public partial class PoeAccountLoginWindow : Window
         }
     }
 
-    private async Task<(StashScanResult? Scan, string Error)> FetchStashViaHiddenWebViewAsync(string league, double exPerDiv, int maxTabs)
+    private async Task<(StashScanResult? Scan, string Error)> FetchStashViaHiddenWebViewAsync(
+        string league,
+        string accountName,
+        double exPerDiv,
+        double exPerChaos)
     {
         if (_isClosed) return (null, "Closed");
         var env = await WebView2Helper.GetEnvironmentAsync();
@@ -369,77 +430,51 @@ public partial class PoeAccountLoginWindow : Window
         await HiddenStashWebView.EnsureCoreWebView2Async(env);
         if (_isClosed || HiddenStashWebView.CoreWebView2 == null) return (null, "Hidden WebView unavailable");
 
-        string lg = Uri.EscapeDataString(string.IsNullOrWhiteSpace(league) ? "Standard" : league.Trim());
-        string endpoint = $"https://www.pathofexile.com/character-window/get-stash-items?realm=poe2&league={lg}&tabs=1&tabIndex=0";
-
-        var tcs = new TaskCompletionSource<bool>();
-        void OnNavCompleted(object? s, CoreWebView2NavigationCompletedEventArgs e)
+        string curUrl = HiddenStashWebView.CoreWebView2.Source ?? "";
+        if (!curUrl.Contains("www.pathofexile.com/trade2", StringComparison.OrdinalIgnoreCase))
         {
-            HiddenStashWebView.NavigationCompleted -= OnNavCompleted;
-            tcs.TrySetResult(e.IsSuccess);
-        }
-
-        HiddenStashWebView.NavigationCompleted += OnNavCompleted;
-        HiddenStashWebView.CoreWebView2.Navigate(endpoint);
-
-        var done = await Task.WhenAny(tcs.Task, Task.Delay(9000));
-        HiddenStashWebView.NavigationCompleted -= OnNavCompleted;
-        if (done != tcs.Task || _isClosed)
-            return (null, Loc.T("Таймаут відповіді Stash API. Переконайся, що увійшов у PoE 2 акаунт нижче.", "Stash API timeout. Sign in to PoE 2 below.", "Таймаут Stash API. Войди в PoE 2 аккаунт ниже."));
-
-        string navUrl = HiddenStashWebView.CoreWebView2.Source ?? "";
-        if (!navUrl.Contains("get-stash-items", StringComparison.OrdinalIgnoreCase))
-        {
-            return (null, Loc.T(
-                "Скриня вимагає активної сесії PoE 2 — увійди через «🔐 Sign In» (або «⚖ Trade 2» → Login) і повтори скан. Сайт PoE 1 не відкриватиметься!",
-                "Stash requires an active PoE 2 login — sign in via '🔐 Sign In' or '⚖ Trade 2' and scan again.",
-                "Тайник требует активного входа PoE 2 — войди через «🔐 Sign In» или «⚖ Trade 2» и повтори."));
-        }
-
-        string bodyJson = await WebView2Helper.ExecuteAsyncScriptAsync(
-            HiddenStashWebView.CoreWebView2,
-            "(function(){ return (document.body && (document.body.innerText || document.body.textContent)) || ''; })()");
-
-        var counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        if (!StashTrackerService.TryAccumulateStashTabJson(bodyJson, counts, out int totalTabs))
-        {
-            return (null, Loc.T(
-                "Не вдалося прочитати JSON скрині (сесія не авторизована). Увійди через Sign In або Trade 2 нижче.",
-                "Could not read Stash JSON (sign in below via Sign In or Trade 2).",
-                "Не удалось прочитать JSON тайника. Войди через Sign In или Trade 2."));
-        }
-
-        int tabsToScan = Math.Clamp(Math.Min(maxTabs, totalTabs), 1, maxTabs);
-        if (tabsToScan > 1)
-        {
-            string restJson = await WebView2Helper.ExecuteAsyncScriptAsync(HiddenStashWebView.CoreWebView2, $$"""
-(async () => {
-  const counts = {};
-  const lg = {{JsonSerializer.Serialize(league)}};
-  for (let i = 1; i < {{tabsToScan}}; i++) {
-    try {
-      const r = await fetch('/character-window/get-stash-items?realm=poe2&league=' + encodeURIComponent(lg) + '&tabs=0&tabIndex=' + i, { credentials: 'include' });
-      if (!r.ok) break;
-      const d = await r.json();
-      if (Array.isArray(d.items)) {
-        for (const it of d.items) {
-          const n = (it.typeLine || it.baseType || it.name || '').trim();
-          if (n) counts[n] = (counts[n] || 0) + Math.max(1, Number(it.stackSize || 1));
-        }
-      }
-    } catch {}
-  }
-  return JSON.stringify(counts);
-})();
-""");
-            if (!string.IsNullOrWhiteSpace(restJson) && restJson.TrimStart().StartsWith("{", StringComparison.Ordinal))
+            var tcs = new TaskCompletionSource<bool>();
+            void OnNavCompleted(object? s, CoreWebView2NavigationCompletedEventArgs e)
             {
-                using var rDoc = JsonDocument.Parse(restJson);
-                foreach (var p in rDoc.RootElement.EnumerateObject())
-                    counts[p.Name] = counts.GetValueOrDefault(p.Name) + p.Value.GetInt32();
+                if ((HiddenStashWebView.CoreWebView2?.Source ?? "").Contains("pathofexile.com", StringComparison.OrdinalIgnoreCase))
+                {
+                    HiddenStashWebView.NavigationCompleted -= OnNavCompleted;
+                    tcs.TrySetResult(e.IsSuccess);
+                }
+            }
+
+            HiddenStashWebView.NavigationCompleted += OnNavCompleted;
+            HiddenStashWebView.CoreWebView2.Navigate("https://www.pathofexile.com/trade2");
+            var done = await Task.WhenAny(tcs.Task, Task.Delay(10000));
+            HiddenStashWebView.NavigationCompleted -= OnNavCompleted;
+            if (done != tcs.Task || _isClosed)
+                return (null, Loc.T("Таймаут завантаження Trade 2 API.", "Trade 2 API load timeout.", "Таймаут загрузки Trade 2 API."));
+            await Task.Delay(800);
+        }
+
+        string script = Trade2StashService.BuildTrade2BrowserFetchScript(league, accountName);
+        string resJson = await WebView2Helper.ExecuteAsyncScriptAsync(HiddenStashWebView.CoreWebView2, script, 18000);
+        if (string.IsNullOrWhiteSpace(resJson))
+            return (null, Loc.T("Порожня відповідь Trade 2 API.", "Empty Trade 2 API response.", "Пустой ответ Trade 2 API."));
+
+        using var doc = JsonDocument.Parse(resJson);
+        if (!doc.RootElement.TryGetProperty("ok", out var okEl) || !okEl.GetBoolean())
+        {
+            string err = doc.RootElement.TryGetProperty("error", out var eEl) ? (eEl.GetString() ?? "Trade 2 error") : "Trade 2 error";
+            return (null, err);
+        }
+
+        int total = doc.RootElement.TryGetProperty("total", out var tEl) ? tEl.GetInt32() : 0;
+        var batches = new List<string>();
+        if (doc.RootElement.TryGetProperty("batches", out var bEl) && bEl.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var b in bEl.EnumerateArray())
+            {
+                string? s = b.GetString();
+                if (!string.IsNullOrWhiteSpace(s)) batches.Add(s);
             }
         }
 
-        return (StashTrackerService.EvaluateCounts(league, tabsToScan, counts, exPerDiv), "");
+        return (Trade2StashService.EvaluateTrade2Listings(league, total, batches, exPerDiv, exPerChaos), "");
     }
 }

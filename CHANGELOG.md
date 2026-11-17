@@ -1,9 +1,22 @@
 # Changelog
 
+## v1.1.1 (Full 958-Gem PoE2DB 0.5 Catalog, Live GGG Item/Unique Sync, Trade 2 Stash Scanner & Account Sync Fixes)
+- **Full 958-Gem PoE 2 (0.5) Catalog (`poe2_gems_05.json.gz` + `Poe2GemsDb`):**
+  - Embedded compressed 958-gem PoE2DB 0.5 dataset (`55.6 KB` gzip) covering all Active Skills, Spirit Buffs, Meta Triggers, Support Gems (Tiers I–V), and Lineage Supports with exact Uncut tiers, character level curves (`1..90`), Str/Dex/Int progression, Spirit reservation, and cost multipliers.
+  - Fixed fallback gem level bug where `stageMinLevel` was treated as Uncut Gem Tier (e.g. `Fangs of Frost` now accurately resolves as `Uncut Skill Gem Lv 3`, Char Lvl 6+, 14 Dex, Act 1).
+- **Live GGG Trade 2 Item, Unique & Gem Catalog (`LivePoe2DataService`):**
+  - Automatically syncs and caches official `/api/trade2/data/items` data (`464` unique item names, `2,225` base types, `905` gems) in the background (`live_trade2_items.json`, 24h TTL) to back up `Poe2KnowledgeDb` and `Poe2GemsDb` with `Orb of Chance` base hints and future patch gems.
+- **PoE 2 Account Sync Normalization & Stash Scanner (`PoeAccountService` + `Trade2StashService`):**
+  - Unwraps object-formatted modifiers (`{ description }`), strips `[Key|Label]` markup, interpolates `{0}/{1}` flask/charm values, extracts `requirements` & `utilityMods`, calculates elemental/chaos weapon DPS, and prevents empty responses from wiping saved gear.
+  - Added `Trade2StashService` to scan public/Merchant listed stash tabs via `/api/trade2/search/poe2/{league}` + `/api/trade2/fetch` and filter out PoE 1 Standard responses (`IsGenuinePoe2StashTabJson`).
+- **Act 4 & Interludes 1–3 Campaign Guide + UI Polish:**
+  - Updated `CampaignGuideDb` and `PoeAccountService.BuildStageAdvice` for PoE 2's 4-Act + 3-Interlude structure (including `Lythara` in Interlude 3 Kriar Village for `+40 Spirit` = `100` base Spirit total, 14 permanent milestones).
+  - Fixed Settings `Opacity` cycling (`95% → 80% → 65% → 48% → 100%` with `AllowsTransparency` and config persistence), added collapsible `Trade / Mods ▾` drawer in Items, explained `Client.txt` in tooltip, completed `UA / EN / RU` localization across all tabs, and stripped `.pdb`/`.xml` bloat from release publishes.
+
 ## v1.1.0 (Bootstrap 5 Dark UI, Separate Live Account Sync, Stash Direct Scan & GitHub Auto-Updater)
 - **GitHub Self-Updater (`AppUpdateService`):** Checks `Fluester/poe2-overlay-companion` releases automatically and adds 1-click self-updating from Settings for both installed setups and Portable ZIP builds.
 - **Streamlined Bootstrap 5.3 Dark UI:** Decluttered navigation into 7 clean tabs (merging Build Profiles, `.build` Planner, and Updates into **Білди**), simplified header bar, and unified dark theme (`#16191D` / `#212529` / `#0D6EFD`) across all overlay windows.
-- **PoE 2 Account Separated from Builds + Direct Stash Scan:** Account sync (`wxor`) now populates live level, league, worn gear, and skills cleanly without overwriting or generating `[Account]` build profiles; Stash net-worth scans via WebView2 cookies + hidden JSON fetch without opening PoE 1 pages; fixes Flask obtain classification, stage diagnostics, and adds 2-column in-overlay gear comparison.
+- **PoE 2 Account Separated from Builds + Direct Stash Scan:** Account sync now populates live level, league, worn gear, and skills cleanly without overwriting or generating `[Account]` build profiles; Stash net-worth scans via WebView2 cookies + hidden JSON fetch without opening PoE 1 pages; fixes Flask obtain classification, stage diagnostics, and adds 2-column in-overlay gear comparison.
 - **PoE 2 Passive Tree v2 (Screenshot Fidelity & 120+ FPS):**
   - Rebuilt embedded `poe2_tree_05.bin.gz` (`v2`, 4,546 nodes) from official `0_5/tree.json` using 1-based group indexing (`0` misplaced cross-map edges) and exact orbital arc math (`ConnectionOrbits` + `OrbitRadii`).
   - Redesigned `PassiveTreeView` with pitch-black constellation canvas, central Class Medallion, attribute-tinted sockets, glowing multi-layer gold active branches, Weapon Set 1/2 paths, baked `RenderTargetBitmap` texture + close-up vector LOD for zero-lag pan/zoom.

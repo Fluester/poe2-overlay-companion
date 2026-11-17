@@ -17,7 +17,7 @@
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Content="+" Padding="10,4" Margin="0,0,4,0" Background="#FF2B3035" Foreground="#FFDEE2E6" BorderBrush="#FF495057" Click="ZoomIn_Click"/>
                     <Button Content="−" Padding="10,4" Margin="0,0,4,0" Background="#FF2B3035" Foreground="#FFDEE2E6" BorderBrush="#FF495057" Click="ZoomOut_Click"/>
-                    <Button Content="⌖ Центр" Padding="10,4" Background="#FF0D6EFD" Foreground="#FFFFFFFF" FontWeight="SemiBold" BorderBrush="#FF0D6EFD" Click="Fit_Click"/>
+                    <Button x:Name="BtnFit" Content="⌖ Центр" Padding="10,4" Background="#FF0D6EFD" Foreground="#FFFFFFFF" FontWeight="SemiBold" BorderBrush="#FF0D6EFD" Click="Fit_Click"/>
                 </StackPanel>
             </DockPanel>
         </Border>

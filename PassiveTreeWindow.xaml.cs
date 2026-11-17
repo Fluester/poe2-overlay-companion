@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Input;
+using Poe2OverlayCompanion.Localization;
 using Poe2OverlayCompanion.Models;
 
 namespace Poe2OverlayCompanion;
@@ -10,7 +11,8 @@ public partial class PassiveTreeWindow : Window
     {
         InitializeComponent();
         TitleText.Text = title;
-        Title = $"Passive Tree — {title}";
+        Title = $"{Loc.T("Дерево пасивок", "Passive Tree", "Дерево пассивок")} — {title}";
+        BtnFit.Content = Loc.T("⌖ Центр", "⌖ Fit", "⌖ Центр");
         PreviewKeyDown += (_, e) => { if (e.Key == Key.Escape) Close(); };
         Loaded += (_, _) =>
         {

@@ -159,6 +159,7 @@ public static class Win32OverlayHelper
 
     public static void ApplyDwmRoundedCorners(Window window)
     {
+        if (window.AllowsTransparency) return;
         try
         {
             var hwnd = new WindowInteropHelper(window).Handle;

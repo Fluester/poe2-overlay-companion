@@ -10,7 +10,8 @@
         Left="18"
         Top="45"
         WindowStyle="None"
-        Background="#FF16191D"
+        AllowsTransparency="True"
+        Background="Transparent"
         Topmost="True"
         ShowInTaskbar="False"
         ShowActivated="False"
@@ -18,10 +19,6 @@
         DragOver="Window_DragOver"
         Drop="Window_Drop"
         ResizeMode="NoResize">
-
-    <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="0" GlassFrameThickness="0" ResizeBorderThickness="0" CornerRadius="6"/>
-    </WindowChrome.WindowChrome>
 
     <Window.Resources>
         <Style TargetType="ScrollBar">
@@ -272,7 +269,8 @@
     <Border x:Name="RootBorder"
             Background="#FF16191D"
             BorderBrush="#FF343A40"
-            BorderThickness="1">
+            BorderThickness="1"
+            CornerRadius="6">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="42"/>
@@ -280,10 +278,11 @@
             </Grid.RowDefinitions>
 
             <!-- ЧИСТИЙ BOOTSTRAP NAVBAR -->
-            <Border Grid.Row="0"
+            <Border x:Name="NavbarBorder" Grid.Row="0"
                     Background="#FF212529"
                     BorderBrush="#FF343A40"
                     BorderThickness="0,0,0,1"
+                    CornerRadius="5,5,0,0"
                     MouseLeftButtonDown="Header_MouseLeftButtonDown">
                 <Grid Margin="10,0,8,0">
                     <Grid.ColumnDefinitions>
@@ -695,7 +694,9 @@
                                     <Button x:Name="BtnOpenWiki" Content="PoE2DB" Style="{StaticResource FlatButton}"
                                             FontSize="10.5" Padding="8,4" Margin="0,0,5,3" Click="OpenWikiLastItem_Click"/>
                                     <Button x:Name="BtnOpenTradeHelper" Content="Трейди" Style="{StaticResource FlatButton}"
-                                            FontSize="10.5" Padding="8,4" Margin="0,0,10,3" Click="OpenTradeHelper_Click"/>
+                                            FontSize="10.5" Padding="8,4" Margin="0,0,5,3" Click="OpenTradeHelper_Click"/>
+                                    <Button x:Name="BtnToggleItemsExtra" Content="Trade / Моди ▾" Style="{StaticResource FlatButton}"
+                                            FontSize="10.5" Padding="8,4" Margin="0,0,10,3" Click="ToggleItemsExtra_Click"/>
                                     <CheckBox x:Name="ChkAutoClipboard" Content="Авто" IsChecked="True" Style="{StaticResource DarkCheck}" Margin="0,0,8,3"/>
                                     <CheckBox x:Name="ChkToastPopup" Content="Тост" IsChecked="True" Style="{StaticResource DarkCheck}" Margin="0,0,8,3"/>
                                     <CheckBox x:Name="ChkSoundAlert" Content="Звук" IsChecked="True" Style="{StaticResource DarkCheck}" Margin="0,0,0,3"/>
@@ -813,9 +814,9 @@
                                 </ScrollViewer>
                             </Border>
 
-                            <!-- Нижня панель Trade / Regex -->
-                            <Border Grid.Row="3" Background="#FF212529" BorderBrush="#FF343A40"
-                                    BorderThickness="1" CornerRadius="6" Padding="9,6">
+                            <!-- Нижня панель Trade / Regex (розгортається через Trade / Моди ▾) -->
+                            <Border x:Name="TradeShortcutsBox" Grid.Row="3" Background="#FF212529" BorderBrush="#FF343A40"
+                                    BorderThickness="1" CornerRadius="6" Padding="9,6" Visibility="Collapsed">
                                 <StackPanel>
                                     <DockPanel Margin="0,0,0,4">
                                         <TextBlock x:Name="LblTradeTitle" Text="Trade 2 &amp; Regex" Foreground="#FFADB5BD" FontWeight="SemiBold" FontSize="10" VerticalAlignment="Center"/>
@@ -1017,25 +1018,17 @@
                             <Grid Grid.Row="3" Margin="0,7,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="5"/>
+                                    <ColumnDefinition Width="6"/>
                                     <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="5"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="5"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="5"/>
+                                    <ColumnDefinition Width="6"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <Button x:Name="BtnImportBuildFiles" Grid.Column="0" Content="+ .build" Style="{StaticResource BrassButton}"
-                                        FontSize="10" Click="ImportBuildFilesToPlanner_Click"/>
-                                <Button x:Name="BtnImportBuildFolder" Grid.Column="2" Content="+ З папки" Style="{StaticResource FlatButton}"
-                                        Foreground="#FF6EA8FE" FontSize="10" Click="ImportBuildFolderToPlanner_Click"/>
-                                <Button x:Name="BtnPlannerMakeProfile" Grid.Column="4" Content="Активувати" Style="{StaticResource FlatButton}"
-                                        Foreground="#FF75B798" FontSize="10" Click="ImportFromGamePlannerFolder_Click"/>
-                                <Button x:Name="BtnOpenPlannerDir" Grid.Column="6" Content="Папка гри" Style="{StaticResource FlatButton}"
-                                        FontSize="10" Click="OpenBuildPlannerFolder_Click"/>
-                                <Button x:Name="BtnReloadBuilds" Grid.Column="8" Content="↻" Style="{StaticResource FlatButton}"
-                                        FontSize="11" Padding="10,4" Click="ReloadBuildPlanner_Click"/>
+                                <Button x:Name="BtnPlannerMakeProfile" Grid.Column="0" Content="Активувати" Style="{StaticResource BrassButton}"
+                                        FontSize="10.5" Click="ImportFromGamePlannerFolder_Click"/>
+                                <Button x:Name="BtnOpenPlannerDir" Grid.Column="2" Content="Папка гри" Style="{StaticResource FlatButton}"
+                                        FontSize="10.5" Click="OpenBuildPlannerFolder_Click"/>
+                                <Button x:Name="BtnReloadBuilds" Grid.Column="4" Content="↻" Style="{StaticResource FlatButton}"
+                                        FontSize="11" Padding="11,4" Click="ReloadBuildPlanner_Click"/>
                             </Grid>
                         </Grid>
 
@@ -1284,41 +1277,39 @@
                                                     <Button x:Name="LangBtnRu" Content="RU" Style="{StaticResource FlatButton}" BorderThickness="0" Padding="7,3" FontSize="10" FontWeight="SemiBold" Click="LangRu_Click"/>
                                                 </StackPanel>
                                             </Border>
-                                            <Button x:Name="AlphaBtn" Content="Прозорість" Style="{StaticResource FlatButton}" FontSize="10" Padding="9,4" Margin="0,0,5,3" Click="CycleAlpha_Click"/>
-                                            <Button x:Name="BtnCommandWheel" Content="Команди (F8)" Style="{StaticResource FlatButton}" FontSize="10" Padding="9,4" Margin="0,0,5,3" Click="OpenCommandWheel_Click"/>
-                                            <Button x:Name="AiQuickBtn" Content="Скрін AI (F11)" Style="{StaticResource FlatButton}" Foreground="#FF6EA8FE" FontSize="10" Padding="9,4" Margin="0,0,0,3" Click="AiScanNow_Click"/>
+                                            <Button x:Name="AlphaBtn" Content="Прозорість: 95%" Style="{StaticResource FlatButton}" FontSize="10" Padding="9,4" Margin="0,0,6,3" Click="CycleAlpha_Click"/>
+                                            <TextBlock x:Name="LblPortableStatus" Text="" Foreground="#FF75B798" FontSize="10" VerticalAlignment="Center" Margin="2,0,0,3"/>
                                         </WrapPanel>
 
                                         <WrapPanel Margin="0,0,0,7">
                                             <TextBlock x:Name="LblOverlaySize" Text="Розмір:" Foreground="#FFADB5BD" FontSize="11" VerticalAlignment="Center" Margin="0,0,7,0"/>
                                             <Button x:Name="BtnSizeS" Content="S (460×360)" Style="{StaticResource FlatButton}" FontSize="10" Padding="8,3" Margin="0,0,4,2" Click="SetSizeS_Click"/>
                                             <Button x:Name="BtnSizeM" Content="M (560×430)" Style="{StaticResource BrassButton}" FontSize="10" Padding="8,3" Margin="0,0,4,2" Click="SetSizeM_Click"/>
-                                            <Button x:Name="BtnSizeL" Content="L (740×560)" Style="{StaticResource FlatButton}" FontSize="10" Padding="8,3" Margin="0,0,8,2" Click="SetSizeL_Click"/>
-                                            <TextBlock x:Name="LblPortableStatus" Text="" Foreground="#FF75B798" FontSize="10" VerticalAlignment="Center"/>
+                                            <Button x:Name="BtnSizeL" Content="L (740×560)" Style="{StaticResource FlatButton}" FontSize="10" Padding="8,3" Margin="0,0,0,2" Click="SetSizeL_Click"/>
                                         </WrapPanel>
 
-                                        <WrapPanel Margin="0,0,0,6">
+                                        <UniformGrid Columns="2" Margin="0,0,0,7">
                                             <CheckBox x:Name="ChkHideNoGame" Content="Ховати без PoE 2" IsChecked="False"
-                                                      Style="{StaticResource DarkCheck}" Margin="0,0,12,4" Checked="AiSettingsChanged" Unchecked="AiSettingsChanged"/>
+                                                      Style="{StaticResource DarkCheck}" Margin="0,0,8,4" Checked="AiSettingsChanged" Unchecked="AiSettingsChanged"/>
                                             <CheckBox x:Name="ChkAutostart" Content="Запуск з Windows" IsChecked="False"
-                                                      Style="{StaticResource DarkCheck}" Margin="0,0,12,4" Checked="AutostartChanged" Unchecked="AutostartChanged"/>
+                                                      Style="{StaticResource DarkCheck}" Margin="0,0,0,4" Checked="AutostartChanged" Unchecked="AutostartChanged"/>
                                             <CheckBox x:Name="ChkFocusOnCtrlC" Content="Вкладка при Ctrl+C" IsChecked="False"
-                                                      Style="{StaticResource DarkCheck}" Margin="0,0,12,4" Checked="AiSettingsChanged" Unchecked="AiSettingsChanged"/>
+                                                      Style="{StaticResource DarkCheck}" Margin="0,0,8,0" Checked="AiSettingsChanged" Unchecked="AiSettingsChanged"/>
                                             <CheckBox x:Name="ChkTradeHelper" Content="Trade Helper" IsChecked="True"
-                                                      Style="{StaticResource DarkCheck}" Margin="0,0,12,4" Checked="AiSettingsChanged" Unchecked="AiSettingsChanged"/>
-                                            <Button x:Name="LogBtn" Content="Обрати Client.txt" Style="{StaticResource FlatButton}"
-                                                    FontSize="10" Padding="8,3" Margin="0,0,5,4" Click="PickClientTxt_Click"/>
-                                            <Button x:Name="InstallFilterBtn" Content="Встановити .filter" Style="{StaticResource FlatButton}"
-                                                    FontSize="10" Padding="8,3" Margin="0,0,0,4" Click="InstallFilter_Click"/>
-                                        </WrapPanel>
+                                                      Style="{StaticResource DarkCheck}" Margin="0,0,0,0" Checked="AiSettingsChanged" Unchecked="AiSettingsChanged"/>
+                                        </UniformGrid>
 
-                                        <WrapPanel Margin="0,2,0,0">
+                                        <WrapPanel Margin="0,0,0,0">
+                                            <Button x:Name="LogBtn" Content="Обрати Client.txt" Style="{StaticResource FlatButton}"
+                                                    FontSize="10" Padding="8,3" Margin="0,0,5,3" Click="PickClientTxt_Click"/>
+                                            <Button x:Name="InstallFilterBtn" Content="Встановити .filter" Style="{StaticResource FlatButton}"
+                                                    FontSize="10" Padding="8,3" Margin="0,0,5,3" Click="InstallFilter_Click"/>
                                             <Button x:Name="BtnCheckAppUpdate" Content="↻ Оновлення (GitHub)" Style="{StaticResource FlatButton}"
-                                                    FontSize="10" Padding="9,3" Margin="0,0,6,2" Click="CheckAppUpdate_Click"/>
+                                                    FontSize="10" Padding="8,3" Margin="0,0,6,3" Click="CheckAppUpdate_Click"/>
                                             <Button x:Name="BtnInstallAppUpdate" Content="Оновити зараз" Style="{StaticResource FlatButton}"
                                                     Background="#FF198754" BorderBrush="#FF198754" Foreground="#FFFFFFFF" FontWeight="SemiBold"
-                                                    FontSize="10" Padding="9,3" Margin="0,0,8,2" Visibility="Collapsed" Click="InstallAppUpdate_Click"/>
-                                            <TextBlock x:Name="LblAppUpdateStatus" Text="v1.1.0" Foreground="#FFADB5BD" FontSize="10" VerticalAlignment="Center"/>
+                                                    FontSize="10" Padding="9,3" Margin="0,0,6,3" Visibility="Collapsed" Click="InstallAppUpdate_Click"/>
+                                            <TextBlock x:Name="LblAppUpdateStatus" Text="v1.1.1" Foreground="#FFADB5BD" FontSize="10" VerticalAlignment="Center" Margin="0,0,0,3"/>
                                         </WrapPanel>
                                     </StackPanel>
                                 </Border>
@@ -1326,7 +1317,10 @@
                                 <!-- Картка 3: AI API -->
                                 <Border Background="#FF212529" BorderBrush="#FF343A40" BorderThickness="1" CornerRadius="6" Padding="11" Margin="0,0,0,8">
                                     <StackPanel x:Name="ApiConfigDrawer">
-                                        <TextBlock x:Name="LblSettingsAiTitle" Text="AI API (Gemini / OpenAI)" Foreground="#FFDEE2E6" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,7"/>
+                                        <DockPanel Margin="0,0,0,7">
+                                            <TextBlock x:Name="LblSettingsAiTitle" Text="AI API (Gemini / OpenAI)" Foreground="#FFDEE2E6" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="LblSettingsAiStatus" DockPanel.Dock="Right" HorizontalAlignment="Right" Text="" Foreground="#FF75B798" FontSize="10" VerticalAlignment="Center"/>
+                                        </DockPanel>
                                         <WrapPanel Margin="0,0,0,7">
                                             <Button x:Name="BtnProvGemini" Content="Google Gemini" Style="{StaticResource FlatButton}"
                                                     FontSize="10" Padding="9,3" Margin="0,0,5,3" Click="SelectProviderGemini_Click"/>
@@ -1367,6 +1361,10 @@
                                 <!-- Картка 4: Таймер бафу та команди F8 -->
                                 <Border Background="#FF212529" BorderBrush="#FF343A40" BorderThickness="1" CornerRadius="6" Padding="11">
                                     <StackPanel>
+                                        <DockPanel Margin="0,0,0,7">
+                                            <TextBlock x:Name="LblSettingsHotkeysTitle" Text="Таймер бафу та гарячі клавіші" Foreground="#FFDEE2E6" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="LblSettingsHotkeyHint" DockPanel.Dock="Right" HorizontalAlignment="Right" Text="F8 · F9 · F10 · F11" Foreground="#FF6C757D" FontSize="10" VerticalAlignment="Center"/>
+                                        </DockPanel>
                                         <Grid Margin="0,0,0,7">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>

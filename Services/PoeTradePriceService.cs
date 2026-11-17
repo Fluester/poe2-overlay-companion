@@ -15,6 +15,7 @@ namespace Poe2OverlayCompanion.Services;
 public static class PoeTradePriceService
 {
     private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(8) };
+    internal static HttpClient SharedHttp => Http;
     private static readonly ConcurrentDictionary<string, (DateTime cachedUtc, string summary, List<TradePriceListing> listings)> PriceCache = new();
     private static readonly ConcurrentDictionary<string, (DateTime cachedUtc, double exPerDiv, double exPerChaos)> RateCache = new();
     private static List<string> _cachedLeagues = ["Forbidden Rites", "HC Forbidden Rites", "Runes of Aldur", "HC Runes of Aldur", "Standard", "Hardcore"];
@@ -49,6 +50,7 @@ public static class PoeTradePriceService
                 if (fetched.Count > 0)
                     _cachedLeagues = fetched;
             }
+            _ = LivePoe2DataService.RefreshIfStaleAsync(force: false);
         }
         catch { }
         return [.. _cachedLeagues];
@@ -265,9 +267,6 @@ public static class PoeTradePriceService
             RateCache[safeLeague] = (DateTime.UtcNow, resolvedDiv, resolvedChaos);
         return (resolvedDiv, resolvedChaos);
     }
-
-    public static async Task<double> EstimateExaltedPerDivineAsync(string league, CancellationToken ct = default) =>
-        (await FetchKeyExchangeRatesAsync(league, ct)).exPerDiv;
 
     private static async Task<(double exPerDiv, double exPerChaos)?> TryFetchPoeNinjaRatesAsync(string safeLeague, CancellationToken ct)
     {

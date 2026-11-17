@@ -12,6 +12,7 @@ TestResults/
 # Local secrets & user settings (never commit API keys!)
 overlay_config.json
 build_profiles.json
+live_trade2_items.json
 .env
 *.secret
 

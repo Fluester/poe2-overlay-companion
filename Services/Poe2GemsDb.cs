@@ -1,3 +1,6 @@
+using System.IO;
+using System.IO.Compression;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Poe2OverlayCompanion.Localization;
 using Poe2OverlayCompanion.Models;
@@ -5,485 +8,416 @@ using Poe2OverlayCompanion.Models;
 namespace Poe2OverlayCompanion.Services;
 
 /// <summary>
-/// База знань каменів умінь, підтримки (Tier I/II/III) та каменів Духу (Spirit) Path of Exile 2:
-/// мінімальний рівень персонажа, Uncut-тір, місце отримання (Акт/квест/дроп), вимоги атрибутів, Spirit та опис механіки.
+/// Повна база каменів умінь, підтримки (Tier I–V + Lineage) та каменів Духу (Spirit) Path of Exile 2 (0.5):
+/// точні дані з PoE2DB (тіри, вимоги рівня, атрибутів, Spirit, множник вартості, джерела в Актах 1–4 / Interludes).
 /// </summary>
-public static class Poe2GemsDb
+public static partial class Poe2GemsDb
 {
-    private sealed record GemTemplate(
-        string CanonicalName,
-        GemCategory Category,
-        string Attribute,
-        int MinUncutLevel,
-        int SupportTier,
-        int SpiritCost,
-        int ManaMultPct,
-        string Tags,
+    private sealed class RawGemEntry
+    {
+        public string n { get; set; } = "";
+        public string k { get; set; } = "A";
+        public string a { get; set; } = "Hybrid";
+        public int t { get; set; } = 1;
+        public int sp { get; set; }
+        public int mm { get; set; } = 100;
+        public string g { get; set; } = "";
+        public string d { get; set; } = "";
+    }
+
+    private sealed record LocalizedOverlay(
         string DescUk,
         string DescEn,
         string DescRu,
         string? CustomObtainUk = null,
         string? CustomObtainEn = null,
-        string? CustomObtainRu = null
-    );
+        string? CustomObtainRu = null);
 
-    // Офіційна таблиця PoE 2: Uncut Skill Gem Tier (1..20) -> орієнтовний мін. рівень персонажа
+    private sealed class GemCatalogIndex
+    {
+        public required List<RawGemEntry> All { get; init; }
+        public required Dictionary<string, RawGemEntry> ByNormalized { get; init; }
+    }
+
+    // Точна таблиця PoE 2 (0.5, PoE2DB): рівень каменю / Uncut Tier (1..20) -> мін. рівень персонажа
     private static readonly int[] SkillUncutCharLevel =
     [
-        1, 1, 3, 6, 10, 14, 18, 22, 26, 31, 36, 41, 46, 52, 58, 65, 68, 72, 78, 84, 90
+        1, 1, 3, 6, 10, 14, 18, 22, 26, 31, 36, 41, 46, 52, 58, 64, 66, 72, 78, 84, 90
     ];
 
-    private static readonly GemTemplate[] Catalog =
+    // Точні вимоги одного атрибуту (Str / Dex / Int) для Gem Level 1..20 з PoE2DB
+    private static readonly int[] SingleAttrByGemLevel =
     [
-        // --- Monk / Quarterstaff / Unarmed / Elemental ---
-        new("Whirling Slash", GemCategory.ActiveSkill, "Dex", 1, 0, 0, 100, "Attack, AoE, Melee, Spear",
-            "Круговий ривок списом, що створює вихор; накопичує заряди вітру для посилення Twister.",
-            "Spinning lunge that kicks up a whirlwind; stacks wind stages to empower Twister.",
-            "Круговой выпад копьём, создающий вихрь; копит заряды ветра для усиления Twister."),
-        new("Twister", GemCategory.ActiveSkill, "Dex", 1, 0, 0, 100, "Attack, Projectile, Spear",
-            "Запускає смерчі, які відскакують від стін і підхоплюють стихійні поверхні / вихори Whirling Slash.",
-            "Fires bouncing tornados that inherit ground elements and Whirlwind stacks.",
-            "Запускает смерчи, отскакивающие от стен и впитывающие стихийные поверхности и вихри Whirling Slash."),
-        new("Whirling Assault", GemCategory.ActiveSkill, "Dex/Int", 7, 0, 0, 100, "Attack, AoE, Melee, Quarterstaff",
-            "Серія стрімких кругових ударів бойовим посохом (або без зброї через Hollow Palm).",
-            "Series of rapid spinning Quarterstaff strikes (or unarmed with Hollow Palm).",
-            "Серия стремительных круговых ударов боевым посохом (или без оружия с Hollow Palm)."),
-        new("Tempest Flurry", GemCategory.ActiveSkill, "Dex/Int", 3, 0, 0, 100, "Attack, Lightning, Melee, Strike",
-            "Швидке 4-ударне комбо блискавки; останній удар завдає серії шокуючих імпульсів.",
-            "Rapid 4-hit Lightning melee combo ending in multi-strike Shockwaves.",
-            "Быстрое 4-ударное комбо молнии; финальный удар создаёт серию шоковых волн."),
-        new("Falling Thunder", GemCategory.ActiveSkill, "Dex/Int", 1, 0, 0, 100, "Attack, Lightning, AoE, Slam",
-            "Удар блискавкою по землі; споживає Power Charges, випускаючи потужні електричні хвилі.",
+        4, 4, 9, 14, 21, 28, 35, 41, 48, 57, 65, 74, 82, 92, 103, 113, 116, 126, 137, 147, 157
+    ];
+
+    // Точні вимоги гібридного атрибуту (напр. Dex/Int) для Gem Level 1..20 з PoE2DB
+    private static readonly int[] HybridAttrByGemLevel =
+    [
+        4, 4, 7, 9, 13, 17, 20, 24, 28, 32, 37, 41, 46, 51, 57, 62, 64, 70, 75, 80, 86
+    ];
+
+    // Аліаси перейменованих або Mobalytics/PoB-варіантів назв у PoE 2 (0.1–0.5)
+    private static readonly Dictionary<string, string> GemAliases = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["martial tempo"] = "Rapid Attacks I",
+        ["martial tempo i"] = "Rapid Attacks I",
+        ["martial tempo ii"] = "Rapid Attacks II",
+        ["martial tempo iii"] = "Rapid Attacks III",
+        ["primal armament"] = "Elemental Armament I",
+        ["primal armament i"] = "Elemental Armament I",
+        ["primal armament ii"] = "Elemental Armament II",
+        ["primal armament iii"] = "Elemental Armament III",
+        ["magnified effect"] = "Magnified Area I",
+        ["magnified effect i"] = "Magnified Area I",
+        ["magnified effect ii"] = "Magnified Area II",
+        ["cold infusion"] = "Cold Attunement",
+        ["fire infusion"] = "Fire Attunement",
+        ["lightning infusion"] = "Lightning Attunement",
+        ["chaos infusion"] = "Chaos Attunement",
+        ["ingenuity"] = "Cooldown Recovery I",
+        ["ingenuity i"] = "Cooldown Recovery I",
+        ["ingenuity ii"] = "Cooldown Recovery II",
+        ["inspiration"] = "Efficiency I",
+        ["inspiration i"] = "Efficiency I",
+        ["inspiration ii"] = "Efficiency II",
+        ["profusion"] = "Charge Profusion I",
+        ["profusion i"] = "Charge Profusion I",
+        ["profusion ii"] = "Charge Profusion II",
+        ["persistence"] = "Prolonged Duration II",
+        ["persistence i"] = "Prolonged Duration I",
+        ["persistence ii"] = "Prolonged Duration II",
+        ["overpower"] = "Stun I",
+        ["overpower i"] = "Stun I",
+        ["overpower ii"] = "Stun II",
+        ["overpower iii"] = "Stun III",
+        ["cast on freeze"] = "Cast on Elemental Ailment",
+        ["cast on shock"] = "Cast on Elemental Ailment",
+        ["cast on ignite"] = "Cast on Elemental Ailment",
+        ["ailith lineage"] = "Ailith's Chimes",
+        ["twofold"] = "Heightened Charges",
+        ["creschendo"] = "Crescendo I",
+        ["crescendo"] = "Crescendo I",
+        ["scattershot"] = "Multishot I",
+        ["controlled destruction"] = "Controlled Destruction"
+    };
+
+    // Локалізовані описи та точні квестові наводки для найпопулярніших каменів
+    private static readonly Dictionary<string, LocalizedOverlay> Overlays = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Whirling Slash"] = new(
+            "Круговий ривок списом, що створює вихор навколо вас; осліплює/сповільнює ворогів і накопичує стадії для Twister.",
+            "Spinning spear slash kicking up a whirlwind that slows and blinds foes and empowers Twister.",
+            "Круговой выпад копьём, создающий вихрь; ослепляет врагов и усиливает Twister."),
+        ["Twister"] = new(
+            "Запускає вихори-снаряди, які відскакують від стін і підхоплюють стихії / вихори Whirling Slash.",
+            "Fires bouncing tornados that inherit elemental ground effects and Whirlwind stages.",
+            "Запускает смерчи, отскакивающие от стен и впитывающие стихии / вихри Whirling Slash."),
+        ["Fangs of Frost"] = new(
+            "Крижаний випад списом (Tier 3, Акт 1 з 6 рівня). При ударі по цілі під Parry створює крижаний вибух і Chilled Ground.",
+            "Icy spear thrust (Uncut Tier 3, Char Lvl 6+, Act 1). Consumes Parry to trigger a frost burst and Chilled Ground.",
+            "Ледяной выпад копьём (Uncut Tier 3, ур. 6+, Акт 1). Поглощает Parry для взрыва холодом и Chilled Ground."),
+        ["Lightning Spear"] = new(
+            "Кидає електризований спис (Tier 3, з 6 рівня в Акті 1), який розлітається на додаткові заряди при влучанні.",
+            "Hurls a lightning-charged spear (Uncut Tier 3, Lvl 6+, Act 1) that splits on hit.",
+            "Бросает копьё молнии (Uncut Tier 3, ур. 6+, Акт 1), расщепляющееся при попадании."),
+        ["Whirling Assault"] = new(
+            "Серія кругових ударів бойовим посохом (Tier 11, Акт 3 з 41 рівня); рухається вперед крізь паки.",
+            "Advancing series of spinning Quarterstaff strikes (Uncut Tier 11, Char Lvl 41+).",
+            "Серия круговых ударов боевым посохом (Uncut Tier 11, с 41 ур.)."),
+        ["Tempest Flurry"] = new(
+            "Швидке комбо блискавки бойовим посохом (Tier 5, з 14 рівня): 3-й удар б'є тричі, 4-й запускає хвилю шоку.",
+            "Rapid 4-hit Lightning melee combo (Tier 5, Lvl 14+) culminating in a sweeping shockwave.",
+            "Быстрое комбо молнии посохом (Tier 5, ур. 14+) с ударной волной на финальном ударе."),
+        ["Falling Thunder"] = new(
+            "Удар блискавкою по землі (Tier 1); поглинає Power Charges, випускаючи потужні електричні хвилі.",
             "Slams lightning into the ground, consuming Power Charges for sweeping projectiles.",
             "Удар молнии по земле; поглощает Power Charges, выпуская мощные волны."),
-        new("Killing Palm", GemCategory.ActiveSkill, "Dex/Int", 1, 0, 0, 100, "Attack, Melee, Execute",
-            "Ривок до добивання ворога (Culling Strike) — миттєво дає Power Charge.",
-            "Dashing unarmed cull strike that grants Power Charges on kill.",
-            "Рывок для добивания врага — мгновенно даёт Power Charge при убийстве."),
-        new("Charged Staff", GemCategory.ActiveSkill, "Dex/Int", 7, 0, 0, 100, "Attack, Lightning, Buff",
-            "Споживає Power Charge і заряджає атаки плоским Lightning-уроном та дальніми хвилями.",
-            "Consumes Power Charges to imbue strikes with flat Lightning damage and shockwaves.",
-            "Поглощает Power Charge и наделяет атаки плоским уроном молнией и волнами."),
-        new("Tempest Bell", GemCategory.ActiveSkill, "Dex/Int", 3, 0, 0, 100, "Attack, Combo, Lightning, AoE",
-            "Ставить дзвін після комбо-ударів; кожен удар по дзвону створює потужну стихійну ударну хвилю по босах.",
-            "Drops a resonant bell after combo hits; striking it triggers massive AoE shockwaves on bosses.",
-            "Ставит колокол после комбо; каждый удар по колоколу вызывает мощные волны урона по боссам."),
-        new("Ice Strike", GemCategory.ActiveSkill, "Dex/Int", 5, 0, 0, 100, "Attack, Cold, Melee",
-            "Швидкі крижані атаки з високою швидкістю накопичення Freeze та 3-ударним фінішем.",
-            "Fast Cold melee combo with high Freeze buildup and sweeping third hit.",
-            "Быстрая ледяная серия ударов с высоким наложением Freeze."),
-        new("Shattering Palm", GemCategory.ActiveSkill, "Dex/Int", 5, 0, 0, 100, "Attack, Cold, Dash, AoE",
-            "Накладає крижаний заряд на ворога, який вибухає осколками холоду після отримання урону.",
-            "Dashes and marks enemies with ice shards that detonate after taking damage.",
-            "Рывок, помечающий врагов ледяными осколками, взрывающимися при получении урона."),
-        new("Flicker Strike", GemCategory.ActiveSkill, "Dex/Int", 13, 0, 0, 100, "Attack, Physical, Melee, Teleport",
-            "Миттєва телепортація між ворогами серією ударів за рахунок Power Charges.",
-            "Teleports rapidly between targets with heavy strikes powered by Power Charges.",
-            "Мгновенная телепортация между врагами за счёт Power Charges."),
-        new("Mantra of Destruction", GemCategory.ActiveSkill, "Dex/Int", 9, 0, 0, 100, "Buff, Chaos, Melee",
-            "Споживає комбо-удари для посилення наступної атаки екстра-уроном хаосу.",
-            "Consumes Combo stacks to grant extra Chaos damage to your next attack.",
-            "Поглощает комбо для усиления следующей атаки дополнительным уроном хаоса."),
-        new("Storm Wave", GemCategory.ActiveSkill, "Dex/Int", 9, 0, 0, 100, "Attack, Lightning, Slam",
-            "Випускає далекобійну тріщину блискавки вздовж землі.",
-            "Sends out a long-reaching crackling Lightning fissure along the ground.",
-            "Выпускает дальнобойный разлом молнии по земле."),
-
-        // --- Spear / Bow / Crossbow / Spell / Minion ---
-        new("Lightning Spear", GemCategory.ActiveSkill, "Dex", 5, 0, 0, 100, "Attack, Projectile, Lightning, Spear",
-            "Кидає спис блискавки, який розлітається в додаткові розряди при влучанні.",
-            "Hurls an electrified spear that splits into secondary lightning bolts on impact.",
-            "Бросает копьё молнии, расщепляющееся на дополнительные заряды при попадании."),
-        new("Ice-Tipped Arrows", GemCategory.ActiveSkill, "Dex", 3, 0, 0, 100, "Attack, Cold, Bow, Buff",
-            "Наділяє постріли/вихори крижаним ефектом і високим шансом заморозки.",
-            "Imbues projectile skills with Cold damage and Freeze potential.",
-            "Наделяет снаряды уроном холода и заморозкой."),
-        new("Frost Bomb", GemCategory.ActiveSkill, "Int", 3, 0, 0, 100, "Spell, Cold, AoE, Exposure",
-            "Ставить крижану сферу, що знижує опір холоду (Cold Exposure) та вибухає.",
-            "Drops a pulsing orb that applies Cold Exposure before detonating.",
-            "Ставит ледяную сферу, накладывающую Cold Exposure перед взрывом."),
-        new("Spark", GemCategory.ActiveSkill, "Int", 1, 0, 0, 100, "Spell, Lightning, Projectile, Duration",
-            "Випускає непередбачувані іскри блискавки, що відскакують по всій кімнаті.",
-            "Launches erratic lightning projectiles that ricochet off walls.",
-            "Выпускает хаотичные искры молнии, рикошетящие от стен."),
-        new("Arc", GemCategory.ActiveSkill, "Int", 5, 0, 0, 100, "Spell, Lightning, Chaining",
-            "Миттєвий розряд блискавки, що перестрибує між цілями та споживає Shock.",
-            "Chains instant lightning arcs across nearby enemies.",
-            "Мгновенная цепная молния, прыгающая по врагам."),
-        new("Lightning Rod", GemCategory.ActiveSkill, "Dex", 1, 0, 0, 100, "Attack, Bow, Lightning, AoE",
-            "Стріли залишають громовідводи в землі, які вибухають від будь-яких Chain/Lightning атак.",
-            "Fires lightning rods into the ground that burst whenever hit by Lightning.",
-            "Стрелы оставляют громоотводы, взрывающиеся от урона молнией."),
-        new("Lightning Arrow", GemCategory.ActiveSkill, "Dex", 1, 0, 0, 100, "Attack, Bow, Lightning, Projectile",
-            "Головна скіл-стріла променями вражає сусідні цілі та активує Lightning Rod.",
-            "Fires a charged arrow that blasts nearby foes and triggers Lightning Rods.",
-            "Выпускает заряженную стрелу, бьющую соседние цели и громоотводы."),
-        new("Orb of Storms", GemCategory.ActiveSkill, "Int", 3, 0, 0, 100, "Spell, Lightning, Duration",
-            "Створює сферу блискавки, яка б'є ворогів щоразу, коли ви використовуєте Lightning-скіл поруч.",
-            "Stationary storm orb that zaps foes whenever you cast or attack with Lightning nearby.",
-            "Сфера бури, бьющая врагов при использовании вами молниевых умений рядом."),
-        new("Eye of Winter", GemCategory.ActiveSkill, "Int", 11, 0, 0, 100, "Spell, Cold, Projectile",
-            "Сфера холоду, що випускає безліч крижаних уламків у польоті й посилює Critical Weakness.",
-            "Travelling cold orb firing spiraling shards and stacking Critical Weakness.",
-            "Летящая сфера холода, стреляющая осколками по спирали."),
-        new("Flame Wall", GemCategory.ActiveSkill, "Int", 1, 0, 0, 100, "Spell, Fire, Duration",
-            "Стіна вогню, крізь яку будь-які снаряди (Spark, Twister, Arrows) отримують додатковий Fire-урон.",
-            "Firewall that adds flat Fire damage to every allied projectile passing through.",
-            "Стена огня, добавляющая плоский урон огнём всем пролетающим сквозь неё снарядам."),
-        new("Essence Drain", GemCategory.ActiveSkill, "Int", 3, 0, 0, 100, "Spell, Chaos, Projectile, DoT",
-            "Періодичний хаос-урон із регенерацією та поширенням через Contagion.",
-            "Chaos DoT projectile that spreads devastatingly when paired with Contagion.",
-            "Снаряд периодического урона хаосом, распространяющийся через Contagion."),
-        new("Sniper's Mark", GemCategory.ActiveSkill, "Dex", 3, 0, 0, 100, "Mark, Spell, Critical",
-            "Позначає боса/рарку: наступний кріт завдає більше урону й дає Frenzy Charge.",
-            "Marks an enemy so your next Critical Hit deals bonus damage and grants a Frenzy Charge.",
-            "Метка на врага: следующий крит наносит больше урона и даёт Frenzy Charge."),
-        new("Voltaic Mark", GemCategory.ActiveSkill, "Int/Dex", 7, 0, 0, 100, "Mark, Spell, Lightning",
-            "Позначає ціль, різко піднімаючи шанс Shock і викликаючи вибух блискавки при смерті.",
-            "Marks target for massively higher Shock effect and a lightning detonation on death.",
-            "Метка, резко усиливающая эффект Shock и вызывающая взрыв молнии при смерти."),
-
-        // --- Spirit Buffs / Heralds / Meta Triggers ---
-        new("Herald of Ice", GemCategory.SpiritBuff, "Dex/Int", 4, 0, 30, 100, "Spirit, Cold, Herald, AoE",
-            "Резервує 30 Spirit. Розриває заморожених ворогів (Shatter) крижаним вибухом по площі — ключ до швидкого кліру мап.",
-            "30 Spirit. Shattering frozen enemies triggers AoE Cold explosions for massive map clear.",
-            "30 Spirit. Раскалывание замороженных врагов вызывает массовые взрывы холода.",
-            "Uncut Spirit Gem Lv 4+ (перший дається в Акте 1 — Freythorn, бос King in the Mists +30 Spirit).",
-            "Uncut Spirit Gem Lv 4+ (first guaranteed in Act 1 Freythorn: King in the Mists quest).",
-            "Uncut Spirit Gem Lv 4+ (первый даётся в Акте 1 — Freythorn, босс King in the Mists)."),
-        new("Herald of Thunder", GemCategory.SpiritBuff, "Dex/Int", 4, 0, 30, 100, "Spirit, Lightning, Herald",
-            "Резервує 30 Spirit. Вбивство шокованого ворога викликає удари небесних блискавок.",
-            "30 Spirit. Killing Shocked targets unleashes automated sky lightning bolts.",
-            "30 Spirit. Убийство врагов под Shock вызывает удары молний с неба.",
-            "Uncut Spirit Gem Lv 4+ (Акт 1 Freythorn або ранні локації Акту 2).",
+        ["Killing Palm"] = new(
+            "Ривок без зброї (Tier 1): добиває ворогів із низьким HP та миттєво дає Power Charge.",
+            "Unarmed dash strike (Tier 1) that Culls low-life foes to grant Power Charges.",
+            "Рывок без оружия (Tier 1): добивает врагов и даёт Power Charge."),
+        ["Charged Staff"] = new(
+            "Поглинає Power Charge (Tier 9, Акт 2 з 31 рівня), наділяючи атаки плоским Lightning-уроном і хвилями.",
+            "Consumes Power Charges (Tier 9, Lvl 31+) to imbue strikes with Lightning damage and shockwaves.",
+            "Поглощает Power Charge (Tier 9, ур. 31+) ради плоского урона молнией и волн."),
+        ["Tempest Bell"] = new(
+            "Ставить дзвін після комбо (Tier 3, з 6 рівня в Акті 1): удари по дзвону створюють потужні хвилі по босах.",
+            "Places a resonant bell (Tier 3, Lvl 6+) that blasts AoE shockwaves each time you strike it.",
+            "Ставит колокол (Tier 3, ур. 6+): каждый удар по нему вызывает мощные волны по боссам."),
+        ["Ice Strike"] = new(
+            "Швидка крижана комбо-атака посохом (Tier 5, з 14 рівня) з високим накопиченням Freeze.",
+            "Fast Cold quarterstaff combo (Tier 5, Lvl 14+) with high Freeze buildup.",
+            "Быстрая ледяная серия ударов посохом (Tier 5, ур. 14+) с высоким Freeze."),
+        ["Shattering Palm"] = new(
+            "Ривок із крижаною міткою (Tier 11, з 41 рівня), що вибухає осколками холоду після отримання урону.",
+            "Cold dash strike (Tier 11, Lvl 41+) that primes targets to explode in icy shards.",
+            "Рывок с ледяной меткой (Tier 11, ур. 41+), взрывающейся осколками холода."),
+        ["Flicker Strike"] = new(
+            "Миттєва телепортація між цілями (Tier 13, з 52 рівня) за рахунок Power Charges.",
+            "Rapidly teleports between targets (Tier 13, Lvl 52+) powered by Power Charges.",
+            "Мгновенная телепортация между врагами (Tier 13, ур. 52+) за счёт Power Charges."),
+        ["Storm Wave"] = new(
+            "Далекобійна хвиля блискавки вздовж землі (Tier 7, Акт 2 з 22 рівня).",
+            "Long-reaching Lightning fissure along the ground (Tier 7, Lvl 22+, Act 2).",
+            "Дальнобойная волна молнии по земле (Tier 7, ур. 22+, Акт 2)."),
+        ["Frost Bomb"] = new(
+            "Крижаний імпульс (Tier 1, Акт 1 з 1 рівня): знижує опір холоду (Cold Exposure) та вибухає.",
+            "Cold orb (Tier 1, Lvl 1+, Act 1) applying Cold Exposure before detonating.",
+            "Ледяная сфера (Tier 1, ур. 1+, Акт 1): накладывает Cold Exposure и взрывается."),
+        ["Spark"] = new(
+            "Іскри блискавки (Tier 1), що відскакують від стін.",
+            "Erratic lightning projectiles (Tier 1) that ricochet off terrain.",
+            "Искры молнии (Tier 1), рикошетящие от стен."),
+        ["Herald of Ice"] = new(
+            "Резервує 30 Spirit (Tier 4, з 10 рівня). Розбиті заморожені вороги вибухають уроном холоду по площі.",
+            "30 Spirit (Tier 4, Lvl 10+). Shattering frozen enemies triggers AoE Cold explosions.",
+            "30 Spirit (Tier 4, ур. 10+). Расколотые замороженные враги взрываются холодом по области.",
+            "Uncut Spirit Gem Lv 4+ (перший гарантовано в Акті 1 — Freythorn, бос King in the Mists).",
+            "Uncut Spirit Gem Lv 4+ (first guaranteed in Act 1 Freythorn: King in the Mists).",
+            "Uncut Spirit Gem Lv 4+ (первый гарантированно в Акте 1 — Freythorn, босс King in the Mists)."),
+        ["Herald of Thunder"] = new(
+            "Резервує 30 Spirit (Tier 4, з 10 рівня). Після вбивства шокованої цілі наступні атаки б'ють блискавками.",
+            "30 Spirit (Tier 4, Lvl 10+). Killing Shocked foes calls down lightning bolts on hits.",
+            "30 Spirit (Tier 4, ур. 10+). После убийства цели под Shock удары бьют молниями.",
+            "Uncut Spirit Gem Lv 4+ (Акт 1 Freythorn або Акт 2).",
             "Uncut Spirit Gem Lv 4+ (Act 1 Freythorn or Act 2 drops).",
-            "Uncut Spirit Gem Lv 4+ (Акт 1 Freythorn или дроп со 2-го Акта)."),
-        new("Herald of Ash", GemCategory.SpiritBuff, "Str", 4, 0, 30, 100, "Spirit, Fire, Herald",
-            "Резервує 30 Spirit. Надлишковий урон (Overkill) підпалює сусідніх ворогів.",
-            "30 Spirit. Overkill damage ignites surrounding enemies in burning AoE.",
-            "30 Spirit. Избыточный урон поджигает врагов вокруг."),
-        new("Wind Dancer", GemCategory.SpiritBuff, "Dex", 4, 0, 30, 100, "Spirit, Evasion, Buff",
-            "Резервує 30 Spirit. Накопичує стаки +More Evasion та випускає захисну вибухову хвилю при отриманні удару.",
-            "30 Spirit. Builds stacking % more Evasion and blasts attackers away when struck.",
-            "30 Spirit. Копит заряды усиления Evasion и отбрасывает врагов волной при ударе."),
-        new("Ghost Dance", GemCategory.SpiritBuff, "Dex/Int", 4, 0, 30, 100, "Spirit, Energy Shield, Defence",
-            "Резервує 30 Spirit. При отриманні удару миттєво відновлює Energy Shield пропорційно до вашого Evasion!",
-            "30 Spirit. Consumes a Ghost Shroud when hit to instantly recover ES based on your Evasion.",
-            "30 Spirit. При получении удара мгновенно восстанавливает Energy Shield от вашего Evasion."),
-        new("Combat Frenzy", GemCategory.SpiritBuff, "Dex", 8, 0, 30, 100, "Spirit, Charge, Utility",
-            "Резервує 30 Spirit. Дає Frenzy Charge при Freeze / Electrocute / Pin ворога.",
-            "30 Spirit. Grants Frenzy Charges whenever you Freeze, Electrocute, or Pin enemies.",
-            "30 Spirit. Даёт Frenzy Charge при Freeze, Electrocute или Pin врагов.",
-            "Uncut Spirit Gem Lv 8+ (Акт 2–3, середина кампанії / Cruel / Waystones).",
-            "Uncut Spirit Gem Lv 8+ (Act 2–3 campaign drop or Trade).",
-            "Uncut Spirit Gem Lv 8+ (Акт 2–3 или карты)."),
-        new("Trinity", GemCategory.SpiritBuff, "Dex/Int", 14, 0, 100, 100, "Spirit, Fire/Cold/Lightning, Damage",
-            "Резервує 100 Spirit (пізній ендгейм)! Накопичує Resonance різних стихій для величезного % More Elemental Damage.",
-            "100 Spirit (Endgame). Builds Elemental Resonance for massive % More Elemental Damage.",
-            "100 Spirit (Эндгейм). Копит стихийный резонанс для огромного % More урона.",
-            "Uncut Spirit Gem Lv 14+ (пізній Cruel / Акт 3 Ignagduk +30 Spirit / Waystones T1–T15).",
-            "Uncut Spirit Gem Lv 14+ (End of Campaign / Waystones T1–T15).",
-            "Uncut Spirit Gem Lv 14+ (конец кампании / Waystones T1–T15)."),
-        new("Blink", GemCategory.SpiritBuff, "Int", 14, 0, 60, 100, "Spirit, Travel, Cooldown",
-            "Резервує 60 Spirit. Перетворює звичайний Dodge Roll у миттєву телепортацію крізь перешкоди.",
-            "60 Spirit. Replaces Dodge Roll with an instant Blink teleport across gaps.",
-            "60 Spirit. Заменяет перекат на мгновенный телепорт Blink сквозь препятствия.",
-            "Uncut Spirit Gem Lv 14+ (Waystones / Акт 3 Cruel).",
-            "Uncut Spirit Gem Lv 14+ (Act 3 Cruel / Endgame Waystones).",
-            "Uncut Spirit Gem Lv 14+ (Акт 3 Cruel / эндгейм-карты)."),
-        new("Archmage", GemCategory.SpiritBuff, "Int", 14, 0, 100, 100, "Spirit, Spell, Lightning, Mana",
-            "Резервує 100 Spirit. Додає величезний % урону блискавкою залежно від максимальної Мани.",
-            "100 Spirit. Adds massive flat/extra Lightning Spell damage scaling from Max Mana.",
-            "100 Spirit. Добавляет огромный урон молнией в зависимости от максимальной Маны."),
-        new("Grim Feast", GemCategory.SpiritBuff, "Int", 8, 0, 30, 100, "Spirit, Energy Shield, Recovery",
-            "Резервує 30 Spirit. Збирає енергію з трупів для оверкапу Energy Shield (до 2x).",
-            "30 Spirit. Reaps Remnants to overflow Energy Shield up to double cap (verify 0.5 patch notes).",
-            "30 Spirit. Восстанавливает и оверкапит Energy Shield с поверженных врагов."),
-        new("Elemental Conflux", GemCategory.SpiritBuff, "Dex/Int", 14, 0, 60, 100, "Spirit, Elemental, Buff",
-            "Резервує 60 Spirit. Циклічно дає потужні % More Fire / Cold / Lightning бонуси.",
-            "60 Spirit. Cycles through More Fire, Cold, and Lightning damage phases.",
-            "60 Spirit. Циклично даёт мощные % More бонусы огня, холода и молнии."),
-        new("Cast on Freeze", GemCategory.MetaTrigger, "Int", 8, 0, 60, 100, "Spirit, Meta, Cold, Trigger",
-            "Резервує 60 Spirit. Автоматично кастує вкладені чари щоразу при заморожуванні ворогів.",
-            "60 Spirit. Meta gem that triggers socketed Spells whenever you Freeze enemies.",
-            "60 Spirit. Автоматически применяет вставленные чары при заморозке врагов."),
-        new("Cast on Critical", GemCategory.MetaTrigger, "Int", 14, 0, 100, 100, "Spirit, Meta, Crit, Trigger",
-            "Резервує 100 Spirit. Автоматично запускає прив'язані чари після серії критичних ударів.",
-            "100 Spirit. Meta gem that builds Energy on Critical Hits to auto-cast Spells.",
-            "100 Spirit. Мета-камень: накапливает энергию от критов и авто-кастит чары."),
-        new("Blasphemy", GemCategory.MetaTrigger, "Int", 8, 0, 60, 100, "Spirit, Meta, Curse, Aura",
-            "Резервує 60+ Spirit за кожне прокляття. Перетворює Curse (Conductivity, Hypothermia, Temporal Chains) в ауру.",
-            "60+ Spirit per Curse. Turns socketed Curses into a permanent surrounding aura.",
-            "60+ Spirit за проклятие. Превращает проклятия в постоянную ауру вокруг героя."),
-        new("Charge Regulation", GemCategory.SpiritBuff, "Dex/Int", 8, 0, 30, 100, "Spirit, Charge, Buff",
-            "Резервує 30 Spirit. Активні Power/Frenzy/Endurance заряди дають % Crit, Attack/Cast Speed та Defences.",
-            "30 Spirit. Grants Crit Chance, Speed, and Defences while holding Power/Frenzy/Endurance Charges.",
-            "30 Spirit. Заряды дают доп. Крит, Скорость и Защиту."),
+            "Uncut Spirit Gem Lv 4+ (Акт 1 Freythorn или Акт 2)."),
+        ["Herald of Ash"] = new(
+            "Резервує 30 Spirit (Tier 4, з 10 рівня). Надлишковий урон підпалює ворогів навколо.",
+            "30 Spirit (Tier 4, Lvl 10+). Overkill damage ignites nearby enemies.",
+            "30 Spirit (Tier 4, ур. 10+). Избыточный урон поджигает врагов вокруг."),
+        ["Wind Dancer"] = new(
+            "Резервує 30 Spirit (Tier 4, з 10 рівня). Накопичує стаки +More Evasion та б'є хвилею у відповідь.",
+            "30 Spirit (Tier 4, Lvl 10+). Builds Evasion stages and bursts attackers when hit.",
+            "30 Spirit (Tier 4, ур. 10+). Копит стаки Evasion и отбрасывает атакующих волной."),
+        ["Ghost Dance"] = new(
+            "Резервує 30 Spirit (Tier 4, з 10 рівня). Відновлює Energy Shield при отриманні удару пропорційно Evasion.",
+            "30 Spirit (Tier 4, Lvl 10+). Recovers ES based on your Evasion when hit.",
+            "30 Spirit (Tier 4, ур. 10+). Восстанавливает Energy Shield от вашего Evasion при ударе."),
+        ["Combat Frenzy"] = new(
+            "Резервує 30 Spirit (Tier 8, Акт 2 з 26 рівня). Дає Frenzy Charge при Freeze / Electrocute / Pin.",
+            "30 Spirit (Tier 8, Lvl 26+, Act 2). Grants Frenzy Charges on Freeze, Electrocute, or Pin.",
+            "30 Spirit (Tier 8, ур. 26+, Акт 2). Даёт Frenzy Charge при Freeze, Electrocute или Pin.",
+            "Uncut Spirit Gem Lv 8+ (Акт 2 Lost City / Golden Tomb або дроп з 26 рівня).",
+            "Uncut Spirit Gem Lv 8+ (Act 2 The Lost City / world drops Lvl 26+).",
+            "Uncut Spirit Gem Lv 8+ (Акт 2 The Lost City или дроп с 26 уровня)."),
+        ["Blink"] = new(
+            "Резервує 60 Spirit (Tier 8, Акт 2 з 26 рівня). Перетворює Dodge Roll у миттєву телепортацію.",
+            "60 Spirit (Tier 8, Lvl 26+, Act 2). Replaces Dodge Roll with instant teleportation.",
+            "60 Spirit (Tier 8, ур. 26+, Акт 2). Заменяет перекат мгновенным телепортом Blink."),
+        ["Grim Feast"] = new(
+            "Міньйон-баф (Tier 4, з 10 рівня): загиблі міньйони лишають Grim Remnants, що прискорюють їх воскресіння.",
+            "Minion/Remnant Persistent Buff (Tier 4, Lvl 10+): slain reviving minions leave Remnants for Grim Resurrection.",
+            "Бафф миньонов (Tier 4, ур. 10+): погибшие миньоны оставляют Grim Remnants для воскрешения."),
+        ["Trinity"] = new(
+            "Резервує 100 Spirit (Tier 14, з 58 рівня). Накопичує стихійний резонанс для великого % More Elemental Damage.",
+            "100 Spirit (Tier 14, Lvl 58+). Builds elemental affinity for huge More Elemental Damage.",
+            "100 Spirit (Tier 14, ур. 58+). Копит стихийный резонанс для огромного % More урона.",
+            "Uncut Spirit Gem Lv 14+ (Interlude 3 Kriar Village бос Lythara +40 Spirit або Waystones).",
+            "Uncut Spirit Gem Lv 14+ (Interlude 3 Mount Kriar Lythara +40 Spirit or Waystones).",
+            "Uncut Spirit Gem Lv 14+ (Interlude 3 Mount Kriar Lythara +40 Spirit или карты Waystones)."),
+        ["Cast on Elemental Ailment"] = new(
+            "Резервує 100 Spirit (Tier 14, з 58 рівня). Накопичує енергію при Freeze/Shock/Ignite і авто-кастує чари.",
+            "100 Spirit (Tier 14, Lvl 58+). Triggers socketed spells when freezing, shocking, or igniting.",
+            "100 Spirit (Tier 14, ур. 58+). Автоматически применяет чары при Freeze/Shock/Ignite."),
+        ["Cast on Critical"] = new(
+            "Резервує 100 Spirit (Tier 14, з 58 рівня). Авто-кастує прив'язані чари після крітів.",
+            "100 Spirit (Tier 14, Lvl 58+). Auto-casts socketed spells on Critical Hits.",
+            "100 Spirit (Tier 14, ур. 58+). Автоматически применяет чары от критических ударов.")
+    };
 
-        // --- Popular Support Gems (PoE 2 Tiers I / II / III) ---
-        new("Martial Tempo", GemCategory.Support, "Dex", 1, 1, 0, 100, "Support, Attack Speed",
-            "+25% More Attack Speed для прив'язаної атаки. Must-have для майже всіх мілі/спіс/лук скілів.",
-            "25% more Attack Speed for supported Attack skills. Essential DPS + feel support.",
-            "+25% More к скорости атаки для привязанного умения."),
-        new("Primal Armament", GemCategory.Support, "Dex", 1, 1, 0, 110, "Support, Elemental Attack",
-            "+25% More Weapon Elemental Damage. Ключовий ранній саппорт для блискавки/холоду.",
-            "25% more Weapon Elemental Damage for supported attacks.",
-            "+25% More стихийного урона оружия для атак."),
-        new("Creschendo", GemCategory.Support, "Dex", 2, 2, 0, 110, "Support, Combo",
-            "Crescendo: прискорює завершальні удари комбо й посилює 4-й удар.",
-            "Empowers combo finisher attacks and multi-stage strikes.",
-            "Усиливает финальные комбо-атаки и комбо-удары."),
-        new("Crescendo", GemCategory.Support, "Dex", 2, 2, 0, 110, "Support, Combo",
-            "Дозволяє наносити фінішний комбо-удар двічі поспіль!",
-            "Allows the final combo strike to repeat/trigger an extra time.",
-            "Позволяет финальному комбо-удару сработать дважды."),
-        new("Close Combat", GemCategory.Support, "Str", 1, 1, 0, 120, "Support, Melee, Damage",
-            "До +25% More Melee Damage на ближній дистанції.",
-            "Up to 25% more Melee damage to enemies at close range.",
-            "До +25% More урона ближнего боя на близкой дистанции."),
-        new("Concussive", GemCategory.Support, "Str", 2, 2, 0, 110, "Support, Stun, Melee",
-            "Збільшує Stun Buildup та фізичний/ударний ефект.",
-            "Increases Stun buildup and heavy impact power.",
-            "Усиливает накопление Stun и ударный эффект."),
-        new("Innervate", GemCategory.Support, "Int", 2, 2, 0, 120, "Support, Lightning, Buff",
-            "Убивство шокованого ворога додає плоский Lightning-урон на кілька секунд.",
-            "Killing Shocked foes grants temporary flat Lightning damage.",
-            "Убийство врага под Shock временно даёт плоский урон молнией."),
-        new("Lightning Infusion", GemCategory.Support, "Int", 1, 1, 0, 100, "Support, Lightning",
-            "+25% додаткового урону блискавкою (трохи зменшує Fire/Cold).",
-            "Gain 25% extra Lightning damage (trades a little Fire/Cold).",
-            "+25% доп. урона молнией (слегка снижает огонь/холод)."),
-        new("Cold Infusion", GemCategory.Support, "Dex", 1, 1, 0, 100, "Support, Cold",
-            "+25% додаткового урону холодом (покращує Freeze).",
-            "Gain 25% extra Cold damage for faster Freezing.",
-            "+25% доп. урона холодом для быстрого наложения Freeze."),
-        new("Ice Bite", GemCategory.Support, "Dex", 2, 2, 0, 120, "Support, Cold, Freeze",
-            "Замороження ворогів додає +35% додаткового урону холодом на 3 секунди!",
-            "Freezing enemies grants massive Extra Cold Damage for 3 seconds!",
-            "Заморозка врагов даёт +35% доп. урона холодом на 3 секунды!"),
-        new("Glaciation", GemCategory.Support, "Dex", 1, 1, 0, 110, "Support, Freeze",
-            "+50% more Freeze Buildup — допомагає стабільно активувати Herald of Ice.",
-            "50% more Freeze Buildup, enabling reliable Herald of Ice chains.",
-            "+50% more к накоплению Freeze — помогает запускать Herald of Ice."),
-        new("Frost Nexus", GemCategory.Support, "Int", 2, 2, 0, 120, "Support, Chilled Ground",
-            "Створює ділянку Chilled Ground на ворогах або навколо точки влучання (ідеально під Twister!).",
-            "Creates Chilled Ground on freeze/hit — amazing elemental feed for Twister.",
-            "Создаёт Chilled Ground при попадании — идеально подпитывает Twister."),
-        new("Magnified Effect", GemCategory.Support, "Int", 1, 1, 0, 120, "Support, AoE",
-            "+30% More Area of Effect для прив'язаного вміння.",
-            "30% more Area of Effect for massive screen coverage.",
-            "+30% More области действия (AoE)."),
-        new("Concentrated Effect", GemCategory.Support, "Int", 1, 1, 0, 120, "Support, AoE, Boss",
-            "+30–40% More Area Damage ціною меншого радіуса — топ для соло-таргет босів!",
-            "Significant More Area Damage at smaller radius — top single-target boss swap.",
-            "+30–40% More урона по области за счёт меньшего радиуса — идеально под боссов."),
-        new("Heft", GemCategory.Support, "Str", 1, 1, 0, 120, "Support, Physical",
-            "+30% More Maximum Physical Hit Damage.",
-            "30% more Maximum Physical Hit Damage for high-roll attacks.",
-            "+30% More максимального физического урона ударом."),
-        new("Rage", GemCategory.Support, "Str", 1, 1, 0, 100, "Support, Rage",
-            "Генерує Rage при мілі/атаках (+1% More Attack Damage за кожну одиницю Rage!). Рівні I/II/III масштабують ліміт і приріст.",
-            "Generates Rage on hit (+1% more Attack damage per Rage stack; Tier I/II/III increases rate & bonus).",
-            "Копит Rage при ударах (+1% More урона атак за стак; уровни I/II/III усиливают бонус)."),
-        new("Retreat", GemCategory.Support, "Dex", 1, 1, 0, 110, "Support, Blind/Evasion",
-            "Полегшує мобільність / захист при використанні атак переміщення.",
-            "Enhances defensive/disengage utility on movement skills.",
-            "Повышает мобильность и защиту на умениях передвижения."),
-        new("Prolonged Duration", GemCategory.Support, "Int", 1, 1, 0, 110, "Support, Duration",
-            "+25%–40% More Skill Effect Duration (для Twister, Orb of Storms, Buffs). Тіри I / II / III.",
-            "25–40% more Skill Effect Duration for longer Twisters, orbs, and buffs (Tier I/II/III).",
-            "+25–40% More длительности эффекта (для Twister, сфер и баффов; уровни I/II/III)."),
-        new("Precision", GemCategory.Support, "Dex", 1, 1, 10, 100, "Spirit Support, Accuracy",
-            "+30% Accuracy Rating (резервує +10 Spirit при вставці у Spirit-баф!).",
-            "+30% Accuracy Rating (reserves +10 extra Spirit when linked to a Spirit buff).",
-            "+30% к меткости Accuracy (резервирует +10 Spirit в связке со Spirit-баффом)."),
-        new("Clarity", GemCategory.Support, "Int", 1, 1, 10, 100, "Spirit Support, Mana Regen",
-            "+30% Mana Regeneration Rate (резервує +10 Spirit у Spirit-бафі).",
-            "+30% Mana Regeneration Rate (reserves +10 Spirit in a Spirit aura).",
-            "+30% к регенерации маны (резервирует +10 Spirit в Spirit-баффе)."),
-        new("Cannibalism", GemCategory.Support, "Str", 1, 1, 15, 100, "Spirit Support, Recovery",
-            "Відновлює % Life/Mana при вбивстві (резервує +15 Spirit).",
-            "Recovers Life on Kill (reserves +15 Spirit in a persistent buff).",
-            "Восстанавливает здоровье при убийстве (резервирует +15 Spirit)."),
-        new("Arcane Tempo", GemCategory.Support, "Int", 1, 1, 0, 100, "Support, Cast Speed",
-            "+25% More Cast Speed для чар.",
-            "25% more Cast Speed for Spell skills.",
-            "+25% More скорости сотворения чар."),
-        new("Controlled Destruction", GemCategory.Support, "Int", 1, 1, 0, 120, "Support, Spell",
-            "+25–30% More Spell Damage без крітів.",
-            "25–30% more Spell Damage (non-crit builds).",
-            "+25–30% More урона чар (снижает шанс крита)."),
-        new("Scattershot", GemCategory.Support, "Dex", 1, 1, 0, 130, "Support, Projectile",
-            "+2 додаткові снаряди ціною швидкості атаки — чудово для покриття карти!",
-            "Fires +2 extra projectiles at lower Attack/Cast speed.",
-            "+2 дополнительных снаряда — отлично для зачистки."),
-        new("Fork", GemCategory.Support, "Dex", 2, 2, 0, 120, "Support, Projectile",
-            "Снаряди роздвоюються при влучанні.",
-            "Projectiles fork into two upon striking an enemy.",
-            "Снаряды раздваиваются при попадании."),
-        new("Overcharge", GemCategory.Support, "Int", 2, 2, 0, 110, "Support, Shock",
-            "+75% More Magnitude of Shock (довший та сильніший шок на босах).",
-            "75% more Shock magnitude for massive boss damage amplification.",
-            "+75% More силы эффекта Shock на боссах."),
-        new("Profusion", GemCategory.Support, "Dex", 2, 2, 0, 120, "Support, Charges",
-            "50% шанс отримати +1 додатковий заряд при отриманні заряду!",
-            "50% chance to gain an additional Charge when generating Charges.",
-            "50% шанс получить +1 дополнительный заряд при их генерации."),
-        new("Perpetual Charge", GemCategory.Support, "Int/Dex", 3, 3, 0, 120, "Support, Charges",
-            "Високий шанс НЕ витратити Power/Frenzy Charge при касті скіла!",
-            "High chance to not consume Charges when triggering a charge-spending skill.",
-            "Высокий шанс НЕ потратить Power/Frenzy Charge при активации."),
-        new("Supercritical", GemCategory.Support, "Int", 3, 3, 0, 130, "Support, Critical",
-            "+100% Increased Critical Damage Bonus ціною меншого базового шансу кріта.",
-            "Huge Critical Damage Bonus boost for high-crit endgame setups.",
-            "Огромный бонус к силе критического удара для эндгейма."),
-        new("Ambush", GemCategory.Support, "Dex", 2, 2, 0, 120, "Support, Critical",
-            "+100% More Critical Hit Chance проти ворогів із повним Life (ідеально для ваншоту паків).",
-            "100% more Critical Hit Chance against enemies on Full Life.",
-            "+100% More шанса крита по врагам с полным здоровьем."),
-        new("Overpower", GemCategory.Support, "Str", 1, 1, 0, 110, "Support, Stun",
-            "+50% More Stun Buildup — швидко оглушує еліток і босів.",
-            "50% more Stun Buildup to heavy-stun rares and bosses quickly.",
-            "+50% More накопления оглушения (Stun).")
-    ];
+    private static readonly Lazy<GemCatalogIndex> LazyIndex = new(LoadCatalog, isThreadSafe: true);
+
+    private static GemCatalogIndex LoadCatalog()
+    {
+        var all = new List<RawGemEntry>(1000);
+        try
+        {
+            var asm = typeof(Poe2GemsDb).Assembly;
+            string? gzRes = asm.GetManifestResourceNames()
+                .FirstOrDefault(n => n.EndsWith("poe2_gems_05.json.gz", StringComparison.OrdinalIgnoreCase));
+            if (gzRes != null)
+            {
+                using Stream? s = asm.GetManifestResourceStream(gzRes);
+                if (s != null)
+                {
+                    using var gz = new GZipStream(s, CompressionMode.Decompress);
+                    var parsed = JsonSerializer.Deserialize<List<RawGemEntry>>(gz);
+                    if (parsed != null) all = parsed;
+                }
+            }
+            else
+            {
+                string? rawRes = asm.GetManifestResourceNames()
+                    .FirstOrDefault(n => n.EndsWith("poe2_gems_05.json", StringComparison.OrdinalIgnoreCase));
+                if (rawRes != null)
+                {
+                    using Stream? s = asm.GetManifestResourceStream(rawRes);
+                    if (s != null)
+                    {
+                        var parsed = JsonSerializer.Deserialize<List<RawGemEntry>>(s);
+                        if (parsed != null) all = parsed;
+                    }
+                }
+            }
+        }
+        catch { }
+
+        var normMap = new Dictionary<string, RawGemEntry>(all.Count * 2, StringComparer.OrdinalIgnoreCase);
+        foreach (var g in all)
+        {
+            if (string.IsNullOrWhiteSpace(g.n)) continue;
+            string nk = NormalizeKey(g.n);
+            normMap.TryAdd(nk, g);
+            // Також додаємо форму без I (напр. "Rapid Attacks" -> "Rapid Attacks I")
+            if (nk.EndsWith(" i", StringComparison.Ordinal))
+                normMap.TryAdd(nk[..^2], g);
+        }
+
+        return new GemCatalogIndex { All = all, ByNormalized = normMap };
+    }
 
     public static PoeGemInfo ResolveGem(string rawGemName, int? stageMinLevel = null)
     {
         string cleaned = (rawGemName ?? "").Trim();
-        int gemLvl = stageMinLevel is > 0 ? stageMinLevel.Value : 1;
+        int? explicitGemLvl = null;
         int quality = 0;
 
         var mLvl = Regex.Match(cleaned, @"\(Lv(\d+)(?:\s*Q(\d+)%?)?\)", RegexOptions.IgnoreCase);
         if (mLvl.Success)
         {
-            if (int.TryParse(mLvl.Groups[1].Value, out int parsedL)) gemLvl = parsedL;
+            if (int.TryParse(mLvl.Groups[1].Value, out int parsedL)) explicitGemLvl = parsedL;
             if (mLvl.Groups[2].Success && int.TryParse(mLvl.Groups[2].Value, out int parsedQ)) quality = parsedQ;
             cleaned = Regex.Replace(cleaned, @"\s*\(Lv\d+[^)]*\)", "").Trim();
         }
 
-        // Розпізнаємо римські тіри наприкінці назви ("Rage I", "Prolonged Duration II", "Rage III")
-        int explicitRomanTier = 0;
-        var mRoman = Regex.Match(cleaned, @"^(.+?)\s+(I|II|III)$", RegexOptions.IgnoreCase);
-        string baseLookup = cleaned;
-        if (mRoman.Success)
-        {
-            baseLookup = mRoman.Groups[1].Value.Trim();
-            explicitRomanTier = mRoman.Groups[2].Value.ToUpperInvariant() switch
-            {
-                "III" => 3,
-                "II" => 2,
-                _ => 1
-            };
-        }
-
-        var match = Catalog.FirstOrDefault(g =>
-            g.CanonicalName.Equals(cleaned, StringComparison.OrdinalIgnoreCase) ||
-            g.CanonicalName.Equals(baseLookup, StringComparison.OrdinalIgnoreCase))
-            ?? Catalog.FirstOrDefault(g =>
-                cleaned.Contains(g.CanonicalName, StringComparison.OrdinalIgnoreCase) ||
-                g.CanonicalName.Contains(baseLookup, StringComparison.OrdinalIgnoreCase));
+        var idx = LazyIndex.Value;
+        var (match, parsedRomanTier) = FindBestCatalogMatch(idx, cleaned);
 
         if (match != null)
         {
-            int supportTier = explicitRomanTier > 0 ? explicitRomanTier : match.SupportTier;
-            if (match.Category == GemCategory.Support)
+            GemCategory cat = match.k switch
             {
-                int minCharLvl = supportTier switch { 3 => 40, 2 => 20, _ => 1 };
-                string obtainUk = match.CustomObtainUk ?? SupportObtainUk(supportTier);
-                string obtainEn = match.CustomObtainEn ?? SupportObtainEn(supportTier);
-                string obtainRu = match.CustomObtainRu ?? SupportObtainRu(supportTier);
-                int reqAttr = Math.Max(0, (int)Math.Round(minCharLvl * 1.4));
+                "S" => GemCategory.SpiritBuff,
+                "M" => GemCategory.MetaTrigger,
+                "P" => GemCategory.Support,
+                _ => GemCategory.ActiveSkill
+            };
+
+            if (cat == GemCategory.Support)
+            {
+                bool isLineage = match.t >= 99 || match.g.Contains("Lineage", StringComparison.OrdinalIgnoreCase);
+                int supportTier = isLineage ? 0 : Math.Clamp(match.t > 0 ? match.t : (parsedRomanTier > 0 ? parsedRomanTier : 1), 1, 5);
+                int minCharLvl = isLineage ? 65 : SupportTierMinLevel(supportTier);
+                string tierLabel = isLineage ? "Lineage Support (Lvl 65+)" : $"Uncut Support Gem Tier {supportTier}";
+                int reqAttr = isLineage ? 5 : Math.Max(0, supportTier switch { 1 => 0, 2 => 5, 3 => 15, 4 => 30, _ => 45 });
+
+                var (descUk, descEn, descRu, obtUk, obtEn, obtRu) = BuildLocalizedText(match, cat, supportTier, minCharLvl, isLineage);
                 return new PoeGemInfo(
-                    cleaned, GemCategory.Support, match.Attribute,
-                    gemLvl, quality, minCharLvl,
-                    match.Attribute.Contains("Str") ? reqAttr : 0,
-                    match.Attribute.Contains("Dex") ? reqAttr : 0,
-                    match.Attribute.Contains("Int") ? reqAttr : 0,
-                    $"Uncut Support Gem Tier {supportTier}",
-                    match.SpiritCost, match.ManaMultPct, match.Tags,
-                    obtainUk, obtainEn, obtainRu,
-                    match.DescUk, match.DescEn, match.DescRu
+                    match.n, GemCategory.Support, match.a,
+                    explicitGemLvl ?? 1, quality, minCharLvl,
+                    match.a.Contains("Str") ? reqAttr : 0,
+                    match.a.Contains("Dex") ? reqAttr : 0,
+                    match.a.Contains("Int") ? reqAttr : 0,
+                    tierLabel,
+                    match.sp, match.mm, match.g,
+                    obtUk, obtEn, obtRu,
+                    descUk, descEn, descRu
                 );
             }
 
-            int reqMin = Math.Clamp(match.MinUncutLevel, 1, 20);
-            int minLvl = (match.Category is GemCategory.SpiritBuff or GemCategory.MetaTrigger)
-                ? reqMin switch { <= 4 => 10, <= 8 => 22, <= 10 => 36, <= 14 => 52, _ => 65 }
-                : SkillUncutCharLevel[reqMin];
+            // Active Skill / Spirit Buff / Meta Trigger (Tier 1..20 -> точна таблиця PoE2DB)
+            int reqUncut = Math.Clamp(match.t > 0 ? match.t : 1, 1, 20);
+            int minLvl = SkillUncutCharLevel[reqUncut];
+            int displayGemLvl = Math.Max(explicitGemLvl ?? reqUncut, reqUncut);
+            string uncutLabel = cat is GemCategory.SpiritBuff or GemCategory.MetaTrigger
+                ? $"Uncut Spirit Gem Lv {reqUncut}"
+                : $"Uncut Skill Gem Lv {reqUncut}";
 
-            string uncutLabel = match.Category is GemCategory.SpiritBuff or GemCategory.MetaTrigger
-                ? $"Uncut Spirit Gem Lv {reqMin}"
-                : $"Uncut Skill Gem Lv {reqMin}";
+            bool hybrid = match.a.Contains('/') || match.a.Equals("Hybrid", StringComparison.OrdinalIgnoreCase);
+            int perAttr = hybrid ? HybridAttrByGemLevel[reqUncut] : SingleAttrByGemLevel[reqUncut];
 
-            int attrVal = Math.Max(10, (int)Math.Round(minLvl * 1.6));
-            bool hybrid = match.Attribute.Contains('/');
-            int perAttr = hybrid ? Math.Max(8, (int)Math.Round(attrVal * 0.65)) : attrVal;
-
+            var (aDescUk, aDescEn, aDescRu, aObtUk, aObtEn, aObtRu) = BuildLocalizedText(match, cat, reqUncut, minLvl, isLineage: false);
             return new PoeGemInfo(
-                cleaned, match.Category, match.Attribute,
-                Math.Max(gemLvl, reqMin), quality, minLvl,
-                match.Attribute.Contains("Str") ? perAttr : 0,
-                match.Attribute.Contains("Dex") ? perAttr : 0,
-                match.Attribute.Contains("Int") ? perAttr : 0,
+                match.n, cat, match.a,
+                displayGemLvl, quality, minLvl,
+                match.a.Contains("Str") ? perAttr : 0,
+                match.a.Contains("Dex") ? perAttr : 0,
+                match.a.Contains("Int") ? perAttr : 0,
                 uncutLabel,
-                match.SpiritCost, match.ManaMultPct, match.Tags,
-                match.CustomObtainUk ?? UncutSkillObtainUk(reqMin, match.Category),
-                match.CustomObtainEn ?? UncutSkillObtainEn(reqMin, match.Category),
-                match.CustomObtainRu ?? UncutSkillObtainRu(reqMin, match.Category),
-                match.DescUk, match.DescEn, match.DescRu
+                match.sp, match.mm, match.g,
+                aObtUk, aObtEn, aObtRu,
+                aDescUk, aDescEn, aDescRu
             );
         }
 
-        // Розумний fallback для будь-якого нового/рідкісного гема PoE 2
-        bool looksLikeSupport = explicitRomanTier > 0 ||
+        // Безпечний fallback для рідкісних або ще не доданих каменів:
+        // НІКОЛИ не плутаємо stageMinLevel (рівень персонажа!) з тіром Uncut каменю!
+        bool looksLikeSupport = parsedRomanTier > 0 ||
             cleaned.Contains("support", StringComparison.OrdinalIgnoreCase) ||
             cleaned.EndsWith(" Infusion", StringComparison.OrdinalIgnoreCase) ||
-            cleaned.EndsWith(" Effect", StringComparison.OrdinalIgnoreCase);
+            cleaned.EndsWith(" Attunement", StringComparison.OrdinalIgnoreCase) ||
+            cleaned.EndsWith(" Mastery", StringComparison.OrdinalIgnoreCase) ||
+            cleaned.EndsWith(" Two", StringComparison.OrdinalIgnoreCase) ||
+            cleaned.EndsWith(" Three", StringComparison.OrdinalIgnoreCase);
 
         if (looksLikeSupport)
         {
-            int tier = explicitRomanTier > 0 ? explicitRomanTier : (gemLvl >= 12 ? 3 : gemLvl >= 6 ? 2 : 1);
-            int charLvl = tier switch { 3 => 40, 2 => 20, _ => 1 };
+            int tier = Math.Clamp(parsedRomanTier > 0 ? parsedRomanTier : 1, 1, 5);
+            int charLvl = SupportTierMinLevel(tier);
             return new PoeGemInfo(
                 cleaned, GemCategory.Support, "Hybrid",
-                gemLvl, quality, charLvl, 0, 0, 0,
+                explicitGemLvl ?? 1, quality, charLvl, 0, 0, 0,
                 $"Uncut Support Gem Tier {tier}",
-                0, 120, "Support",
-                SupportObtainUk(tier), SupportObtainEn(tier), SupportObtainRu(tier),
-                "Камінь підтримки PoE 2. Натисни «Детальніше з AI», якщо потрібен точний розбір синергії під білд.",
-                "PoE 2 Support Gem. Click 'Ask AI Details' for exact build synergy math.",
-                "Камень поддержки PoE 2. Нажми «Подробнее с AI», если нужен точный разбор синергии."
+                0, 100, "Support",
+                SupportObtainUk(tier, isLineage: false), SupportObtainEn(tier, isLineage: false), SupportObtainRu(tier, isLineage: false),
+                "Камінь підтримки PoE 2. Перевір точний тір у вікні Gemcutting.",
+                "PoE 2 Support Gem. Check exact tier inside the in-game Gemcutting menu.",
+                "Камень поддержки PoE 2. Проверь точный тир в меню Gemcutting."
             );
         }
 
-        int uncutTier = Math.Clamp(gemLvl > 1 ? Math.Min(20, gemLvl) : (stageMinLevel is int s ? CharLevelToUncutTier(s) : 5), 1, 20);
-        int unlockChar = SkillUncutCharLevel[uncutTier];
+        bool inLiveCatalog = LivePoe2DataService.ContainsGem(cleaned);
+        int fallbackTier = explicitGemLvl is > 0 ? Math.Clamp(explicitGemLvl.Value, 1, 20) : 1;
+        int fallbackMinChar = SkillUncutCharLevel[fallbackTier];
+        string badge = explicitGemLvl.HasValue
+            ? $"Skill Gem Lv {fallbackTier}"
+            : (inLiveCatalog ? "GGG Live Catalog Gem" : "Uncut / Granted Skill");
         return new PoeGemInfo(
             cleaned, GemCategory.ActiveSkill, "Hybrid",
-            Math.Max(gemLvl, uncutTier), quality, unlockChar, 0, 0, 0,
-            $"Uncut Skill Gem Lv {uncutTier}",
-            0, 100, "Skill",
-            UncutSkillObtainUk(uncutTier, GemCategory.ActiveSkill),
-            UncutSkillObtainEn(uncutTier, GemCategory.ActiveSkill),
-            UncutSkillObtainRu(uncutTier, GemCategory.ActiveSkill),
-            $"Активний камінь умінь PoE 2 (відкривається через Uncut Skill Gem Lv {uncutTier}+ орієнтовно з {unlockChar} рівня).",
-            $"PoE 2 Active Skill Gem (engraved from Uncut Skill Gem Lv {uncutTier}+, ~Char Lvl {unlockChar}).",
-            $"Активный камень умений PoE 2 (вырезается из Uncut Skill Gem Lv {uncutTier}+ примерно с {unlockChar} уровня)."
+            fallbackTier, quality, fallbackMinChar, 0, 0, 0,
+            badge,
+            0, 100, inLiveCatalog ? "Skill (Live GGG)" : "Skill",
+            UncutSkillObtainUk(fallbackTier, GemCategory.ActiveSkill),
+            UncutSkillObtainEn(fallbackTier, GemCategory.ActiveSkill),
+            UncutSkillObtainRu(fallbackTier, GemCategory.ActiveSkill),
+            inLiveCatalog
+                ? "Офіційний камінь PoE 2 із живого каталогу GGG API."
+                : "Камінь уміння PoE 2 (або скіл зі зброї / Ascendancy).",
+            inLiveCatalog
+                ? "Official PoE 2 Skill Gem resolved from live GGG Trade 2 catalog."
+                : "PoE 2 Skill Gem (or weapon/Ascendancy-granted skill).",
+            inLiveCatalog
+                ? "Официальный камень PoE 2 из живого каталога GGG API."
+                : "Камень умения PoE 2 (или скилл от оружия / Ascendancy)."
         );
     }
 
     public static List<PoeGemInfo> GetAllCatalogEntries(string search = "", GemCategory? categoryFilter = null)
     {
         string q = (search ?? "").Trim();
-        return Catalog
-            .Where(c => categoryFilter == null || c.Category == categoryFilter.Value)
-            .Where(c => string.IsNullOrEmpty(q) ||
-                        c.CanonicalName.Contains(q, StringComparison.OrdinalIgnoreCase) ||
-                        c.Tags.Contains(q, StringComparison.OrdinalIgnoreCase) ||
-                        c.DescUk.Contains(q, StringComparison.OrdinalIgnoreCase) ||
-                        c.DescEn.Contains(q, StringComparison.OrdinalIgnoreCase))
-            .Select(c => ResolveGem(c.CanonicalName))
-            .DistinctBy(g => g.Name)
+        var idx = LazyIndex.Value;
+        return idx.All
+            .Where(g => categoryFilter == null || MapCategory(g.k) == categoryFilter.Value)
+            .Where(g => string.IsNullOrEmpty(q) ||
+                        g.n.Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                        g.g.Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                        g.d.Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                        (Overlays.TryGetValue(g.n, out var ov) &&
+                         (ov.DescUk.Contains(q, StringComparison.OrdinalIgnoreCase) || ov.DescRu.Contains(q, StringComparison.OrdinalIgnoreCase))))
+            .Select(g => ResolveGem(g.n))
+            .DistinctBy(g => g.Name, StringComparer.OrdinalIgnoreCase)
             .OrderBy(g => g.MinUnlockCharacterLevel)
             .ThenBy(g => g.Name)
             .ToList();
@@ -496,55 +430,186 @@ public static class Poe2GemsDb
         return 1;
     }
 
-    private static string SupportObtainUk(int tier) => tier switch
+    private static (RawGemEntry? Match, int ParsedRomanTier) FindBestCatalogMatch(GemCatalogIndex idx, string rawName)
     {
-        3 => "Uncut Support Gem Tier 3: падає з ~40 рівня (кінець Акту 3, Cruel Акти та мапи Waystones) або Trade.",
-        2 => "Uncut Support Gem Tier 2: падає з ~20 рівня (Акт 2, Deshar / Valley of the Titans та далі).",
-        _ => "Uncut Support Gem Tier 1: з 1 рівня (Акт 1 квести Clearfell / The Rust King, дроп із мобів і скринь)."
+        string norm = NormalizeKey(rawName);
+        int romanTier = 0;
+
+        // Розпізнаємо "One/Two/Three/Four/Five" або "I/II/III/IV/V" у кінці назви
+        var mSuffix = Regex.Match(norm, @"^(.+?)\s+(i|ii|iii|iv|v|one|two|three|four|five)$");
+        if (mSuffix.Success)
+        {
+            romanTier = mSuffix.Groups[2].Value switch
+            {
+                "one" or "i" => 1,
+                "two" or "ii" => 2,
+                "three" or "iii" => 3,
+                "four" or "iv" => 4,
+                _ => 5
+            };
+            string converted = $"{mSuffix.Groups[1].Value} {romanTier switch { 1 => "i", 2 => "ii", 3 => "iii", 4 => "iv", _ => "v" }}";
+            if (GemAliases.TryGetValue(converted, out var aliasHit) && idx.ByNormalized.TryGetValue(NormalizeKey(aliasHit), out var a1))
+                return (a1, romanTier);
+            if (idx.ByNormalized.TryGetValue(converted, out var directT))
+                return (directT, romanTier);
+        }
+
+        if (GemAliases.TryGetValue(norm, out var alias) && idx.ByNormalized.TryGetValue(NormalizeKey(alias), out var a2))
+            return (a2, romanTier);
+
+        if (idx.ByNormalized.TryGetValue(norm, out var exact))
+            return (exact, romanTier);
+
+        // Скидаємо префікси класу/форми ("Ascendancy Hollow Focus", "Wyvern Devour", "Bear Maul")
+        string stripped = Regex.Replace(norm, @"^(?:ascendancy|wyvern|bear|wolf|druid|shaman|oracle|amazon)\s+", "");
+        if (stripped != norm && idx.ByNormalized.TryGetValue(stripped, out var stripMatch))
+            return (stripMatch, romanTier);
+
+        // Апостроф / префіксне співпадіння лише для достатньо довгих точних фрагментів
+        if (norm.Length >= 5)
+        {
+            var fuzzy = idx.All.FirstOrDefault(g =>
+                NormalizeKey(g.n).Equals(stripped, StringComparison.OrdinalIgnoreCase) ||
+                NormalizeKey(g.n).StartsWith(norm + " ", StringComparison.OrdinalIgnoreCase));
+            if (fuzzy != null)
+                return (fuzzy, romanTier);
+        }
+
+        return (null, romanTier);
+    }
+
+    private static string NormalizeKey(string s)
+    {
+        string clean = (s ?? "").Trim()
+            .Replace("'", "")
+            .Replace("’", "")
+            .Replace("`", "")
+            .Replace("í", "i")
+            .Replace("Í", "i")
+            .Replace("-", " ")
+            .ToLowerInvariant();
+        return WhitespaceRegex().Replace(clean, " ").Trim();
+    }
+
+    private static GemCategory MapCategory(string k) => k switch
+    {
+        "S" => GemCategory.SpiritBuff,
+        "M" => GemCategory.MetaTrigger,
+        "P" => GemCategory.Support,
+        _ => GemCategory.ActiveSkill
     };
 
-    private static string SupportObtainEn(int tier) => tier switch
+    private static int SupportTierMinLevel(int tier) => tier switch
     {
-        3 => "Uncut Support Gem Tier 3: drops from ~Lvl 40 (late Act 3, Cruel Acts, Endgame Waystones).",
-        2 => "Uncut Support Gem Tier 2: drops from ~Lvl 20 (Act 2 campaign zones & bosses).",
-        _ => "Uncut Support Gem Tier 1: available from Lvl 1 (Act 1 early quests, drops everywhere)."
+        <= 1 => 1,
+        2 => 16,
+        3 => 33,
+        4 => 45,
+        _ => 55
     };
 
-    private static string SupportObtainRu(int tier) => tier switch
+    private static (string DescUk, string DescEn, string DescRu, string ObtUk, string ObtEn, string ObtRu) BuildLocalizedText(
+        RawGemEntry entry, GemCategory cat, int tier, int minLvl, bool isLineage)
     {
-        3 => "Uncut Support Gem Tier 3: падает с ~40 уровня (конец 3-го Акта, Cruel и карты Waystones).",
-        2 => "Uncut Support Gem Tier 2: падает с ~20 уровня (Акт 2 и далее).",
-        _ => "Uncut Support Gem Tier 1: доступен с 1 уровня (квесты и дроп в 1-м Акте)."
-    };
+        bool hasOv = Overlays.TryGetValue(entry.n, out var ov);
+        string descEn = hasOv ? ov!.DescEn : (!string.IsNullOrWhiteSpace(entry.d) ? entry.d : $"PoE 2 {entry.g} gem.");
+        string descUk = hasOv ? ov!.DescUk : $"{descEn} ({entry.g}; мін. рівень: {minLvl}+).";
+        string descRu = hasOv ? ov!.DescRu : $"{descEn} ({entry.g}; мин. уровень: {minLvl}+).";
+
+        string obtUk = (hasOv ? ov!.CustomObtainUk : null) ?? (cat == GemCategory.Support ? SupportObtainUk(tier, isLineage) : UncutSkillObtainUk(tier, cat));
+        string obtEn = (hasOv ? ov!.CustomObtainEn : null) ?? (cat == GemCategory.Support ? SupportObtainEn(tier, isLineage) : UncutSkillObtainEn(tier, cat));
+        string obtRu = (hasOv ? ov!.CustomObtainRu : null) ?? (cat == GemCategory.Support ? SupportObtainRu(tier, isLineage) : UncutSkillObtainRu(tier, cat));
+        return (descUk, descEn, descRu, obtUk, obtEn, obtRu);
+    }
+
+    private static string SupportObtainUk(int tier, bool isLineage)
+    {
+        if (isLineage)
+            return "Lineage Support (65+ рів.): рідкісний ендгейм-дроп (Waystones, боси) або PoE 2 Trade.";
+        return tier switch
+        {
+            5 => "Uncut Support Gem Tier 5: падає у зонах 55+ рівня (Interludes та Waystones).",
+            4 => "Uncut Support Gem Tier 4: падає у зонах 45+ рівня (Акт 4 та Interludes).",
+            3 => "Uncut Support Gem Tier 3: падає у зонах 33+ рівня (Акт 3 — Sandswept Marsh і далі).",
+            2 => "Uncut Support Gem Tier 2: падає у зонах 16+ рівня (Акт 2 — Vastiri Outskirts і далі).",
+            _ => "Uncut Support Gem Tier 1: з 1 рівня (Акт 1 — Grelwood / Tree of Souls, квести та дроп)."
+        };
+    }
+
+    private static string SupportObtainEn(int tier, bool isLineage)
+    {
+        if (isLineage)
+            return "Lineage Support (Lvl 65+): Endgame Waystones / boss drop or PoE 2 Trade.";
+        return tier switch
+        {
+            5 => "Uncut Support Gem Tier 5: drops in Area Lvl 55+ (Interludes / Endgame Waystones).",
+            4 => "Uncut Support Gem Tier 4: drops in Area Lvl 45+ (Act 4 & Interludes).",
+            3 => "Uncut Support Gem Tier 3: drops in Area Lvl 33+ (Act 3 zones onwards).",
+            2 => "Uncut Support Gem Tier 2: drops in Area Lvl 16+ (Act 2 zones onwards).",
+            _ => "Uncut Support Gem Tier 1: available from Lvl 1 (Act 1 quests & world drops)."
+        };
+    }
+
+    private static string SupportObtainRu(int tier, bool isLineage)
+    {
+        if (isLineage)
+            return "Lineage Support (65+ ур.): эндгейм-дроп (Waystones / боссы) или PoE 2 Trade.";
+        return tier switch
+        {
+            5 => "Uncut Support Gem Tier 5: падает в зонах 55+ уровня (Interludes и Waystones).",
+            4 => "Uncut Support Gem Tier 4: падает в зонах 45+ уровня (Акт 4 и Interludes).",
+            3 => "Uncut Support Gem Tier 3: падает в зонах 33+ уровня (Акт 3 и далее).",
+            2 => "Uncut Support Gem Tier 2: падает в зонах 16+ уровня (Акт 2 и далее).",
+            _ => "Uncut Support Gem Tier 1: доступен с 1 уровня (квесты и дроп в 1-м Акте)."
+        };
+    }
 
     private static string UncutSkillObtainUk(int tier, GemCategory cat)
     {
         if (cat is GemCategory.SpiritBuff or GemCategory.MetaTrigger)
-            return $"Uncut Spirit Gem Lv {tier}: бос King in the Mists (Акт 1 Freythorn) або рідкісний дроп по кампанії та мапах Waystones.";
+        {
+            return tier switch
+            {
+                <= 4 => $"Uncut Spirit Gem Lv {tier}: Акт 1 Freythorn (бос King in the Mists +30 Spirit) або ранній дроп.",
+                <= 8 => $"Uncut Spirit Gem Lv {tier}: Акт 2 (The Lost City — Golden Tomb) та зони 20–32 рівня.",
+                <= 10 => $"Uncut Spirit Gem Lv {tier}: Акт 3 (The Azak Bog — бос Ignagduk +30 Spirit) та зони 33–45 рівня.",
+                <= 14 => $"Uncut Spirit Gem Lv {tier}: Акт 4 / Interlude 3 (Kriar Village — Lythara +40 Spirit) або Waystones.",
+                _ => $"Uncut Spirit Gem Lv {tier}: Waystones (64+ рів.) або PoE 2 Trade."
+            };
+        }
 
         return tier switch
         {
-            <= 4 => $"Uncut Skill Gem Lv {tier}: Акт 1 (квести Clearfell / Mud Burrow / Cemeteries, зони 1–14 рівня).",
-            <= 8 => $"Uncut Skill Gem Lv {tier}: Акт 2 (Vastiri Outskirts → Deshar, зони 16–30 рівня).",
-            <= 12 => $"Uncut Skill Gem Lv {tier}: Акт 3 (Sandswept Marsh → Utzaal, зони 32–48 рівня).",
-            <= 15 => $"Uncut Skill Gem Lv {tier}: фінал кампанії / ранні Waystones T1–T5 (50–68 рів.).",
-            <= 18 => $"Uncut Skill Gem Lv {tier}: Waystones T6–T15 (рівень монстрів 70–79).",
-            _ => $"Uncut Skill Gem Lv {tier}: рідкісний ендгейм-дроп (Waystones T15+ / Corrupted T16+ / Pinnacle-боси) або PoE 2 Trade."
+            <= 5 => $"Uncut Skill Gem Lv {tier}: Акт 1 (Clearfell → Ogham Manor, зони 1–16 рівня; мін. {SkillUncutCharLevel[tier]} рів. героя).",
+            <= 9 => $"Uncut Skill Gem Lv {tier}: Акт 2 (Vastiri Outskirts → Dreadnought, зони 16–32 рівня).",
+            <= 12 => $"Uncut Skill Gem Lv {tier}: Акт 3 (Sandswept Marsh → Black Chambers, зони 33–46 рівня).",
+            <= 14 => $"Uncut Skill Gem Lv {tier}: Акт 4 та Interludes 1–3 (зони 47–64 рівня).",
+            <= 18 => $"Uncut Skill Gem Lv {tier}: Waystones T1–T15 (зони 65–79 рівня).",
+            _ => $"Uncut Skill Gem Lv {tier}: рідкісний ендгейм-дроп (T15+ / Corrupted / Pinnacle-боси) або PoE 2 Trade."
         };
     }
 
     private static string UncutSkillObtainEn(int tier, GemCategory cat)
     {
         if (cat is GemCategory.SpiritBuff or GemCategory.MetaTrigger)
-            return $"Uncut Spirit Gem Lv {tier}: Act 1 Freythorn (King in the Mists) or campaign/Waystone drops.";
+        {
+            return tier switch
+            {
+                <= 4 => $"Uncut Spirit Gem Lv {tier}: Act 1 Freythorn (King in the Mists +30 Spirit) or early drops.",
+                <= 8 => $"Uncut Spirit Gem Lv {tier}: Act 2 (Lost City Golden Tomb) & Area Lvl 20–32 drops.",
+                <= 10 => $"Uncut Spirit Gem Lv {tier}: Act 3 (Azak Bog: Ignagduk +30 Spirit) & Area Lvl 33–45.",
+                <= 14 => $"Uncut Spirit Gem Lv {tier}: Act 4 / Interlude 3 (Mount Kriar: Lythara +40 Spirit) or Waystones.",
+                _ => $"Uncut Spirit Gem Lv {tier}: Waystones (Lvl 64+) or PoE 2 Trade."
+            };
+        }
 
         return tier switch
         {
-            <= 4 => $"Uncut Skill Gem Lv {tier}: Act 1 quests & zones (Monster Lvl 1–14).",
-            <= 8 => $"Uncut Skill Gem Lv {tier}: Act 2 zones (Monster Lvl 16–30).",
-            <= 12 => $"Uncut Skill Gem Lv {tier}: Act 3 zones (Monster Lvl 32–48).",
-            <= 15 => $"Uncut Skill Gem Lv {tier}: Late Campaign / Early Waystones T1–T5 (Lvl 50–68).",
-            <= 18 => $"Uncut Skill Gem Lv {tier}: Mid–High Waystones T6–T15 (Area Lvl 70–79).",
+            <= 5 => $"Uncut Skill Gem Lv {tier}: Act 1 quests & zones (Area Lvl 1–16; Char Lvl {SkillUncutCharLevel[tier]}+).",
+            <= 9 => $"Uncut Skill Gem Lv {tier}: Act 2 zones (Area Lvl 16–32).",
+            <= 12 => $"Uncut Skill Gem Lv {tier}: Act 3 zones (Area Lvl 33–46).",
+            <= 14 => $"Uncut Skill Gem Lv {tier}: Act 4 & Interludes 1–3 (Area Lvl 47–64).",
+            <= 18 => $"Uncut Skill Gem Lv {tier}: Endgame Waystones T1–T15 (Area Lvl 65–79).",
             _ => $"Uncut Skill Gem Lv {tier}: Rare T15+ / Corrupted / Pinnacle Boss drop or PoE 2 Trade."
         };
     }
@@ -552,16 +617,28 @@ public static class Poe2GemsDb
     private static string UncutSkillObtainRu(int tier, GemCategory cat)
     {
         if (cat is GemCategory.SpiritBuff or GemCategory.MetaTrigger)
-            return $"Uncut Spirit Gem Lv {tier}: Акт 1 Freythorn (King in the Mists) или дроп на картах Waystones.";
+        {
+            return tier switch
+            {
+                <= 4 => $"Uncut Spirit Gem Lv {tier}: Акт 1 Freythorn (King in the Mists +30 Spirit) или ранний дроп.",
+                <= 8 => $"Uncut Spirit Gem Lv {tier}: Акт 2 (Lost City Golden Tomb) и зоны 20–32 уровня.",
+                <= 10 => $"Uncut Spirit Gem Lv {tier}: Акт 3 (Azak Bog: Ignagduk +30 Spirit) и зоны 33–45 ур.",
+                <= 14 => $"Uncut Spirit Gem Lv {tier}: Акт 4 / Interlude 3 (Kriar Village: Lythara +40 Spirit) или Waystones.",
+                _ => $"Uncut Spirit Gem Lv {tier}: Waystones (64+ ур.) или PoE 2 Trade."
+            };
+        }
 
         return tier switch
         {
-            <= 4 => $"Uncut Skill Gem Lv {tier}: Акт 1 (квесты и зоны 1–14 ур.).",
-            <= 8 => $"Uncut Skill Gem Lv {tier}: Акт 2 (зоны 16–30 ур.).",
-            <= 12 => $"Uncut Skill Gem Lv {tier}: Акт 3 (зоны 32–48 ур.).",
-            <= 15 => $"Uncut Skill Gem Lv {tier}: финал кампании / ранние карты Waystones T1–T5 (50–68 ур.).",
-            <= 18 => $"Uncut Skill Gem Lv {tier}: Waystones T6–T15 (70–79 ур.).",
+            <= 5 => $"Uncut Skill Gem Lv {tier}: Акт 1 (квесты и зоны 1–16 ур.; мин. {SkillUncutCharLevel[tier]} ур. героя).",
+            <= 9 => $"Uncut Skill Gem Lv {tier}: Акт 2 (зоны 16–32 ур.).",
+            <= 12 => $"Uncut Skill Gem Lv {tier}: Акт 3 (зоны 33–46 ур.).",
+            <= 14 => $"Uncut Skill Gem Lv {tier}: Акт 4 и Interludes 1–3 (зоны 47–64 ур.).",
+            <= 18 => $"Uncut Skill Gem Lv {tier}: карты Waystones T1–T15 (65–79 ур.).",
             _ => $"Uncut Skill Gem Lv {tier}: редкий дроп T15+ / Pinnacle-боссы или PoE 2 Trade."
         };
     }
+
+    [GeneratedRegex(@"\s+")]
+    private static partial Regex WhitespaceRegex();
 }

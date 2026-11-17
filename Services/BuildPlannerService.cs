@@ -89,12 +89,6 @@ public static class BuildPlannerService
         return (copied, destPaths);
     }
 
-    public static (int copied, List<string> destPaths) ImportFolderToGameBuildPlanner(string folderPath)
-    {
-        if (!Directory.Exists(folderPath)) return (0, []);
-        return ImportToGameBuildPlanner(Directory.GetFiles(folderPath, "*.build"));
-    }
-
     public static LocalBuildPlan? TryParseFile(string path)
     {
         try
@@ -226,7 +220,7 @@ public static class BuildPlannerService
             return (45, 66);
         }
 
-        if (lower.Contains("campaign") || lower.Contains("cruel")) return (45, 66);
+        if (lower.Contains("campaign") || lower.Contains("interlude") || lower.Contains("cruel")) return (45, 66);
         if (lower.Contains("starter") || lower.Contains("leveling")) return (1, 20);
 
         return (1, 100);
