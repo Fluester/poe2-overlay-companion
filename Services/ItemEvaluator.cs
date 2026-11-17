@@ -27,27 +27,40 @@ public static class ItemEvaluator
     private static double? CalcWeaponEdps(string rawText)
     {
         double? aps = ExtractNumber(@"Attacks per Second:\s*([\d.]+)", rawText);
-        var m = Regex.Match(rawText, @"Elemental Damage:\s*(.+)", RegexOptions.IgnoreCase);
-        if (aps == null || !m.Success) return null;
-        var ranges = Regex.Matches(m.Groups[1].Value, @"(\d+)\s*-\s*(\d+)");
-        if (ranges.Count == 0) return null;
+        if (aps == null) return null;
 
         double avgHit = 0;
-        foreach (Match r in ranges)
-            avgHit += (int.Parse(r.Groups[1].Value) + int.Parse(r.Groups[2].Value)) / 2.0;
-        return avgHit * aps.Value;
+        foreach (Match em in Regex.Matches(rawText, @"(?:Elemental|Fire|Cold|Lightning|Chaos)\s+Damage:\s*([^\r\n]+)", RegexOptions.IgnoreCase))
+        {
+            foreach (Match r in Regex.Matches(em.Groups[1].Value, @"(\d+)\s*-\s*(\d+)"))
+                avgHit += (int.Parse(r.Groups[1].Value) + int.Parse(r.Groups[2].Value)) / 2.0;
+        }
+        return avgHit > 0 ? avgHit * aps.Value : null;
+    }
+
+    private static (int eleRes, int chaosRes) SplitResistances(string rawText)
+    {
+        int ele = 0, chaos = 0;
+        foreach (Match m in Regex.Matches(rawText, @"\+(\d+)%\s+to\s+Fire\s+and\s+(?:Cold|Lightning)\s+Resistances?|\+(\d+)%\s+to\s+Cold\s+and\s+Lightning\s+Resistances?", RegexOptions.IgnoreCase))
+        {
+            string rawVal = !string.IsNullOrEmpty(m.Groups[1].Value) ? m.Groups[1].Value : m.Groups[2].Value;
+            if (int.TryParse(rawVal, out int dv)) ele += dv * 2;
+        }
+        foreach (Match m in Regex.Matches(rawText, @"\+(\d+)%\s+to\s+(Fire|Cold|Lightning|Chaos|all Elemental)\s+Resistances?(?!\s+and\b)", RegexOptions.IgnoreCase))
+        {
+            if (!int.TryParse(m.Groups[1].Value, out int val)) continue;
+            string kind = m.Groups[2].Value;
+            if (kind.StartsWith("Chaos", StringComparison.OrdinalIgnoreCase)) chaos += val;
+            else if (kind.StartsWith("all", StringComparison.OrdinalIgnoreCase)) ele += val * 3;
+            else ele += val;
+        }
+        return (ele, chaos);
     }
 
     private static int SumResistances(string rawText)
     {
-        int sum = 0;
-        foreach (Match m in Regex.Matches(rawText, @"\+(\d+)% to (Fire|Cold|Lightning|Chaos|all Elemental) Resistances?", RegexOptions.IgnoreCase))
-        {
-            if (!int.TryParse(m.Groups[1].Value, out int val)) continue;
-            bool isAll = m.Groups[2].Value.StartsWith("all", StringComparison.OrdinalIgnoreCase);
-            sum += isAll ? val * 3 : val;
-        }
-        return sum;
+        var (ele, chaos) = SplitResistances(rawText);
+        return ele + chaos;
     }
 
     private static int SumSkillLevels(string rawText)
@@ -276,13 +289,15 @@ public static class ItemEvaluator
         int resAny = Regex.Matches(rawText, @"to (?:Fire|Cold|Lightning|Chaos|all Elemental) Resistance", RegexOptions.IgnoreCase).Count;
         bool flatDmg = Regex.IsMatch(rawText, @"Adds \d+ to \d+ (?:Physical|Fire|Cold|Lightning|Chaos) Damage", RegexOptions.IgnoreCase);
         bool critAny = Regex.IsMatch(rawText, @"Critical", RegexOptions.IgnoreCase);
-        bool lifeOrEs = Regex.IsMatch(rawText, @"to maximum (?:Life|Energy Shield)", RegexOptions.IgnoreCase);
+        bool hasLifeMod = Regex.IsMatch(rawText, @"to maximum Life", RegexOptions.IgnoreCase);
+        bool hasEsMod = Regex.IsMatch(rawText, @"to maximum Energy Shield", RegexOptions.IgnoreCase);
 
         if (ev.PlusSkillLevel > 0) ev.Positives.Add($"+{ev.PlusSkillLevel} Skills");
         if (ev.SpiritBonus > 0) ev.Positives.Add($"+{(int)ev.SpiritBonus} Spirit");
         if (flatDmg) ev.Positives.Add(Loc.T("Плоский урон", "Flat Damage", "Плоский урон"));
         if (critAny) ev.Positives.Add(Loc.T("Кріт", "Crit", "Крит"));
-        if (lifeOrEs) ev.Positives.Add("+Life / ES");
+        if (!isCi && hasLifeMod) ev.Positives.Add("+Maximum Life");
+        else if (hasEsMod) ev.Positives.Add("+Energy Shield");
         if (resAny > 0) ev.Positives.Add(Loc.T($"{resAny}x опір (~{ev.TotalResistance}%)", $"{resAny}x Res (~{ev.TotalResistance}%)", $"{resAny}x рез. (~{ev.TotalResistance}%)"));
 
         CheckBuildTargets(ev, rawLower, profile);
@@ -342,8 +357,8 @@ public static class ItemEvaluator
         string tip = Loc.T(obtain.StrategyTipUk, obtain.StrategyTipEn, obtain.StrategyTipRu);
         ev.ObtainInfo = $"{obtain.MinItemOrAreaLevel} · {src}\n{tip}";
 
-        // 2. ПОДВІЙНЕ ПОРІВНЯННЯ: і до твого еквіпнутого зараз, і до еталона активного етапу білду
-        CompareAgainstBuildSlot(ev, profile, stageIndex, wornGear);
+        // 2. ПОРІВНЯННЯ: і до твого еквіпнутого зараз, і до еталона активного етапу білду
+        CompareAgainstBuildSlot(ev, profile, stageIndex, wornGear, characterLevel);
 
         // 3. Економічна вигода
         EvaluateMarketProfitability(ev, rawText, rawLower);
@@ -585,56 +600,359 @@ public static class ItemEvaluator
         }
     }
 
-    private static (int pct, string details) ComputeSlotDiffScore(ItemEvaluation ev, string slotKey, string refText)
-    {
-        var parts = new List<string>();
-        double scoreNew = 0, scoreOld = 0;
+    private sealed record ItemStatSnapshot(
+        double TotalDps,
+        double Es,
+        double Ev,
+        double Ar,
+        double MaxLife,
+        double MovementSpeed,
+        int EleRes,
+        int ChaosRes,
+        double Spirit,
+        int SkillGeneric,
+        int SkillAttack,
+        int SkillSpell,
+        int SkillMinion,
+        double AttackSpeedPct,
+        double CastSpeedPct,
+        double SpellCritChancePct,
+        double GlobalCritChancePct,
+        double ExplicitAttackCritChancePct,
+        double CritDamageBonusPct,
+        double SpellDamagePct,
+        double AttackDamagePct,
+        double GeneralEleDamagePct,
+        double MinionDamagePct,
+        double FlatAttackAvg,
+        double FlatSpellAvg);
 
-        if (IsWeaponClass(ev.ItemClass.ToLowerInvariant()))
+    private sealed record ProfileScoreWeights(
+        double Es,
+        double Ev,
+        double Ar,
+        double Life,
+        double EleRes,
+        double ChaosRes,
+        double MovementSpeed,
+        double Spirit,
+        double SkillBase,
+        double SkillGenericMult,
+        double SkillAttackMult,
+        double SkillSpellMult,
+        double SkillMinionMult,
+        double AttackDpsMult,
+        double AttackSpeed,
+        double CastSpeed,
+        double SpellCritChance,
+        double GlobalCritChance,
+        double ExplicitAttackCritChance,
+        double CritDamageBonus,
+        double SpellDamagePct,
+        double AttackDamagePct,
+        double GeneralEleDamagePct,
+        double MinionDamagePct,
+        double FlatAttackDmg,
+        double FlatSpellDmg);
+
+    private static double ExtractModSum(string pattern, string text)
+    {
+        double sum = 0;
+        foreach (Match m in Regex.Matches(text, pattern, RegexOptions.IgnoreCase))
         {
-            double refPhys = CalcWeaponPhysDps(refText) ?? 0;
-            double refEle = CalcWeaponEdps(refText) ?? 0;
-            double refDps = refPhys + refEle;
-            if (refDps > 0 && ev.TotalDps > 0)
+            if (double.TryParse(m.Groups[1].Value, NumberStyles.Any, CultureInfo.InvariantCulture, out double v))
+                sum += v;
+        }
+        return sum;
+    }
+
+    private static ItemStatSnapshot ExtractItemStatSnapshot(string rawText, bool isWeapon)
+    {
+        string text = rawText ?? "";
+        double physDps = CalcWeaponPhysDps(text) ?? 0;
+        double eleDps = CalcWeaponEdps(text) ?? 0;
+
+        double es = ExtractNumber(@"Energy Shield:\s*(\d+)", text) ?? 0;
+        double ev = ExtractNumber(@"Evasion Rating:\s*(\d+)", text) ?? 0;
+        double ar = ExtractNumber(@"Armour:\s*(\d+)", text) ?? 0;
+        if (es == 0) es = ExtractModSum(@"\+(\d+)\s+to maximum Energy Shield", text);
+        if (ev == 0) ev = ExtractModSum(@"\+(\d+)\s+to Evasion Rating", text);
+        if (ar == 0) ar = ExtractModSum(@"\+(\d+)\s+to Armour", text);
+
+        double life = ExtractModSum(@"\+(\d+)\s+to maximum Life", text);
+        double ms = ExtractNumber(@"(\d+)%\s+increased Movement Speed", text) ?? 0;
+        var (eleRes, chaosRes) = SplitResistances(text);
+        double spirit = ExtractModSum(@"\+(\d+)\s+to Spirit", text);
+
+        int skGen = 0, skAtk = 0, skSpl = 0, skMin = 0;
+        foreach (Match sm in Regex.Matches(text, @"\+(\d+)\s+to Level of (?:all )?([^\r\n%]+?Skills?)", RegexOptions.IgnoreCase))
+        {
+            if (!int.TryParse(sm.Groups[1].Value, out int lv)) continue;
+            string kind = sm.Groups[2].Value.ToLowerInvariant();
+            if (kind.Contains("spell")) skSpl = Math.Max(skSpl, lv);
+            else if (kind.Contains("attack") || kind.Contains("melee")) skAtk = Math.Max(skAtk, lv);
+            else if (kind.Contains("minion")) skMin = Math.Max(skMin, lv);
+            else skGen = Math.Max(skGen, lv);
+        }
+
+        string modBody = ExtractModBody(text);
+        double atkSpd = 0, castSpd = 0;
+        double spellCrit = 0, globalCrit = 0, explicitAtkCrit = 0, critDmg = 0;
+        double spellDmg = 0, atkDmg = 0, genEleDmg = 0, minionDmg = 0;
+        double flatAtk = 0, flatSpl = 0;
+
+        foreach (string rawLine in modBody.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
+        {
+            string trimmed = rawLine.Trim();
+            if (trimmed.Length < 6 || trimmed.Contains(':') || trimmed.StartsWith("--------") || trimmed.StartsWith("{"))
+                continue;
+
+            string line = Regex.Replace(trimmed, @"\s*\((?:implicit|fractured|enchant|rune|desecrated)\)\s*$", "", RegexOptions.IgnoreCase).Trim();
+
+            var flatM = Regex.Match(line, @"Adds (\d+) to (\d+) (?:Physical|Fire|Cold|Lightning|Chaos) Damage(?:\s+to\s+(Attacks|Spells))?", RegexOptions.IgnoreCase);
+            if (flatM.Success &&
+                int.TryParse(flatM.Groups[1].Value, out int fMin) &&
+                int.TryParse(flatM.Groups[2].Value, out int fMax))
             {
-                parts.Add($"DPS: {ev.TotalDps:F0} vs {refDps:F0}");
-                scoreNew += ev.TotalDps;
-                scoreOld += refDps;
+                if (!isWeapon)
+                {
+                    double avg = (fMin + fMax) / 2.0;
+                    if (flatM.Groups[3].Value.Equals("Spells", StringComparison.OrdinalIgnoreCase)) flatSpl += avg;
+                    else flatAtk += avg;
+                }
+                continue;
             }
-            int refSk = SumSkillLevels(refText);
-            if (refSk > 0 || ev.PlusSkillLevel > 0)
+
+            if (!isWeapon && Regex.IsMatch(line, @"^\d+(?:\.\d+)?%\s+increased Attack Speed", RegexOptions.IgnoreCase))
+                atkSpd += ExtractModSum(@"(\d+(?:\.\d+)?)%\s+increased Attack Speed", line);
+            if (Regex.IsMatch(line, @"^\d+(?:\.\d+)?%\s+increased Cast Speed", RegexOptions.IgnoreCase))
+                castSpd += ExtractModSum(@"(\d+(?:\.\d+)?)%\s+increased Cast Speed", line);
+
+            if (Regex.IsMatch(line, @"Critical\s+(?:Hit\s+)?Chance\s+for\s+Spells|Spell\s+Critical", RegexOptions.IgnoreCase))
+                spellCrit += ExtractModSum(@"(\d+(?:\.\d+)?)%", line);
+            else if (Regex.IsMatch(line, @"Critical\s+(?:Hit|Strike)\s+Chance\s+with\s+Attacks", RegexOptions.IgnoreCase))
+                explicitAtkCrit += ExtractModSum(@"(\d+(?:\.\d+)?)%", line);
+            else if (Regex.IsMatch(line, @"^\d+(?:\.\d+)?%\s+increased Critical\s+(?:Hit|Strike)\s+Chance", RegexOptions.IgnoreCase))
             {
-                parts.Add($"+Skills: +{ev.PlusSkillLevel} vs +{refSk}");
-                scoreNew += ev.PlusSkillLevel * 120;
-                scoreOld += refSk * 120;
+                double cv = ExtractModSum(@"(\d+(?:\.\d+)?)%", line);
+                if (isWeapon) explicitAtkCrit += cv;
+                else globalCrit += cv;
             }
+
+            if (Regex.IsMatch(line, @"Critical\s+(?:Damage\s+Bonus|Strike\s+Multiplier)", RegexOptions.IgnoreCase))
+                critDmg += ExtractModSum(@"[+\-]?(\d+(?:\.\d+)?)%", line);
+
+            if (Regex.IsMatch(line, @"^\d+(?:\.\d+)?%\s+increased\s+Spell\s+Damage", RegexOptions.IgnoreCase))
+                spellDmg += ExtractModSum(@"(\d+(?:\.\d+)?)%", line);
+            else if (Regex.IsMatch(line, @"Minions?\s+deal\s+\d+(?:\.\d+)?%\s+increased\s+Damage|Allies\s+in\s+your\s+Presence\s+deal\s+\d+(?:\.\d+)?%\s+increased\s+Damage|\d+(?:\.\d+)?%\s+increased\s+Minion\s+Damage", RegexOptions.IgnoreCase))
+                minionDmg += ExtractModSum(@"(\d+(?:\.\d+)?)%", line);
+            else if (Regex.IsMatch(line, @"increased\s+(?:[\w\s]*Damage\s+with\s+(?:Attacks|Bows|Quarterstaves|Spears|Crossbows|Maces)|Attack\s+Damage|Melee\s+Damage)", RegexOptions.IgnoreCase))
+                atkDmg += ExtractModSum(@"(\d+(?:\.\d+)?)%", line);
+            else if (Regex.IsMatch(line, @"^\d+(?:\.\d+)?%\s+increased\s+(?:Elemental|Fire|Cold|Lightning|Chaos|Physical)\s+Damage", RegexOptions.IgnoreCase))
+            {
+                bool isLocalPhys = isWeapon && Regex.IsMatch(line, @"\bPhysical\s+Damage\b", RegexOptions.IgnoreCase);
+                if (!isLocalPhys)
+                    genEleDmg += ExtractModSum(@"(\d+(?:\.\d+)?)%", line);
+            }
+        }
+
+        return new ItemStatSnapshot(
+            physDps + eleDps, es, ev, ar, life, ms, eleRes, chaosRes, spirit,
+            skGen, skAtk, skSpl, skMin,
+            atkSpd, castSpd, spellCrit, globalCrit, explicitAtkCrit, critDmg,
+            spellDmg, atkDmg, genEleDmg, minionDmg, flatAtk, flatSpl);
+    }
+
+    private static ProfileScoreWeights GetProfileScoreWeights(BuildProfile? profile, bool isWeapon)
+    {
+        bool isCi = profile?.IsCi ?? false;
+        string focus = (profile?.DefenseFocus ?? "HYBRID").Trim().ToUpperInvariant();
+        string style = (profile?.DamageStyle ?? "").Trim().ToUpperInvariant();
+
+        double wEs, wEv, wAr;
+        if (isCi)
+        {
+            wEs = focus == "ES" ? 2.0 : 1.9;
+            wEv = focus == "EV_ES" ? 0.65 : focus == "HYBRID" ? 0.45 : 0.1;
+            wAr = focus == "AR_ES" ? 0.65 : focus == "HYBRID" ? 0.45 : 0.1;
         }
         else
         {
-            double refEs = ExtractNumber(@"Energy Shield:\s*(\d+)", refText) ?? 0;
-            double refEv = ExtractNumber(@"Evasion Rating:\s*(\d+)", refText) ?? 0;
-            double refAr = ExtractNumber(@"Armour:\s*(\d+)", refText) ?? 0;
-            double refMs = ExtractNumber(@"(\d+)% increased Movement Speed", refText) ?? 0;
-            int refRes = SumResistances(refText);
-            int refSk = SumSkillLevels(refText);
-            double refSp = ExtractNumber(@"\+(\d+) to Spirit", refText) ?? 0;
-
-            if (refEs > 0 || ev.EnergyShield > 0) { parts.Add($"ES {(int)ev.EnergyShield} vs {(int)refEs}"); scoreNew += ev.EnergyShield * 1.4; scoreOld += refEs * 1.4; }
-            if (refEv > 0 || ev.Evasion > 0) { parts.Add($"EV {(int)ev.Evasion} vs {(int)refEv}"); scoreNew += ev.Evasion * 0.45; scoreOld += refEv * 0.45; }
-            if (refAr > 0 || ev.Armour > 0) { parts.Add($"AR {(int)ev.Armour} vs {(int)refAr}"); scoreNew += ev.Armour * 0.45; scoreOld += refAr * 0.45; }
-            if (refMs > 0 || ev.MovementSpeed > 0) { parts.Add($"MS {(int)ev.MovementSpeed}% vs {(int)refMs}%"); scoreNew += ev.MovementSpeed * 18; scoreOld += refMs * 18; }
-            if (refRes > 0 || ev.TotalResistance > 0) { parts.Add($"Res {ev.TotalResistance}% vs {refRes}%"); scoreNew += ev.TotalResistance * 4; scoreOld += refRes * 4; }
-            if (refSk > 0 || ev.PlusSkillLevel > 0) { parts.Add($"+Skills +{ev.PlusSkillLevel} vs +{refSk}"); scoreNew += ev.PlusSkillLevel * 150; scoreOld += refSk * 150; }
-            if (refSp > 0 || ev.SpiritBonus > 0) { parts.Add($"Spirit +{(int)ev.SpiritBonus} vs +{(int)refSp}"); scoreNew += ev.SpiritBonus * 6; scoreOld += refSp * 6; }
+            (wEs, wEv, wAr) = focus switch
+            {
+                "ES" => (1.75, 0.25, 0.25),
+                "EV_ES" => (1.55, 0.75, 0.20),
+                "AR_ES" => (1.55, 0.20, 0.75),
+                "EV" => (0.45, 0.95, 0.20),
+                "ARMOUR" => (0.45, 0.20, 0.95),
+                _ => (1.40, 0.50, 0.50)
+            };
         }
 
-        if (scoreOld > 1 && scoreNew > 0)
-            return ((int)Math.Round(((scoreNew - scoreOld) / scoreOld) * 100.0), string.Join(" · ", parts));
+        double wLife = isCi ? 0.0 : 1.6;
+        double wChaosRes = isCi ? 0.0 : 5.5;
+        double wEleRes = 4.0;
+        double wSpirit = style == "MINION" ? 10.0 : 6.5;
+        double skillBase = isWeapon ? 120.0 : 150.0;
+
+        bool isAtk = style == "ATTACK";
+        bool isSpl = style == "SPELL";
+        bool isMin = style == "MINION";
+        bool isDot = style == "DOT";
+        bool isNeutral = !isAtk && !isSpl && !isMin && !isDot;
+
+        return new ProfileScoreWeights(
+            Es: wEs,
+            Ev: wEv,
+            Ar: wAr,
+            Life: wLife,
+            EleRes: wEleRes,
+            ChaosRes: wChaosRes,
+            MovementSpeed: 18.0,
+            Spirit: wSpirit,
+            SkillBase: skillBase,
+            SkillGenericMult: 1.0,
+            SkillAttackMult: (isAtk || isNeutral) ? 1.0 : 0.0,
+            SkillSpellMult: (isSpl || isDot || isNeutral) ? 1.0 : 0.0,
+            SkillMinionMult: (isMin || isNeutral) ? 1.2 : 0.0,
+            AttackDpsMult: (isAtk || isNeutral) ? 1.0 : 0.0,
+            AttackSpeed: (isAtk || isNeutral) ? 7.0 : 0.0,
+            CastSpeed: (isSpl || isDot || isNeutral) ? 7.0 : 0.0,
+            SpellCritChance: (isSpl || isNeutral) ? 2.5 : 0.0,
+            GlobalCritChance: (isAtk || isSpl || isNeutral) ? 2.2 : isDot ? 0.5 : 0.0,
+            ExplicitAttackCritChance: (isAtk || isNeutral) ? 2.2 : 0.0,
+            CritDamageBonus: (isAtk || isSpl || isNeutral) ? 3.0 : isDot ? 0.5 : 0.0,
+            SpellDamagePct: (isSpl || isDot || isNeutral) ? 2.5 : 0.0,
+            AttackDamagePct: (isAtk || isNeutral) ? 2.5 : 0.0,
+            GeneralEleDamagePct: isMin ? 0.0 : 2.5,
+            MinionDamagePct: (isMin || isNeutral) ? 2.8 : 0.0,
+            FlatAttackDmg: (isAtk || isNeutral) ? 4.5 : 0.0,
+            FlatSpellDmg: (isSpl || isDot || isNeutral) ? 4.5 : 0.0);
+    }
+
+    private static int CountPreferredModMatches(string rawText, BuildProfile? profile)
+    {
+        if (profile == null || profile.PreferredMods.Count == 0 || string.IsNullOrWhiteSpace(rawText)) return 0;
+        int hits = 0;
+        foreach (string mod in profile.PreferredMods.Where(m => !string.IsNullOrWhiteSpace(m) && m.Trim().Length >= 3).Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            if (rawText.Contains(mod.Trim(), StringComparison.OrdinalIgnoreCase)) hits++;
+        }
+        return hits;
+    }
+
+    private static double GetStageBaselineScore(string slotKey, int effLevel)
+    {
+        int lv = Math.Clamp(effLevel, 1, 90);
+        double slotBase = slotKey switch
+        {
+            "Weapon1" or "Weapon2" or "BodyArmour1" or "Offhand1" or "Offhand2" => 85.0,
+            "Boots1" or "Helm1" or "Amulet1" => 70.0,
+            _ => 60.0
+        };
+        return slotBase + lv * 4.0;
+    }
+
+    private static double ScoreSnapshot(ItemStatSnapshot s, ProfileScoreWeights w, int prefMatches)
+    {
+        double effectiveSkills = s.SkillGeneric * w.SkillGenericMult
+                               + s.SkillAttack * w.SkillAttackMult
+                               + s.SkillSpell * w.SkillSpellMult
+                               + s.SkillMinion * w.SkillMinionMult;
+
+        return s.TotalDps * w.AttackDpsMult
+             + s.Es * w.Es
+             + s.Ev * w.Ev
+             + s.Ar * w.Ar
+             + s.MaxLife * w.Life
+             + s.MovementSpeed * w.MovementSpeed
+             + s.EleRes * w.EleRes
+             + s.ChaosRes * w.ChaosRes
+             + s.Spirit * w.Spirit
+             + effectiveSkills * w.SkillBase
+             + s.AttackSpeedPct * w.AttackSpeed
+             + s.CastSpeedPct * w.CastSpeed
+             + s.SpellCritChancePct * w.SpellCritChance
+             + s.GlobalCritChancePct * w.GlobalCritChance
+             + s.ExplicitAttackCritChancePct * w.ExplicitAttackCritChance
+             + s.CritDamageBonusPct * w.CritDamageBonus
+             + s.SpellDamagePct * w.SpellDamagePct
+             + s.AttackDamagePct * w.AttackDamagePct
+             + s.GeneralEleDamagePct * w.GeneralEleDamagePct
+             + s.MinionDamagePct * w.MinionDamagePct
+             + s.FlatAttackAvg * w.FlatAttackDmg
+             + s.FlatSpellAvg * w.FlatSpellDmg
+             + prefMatches * 35.0;
+    }
+
+    public static (int pct, string details) ComputeSlotDiffScore(
+        ItemEvaluation ev,
+        string slotKey,
+        string refText,
+        BuildProfile? profile = null,
+        int characterLevel = 1)
+    {
+        bool isWeapon = IsWeaponClass(ev.ItemClass.ToLowerInvariant());
+        var sNew = ExtractItemStatSnapshot(ev.RawCopiedText, isWeapon);
+        var sOld = ExtractItemStatSnapshot(refText, isWeapon);
+        var w = GetProfileScoreWeights(profile, isWeapon);
+
+        int prefNew = CountPreferredModMatches(ev.RawCopiedText, profile);
+        int prefOld = CountPreferredModMatches(refText, profile);
+
+        double scoreNew = ScoreSnapshot(sNew, w, prefNew);
+        double scoreOld = ScoreSnapshot(sOld, w, prefOld);
+
+        var parts = new List<string>();
+        void AddCmp(string label, double a, double b, double weight, string unit = "")
+        {
+            if (weight <= 0 || (a <= 0 && b <= 0)) return;
+            parts.Add($"{label} {a:0.#}{unit} vs {b:0.#}{unit}");
+        }
+
+        AddCmp("DPS", sNew.TotalDps, sOld.TotalDps, w.AttackDpsMult);
+        AddCmp("ES", sNew.Es, sOld.Es, w.Es);
+        AddCmp("EV", sNew.Ev, sOld.Ev, w.Ev);
+        AddCmp("AR", sNew.Ar, sOld.Ar, w.Ar);
+        AddCmp("Life", sNew.MaxLife, sOld.MaxLife, w.Life);
+        AddCmp("MS", sNew.MovementSpeed, sOld.MovementSpeed, w.MovementSpeed, "%");
+        AddCmp("EleRes", sNew.EleRes, sOld.EleRes, w.EleRes, "%");
+        AddCmp("ChaosRes", sNew.ChaosRes, sOld.ChaosRes, w.ChaosRes, "%");
+        AddCmp("Spirit", sNew.Spirit, sOld.Spirit, w.Spirit);
+
+        double newSk = sNew.SkillGeneric * w.SkillGenericMult + sNew.SkillAttack * w.SkillAttackMult + sNew.SkillSpell * w.SkillSpellMult + sNew.SkillMinion * w.SkillMinionMult;
+        double oldSk = sOld.SkillGeneric * w.SkillGenericMult + sOld.SkillAttack * w.SkillAttackMult + sOld.SkillSpell * w.SkillSpellMult + sOld.SkillMinion * w.SkillMinionMult;
+        AddCmp("+Skills", newSk, oldSk, w.SkillBase);
+
+        AddCmp("AtkSpd", sNew.AttackSpeedPct, sOld.AttackSpeedPct, w.AttackSpeed, "%");
+        AddCmp("CastSpd", sNew.CastSpeedPct, sOld.CastSpeedPct, w.CastSpeed, "%");
+        AddCmp("SpellDmg", sNew.SpellDamagePct, sOld.SpellDamagePct, w.SpellDamagePct, "%");
+        AddCmp("AtkDmg", sNew.AttackDamagePct, sOld.AttackDamagePct, w.AttackDamagePct, "%");
+        AddCmp("Ele/Phys%", sNew.GeneralEleDamagePct, sOld.GeneralEleDamagePct, w.GeneralEleDamagePct, "%");
+        AddCmp("Minion%", sNew.MinionDamagePct, sOld.MinionDamagePct, w.MinionDamagePct, "%");
+        AddCmp("FlatAtk", sNew.FlatAttackAvg, sOld.FlatAttackAvg, w.FlatAttackDmg);
+        AddCmp("FlatSpl", sNew.FlatSpellAvg, sOld.FlatSpellAvg, w.FlatSpellDmg);
+
+        double critNew = sNew.SpellCritChancePct * (w.SpellCritChance > 0 ? 1 : 0) + sNew.GlobalCritChancePct * (w.GlobalCritChance > 0 ? 1 : 0) + sNew.ExplicitAttackCritChancePct * (w.ExplicitAttackCritChance > 0 ? 1 : 0);
+        double critOld = sOld.SpellCritChancePct * (w.SpellCritChance > 0 ? 1 : 0) + sOld.GlobalCritChancePct * (w.GlobalCritChance > 0 ? 1 : 0) + sOld.ExplicitAttackCritChancePct * (w.ExplicitAttackCritChance > 0 ? 1 : 0);
+        AddCmp("Crit%", critNew, critOld, Math.Max(w.SpellCritChance, Math.Max(w.GlobalCritChance, w.ExplicitAttackCritChance)), "%");
+        AddCmp("CritDmg", sNew.CritDamageBonusPct, sOld.CritDamageBonusPct, w.CritDamageBonus, "%");
+        if (prefNew > 0 || prefOld > 0) parts.Add($"Targets {prefNew} vs {prefOld}");
+
+        int effLevel = characterLevel > 1 ? characterLevel : Math.Max(1, ev.ItemLevel);
+        double baselineByStage = GetStageBaselineScore(slotKey, effLevel);
+        double denom = Math.Max(scoreOld, baselineByStage);
+
+        if (denom > 0.1 && (scoreNew > 0 || scoreOld > 0))
+        {
+            int pct = (int)Math.Round(((scoreNew - scoreOld) / denom) * 100.0);
+            return (pct, string.Join(" · ", parts));
+        }
 
         return (int.MinValue, string.Join(" · ", parts));
     }
 
-    private static void CompareAgainstBuildSlot(ItemEvaluation ev, BuildProfile? profile, int stageIndex, IReadOnlyDictionary<string, string>? wornGear)
+    private static void CompareAgainstBuildSlot(ItemEvaluation ev, BuildProfile? profile, int stageIndex, IReadOnlyDictionary<string, string>? wornGear, int characterLevel = 1)
     {
         string slotKey = MapItemClassToSlotKey(ev.ItemClass);
         ev.MatchedBuildSlot = slotKey;
@@ -647,6 +965,11 @@ public static class ItemEvaluator
             else if (slotKey == "Ring1" && wornGear.TryGetValue("Ring2", out var r2v) && !string.IsNullOrWhiteSpace(r2v)) wornRef = r2v;
         }
 
+        int stageMinLvl = profile is { Stages.Count: > 0 }
+            ? profile.Stages[Math.Clamp(stageIndex, 0, profile.Stages.Count - 1)].MinLevel
+            : 1;
+        int effLvl = characterLevel > 1 ? characterLevel : Math.Max(1, stageMinLvl);
+
         // B) Еталон поточного етапу білду
         string? buildRef = profile != null ? FindReferenceSlotText(profile, stageIndex, slotKey) : null;
         ev.MatchedWornText = wornRef ?? "";
@@ -654,7 +977,7 @@ public static class ItemEvaluator
 
         if (!string.IsNullOrWhiteSpace(wornRef))
         {
-            var (pct, details) = ComputeSlotDiffScore(ev, slotKey, wornRef);
+            var (pct, details) = ComputeSlotDiffScore(ev, slotKey, wornRef, profile, effLvl);
             if (pct != int.MinValue)
             {
                 ev.UpgradeDeltaPct = pct;
@@ -686,7 +1009,7 @@ public static class ItemEvaluator
 
         if (!string.IsNullOrWhiteSpace(buildRef))
         {
-            var (bPct, bDetails) = ComputeSlotDiffScore(ev, slotKey, buildRef);
+            var (bPct, bDetails) = ComputeSlotDiffScore(ev, slotKey, buildRef, profile, effLvl);
             if (bPct != int.MinValue)
             {
                 string sign = bPct >= 0 ? "+" : "";

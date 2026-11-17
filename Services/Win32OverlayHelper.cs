@@ -1,5 +1,8 @@
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Interop;
 
 namespace Poe2OverlayCompanion.Services;
@@ -81,6 +84,15 @@ public static class Win32OverlayHelper
 
     [DllImport("user32.dll")]
     private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    private static extern bool IsIconic(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool BringWindowToTop(IntPtr hWnd);
 
     private delegate void WinEventDelegate(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject, int idChild, uint dwEventThread, uint dwmsEventTime);
 
@@ -220,6 +232,40 @@ public static class Win32OverlayHelper
         var hwnd = new WindowInteropHelper(window).Handle;
         if (hwnd == IntPtr.Zero) return;
         SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+    }
+
+    public static bool ShouldBlockTextFocus(bool allowTyping, object? newFocus)
+        => !allowTyping && newFocus is TextBoxBase or PasswordBox;
+
+    public static void HandlePreviewGotTextFocus(bool allowTyping, KeyboardFocusChangedEventArgs e)
+    {
+        if (ShouldBlockTextFocus(allowTyping, e.NewFocus))
+            e.Handled = true;
+    }
+
+    public static bool FocusPoe2Window()
+    {
+        try
+        {
+            IntPtr poe = ClientLogWatcher.FindPoe2WindowHandle();
+            if (poe == IntPtr.Zero || IsIconic(poe)) return false;
+            if (GetForegroundWindow() == poe) return true;
+            bool ok = SetForegroundWindow(poe);
+            if (!ok) _ = BringWindowToTop(poe);
+            return ok;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public static void ReleaseTypingFocus(Window window, bool returnFocusToGame = true)
+    {
+        Keyboard.ClearFocus();
+        FocusManager.SetFocusedElement(window, null);
+        if (returnFocusToGame)
+            _ = FocusPoe2Window();
     }
 
     /// <summary>

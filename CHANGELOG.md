@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.1.2 (Adaptive Build-Profile Item Scoring, Enable Input Focus Release, Character-Profile Binding & CI Test Suite)
+- **Adaptive Profile-Aware Item Scoring (`ItemEvaluator.ComputeSlotDiffScore`):**
+  - Scores items dynamically using active build profile traits (`IsCi`, `DefenseFocus`, `DamageStyle`, and `PreferredMods`) plus `Attack/Cast Speed`, `Crit Chance / Crit Damage Bonus`, `% Increased Damage`, and `Flat Damage` on jewellery, gloves, and caster offhands/weapons (`DamageStyle` strictly filters Attack vs Spell stats).
+  - Zeroes out `+Max Life` and `Chaos Resistance` weights for Chaos Inoculation builds (`ES` ×1.9–2.0 with moderated secondary `EV`/`AR` on hybrids), prioritizes `+Max Life` (`×1.6`) and `Chaos Res` (`×5.5`) on non-CI builds, normalizes `%` delta via `Math.Max(wornScore, baselineByStage)` to avoid starter-gear spikes, and parses PoE 2 elemental/chaos weapon damage lines in `CalcWeaponEdps`.
+- **Enable Input Focus Release & Game Foreground Restore (`Win32OverlayHelper` + `MainWindow`):**
+  - Disabling `Enable Input` (as well as `F10` Click-Through and `F9` / Mini-HUD collapse) now clears WPF keyboard/logical focus (`Keyboard.ClearFocus()`, `FocusManager.SetFocusedElement(this, null)`), restores `WS_EX_NOACTIVATE`, and returns Win32 foreground focus (`SetForegroundWindow`) directly back to Path of Exile 2 when running.
+  - Blocks `TextBoxBase` and `PasswordBox` focus acquisition via `PreviewGotKeyboardFocus` while `Enable Input` is off, while keeping buttons, checkboxes, and tabs clickable without stealing focus from the game.
+- **Persistent Character-to-Build Profile Linking (`CharacterProfileLinks`):**
+  - Remembers `PoeCharacterId -> BuildProfileId` links across build switches, imports, deletions, and PoE 2 account syncs.
+- **In-Repo Test Suite & GitHub Actions CI (`Poe2OverlayCompanion.Tests` + `.github/workflows/build.yml`):**
+  - Migrated and expanded **26** fast offline unit, hygiene, focus, and profile-scoring tests into `Poe2OverlayCompanion.Tests` (with live GGG API tests isolated under `[Trait("Category", "Live")]`).
+  - Added automated XAML localization audit, secret scanning, and `dotnet test --filter "Category!=Live"` steps directly in `.github/workflows/build.yml`.
+- **Tab-Based Code-Behind Decomposition (`MainWindow.*.cs`):**
+  - Split `MainWindow.xaml.cs` cleanly into focused partial files (`Overview`, `PassiveTree`, `Items`, `Builds`, `SessionAi`, `Settings`) with zero XAML or behavioral regressions.
+
 ## v1.1.1 (Full 958-Gem PoE2DB 0.5 Catalog, Live GGG Item/Unique Sync, Trade 2 Stash Scanner & Account Sync Fixes)
 - **Full 958-Gem PoE 2 (0.5) Catalog (`poe2_gems_05.json.gz` + `Poe2GemsDb`):**
   - Embedded compressed 958-gem PoE2DB 0.5 dataset (`55.6 KB` gzip) covering all Active Skills, Spirit Buffs, Meta Triggers, Support Gems (Tiers I–V), and Lineage Supports with exact Uncut tiers, character level curves (`1..90`), Str/Dex/Int progression, Spirit reservation, and cost multipliers.

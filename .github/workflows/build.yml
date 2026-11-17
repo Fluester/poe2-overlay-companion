@@ -21,8 +21,56 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Check XAML Localization & Scan Secrets
+        shell: pwsh
+        run: |
+          $errors = @()
+          foreach ($xaml in Get-ChildItem -Path . -Filter *.xaml -File) {
+            $base = [System.IO.Path]::GetFileNameWithoutExtension($xaml.Name)
+            $codeBehind = (Get-ChildItem -Path . -Filter "$base*.cs" -File | ForEach-Object {
+              [System.IO.File]::ReadAllText($_.FullName, [System.Text.Encoding]::UTF8)
+            }) -join "`n"
+            $raw = [System.IO.File]::ReadAllText($xaml.FullName, [System.Text.Encoding]::UTF8)
+            $noComments = [regex]::Replace($raw, '<!--[\s\S]*?-->', '')
+            $tags = [regex]::Matches($noComments, '<[A-Za-z0-9_.:]+\b[^>]*?(?:Text|Content|Header|ToolTip|Title)="[^"]*[\u0400-\u04FF][^"]*"[^>]*>')
+            foreach ($t in $tags) {
+              $nm = [regex]::Match($t.Value, 'x:Name="([^"]+)"')
+              if (-not $nm.Success) {
+                $errors += "Unnamed Cyrillic tag in $($xaml.Name): $($t.Value)"
+              } elseif ($codeBehind -notmatch "\b$([regex]::Escape($nm.Groups[1].Value))\b") {
+                $errors += "Unlocalized x:Name '$($nm.Groups[1].Value)' in $($xaml.Name)"
+              }
+            }
+          }
+          $scanExts = @('.cs', '.xaml', '.yml', '.json', '.iss', '.md')
+          $secretRx = @(
+            'AIza[0-9A-Za-z\-_]{20,}',
+            'sk-[A-Za-z0-9]{16,}',
+            'POESESSID\s*=\s*[0-9a-f]{16,}'
+          )
+          $files = Get-ChildItem -Recurse -File | Where-Object {
+            $scanExts -contains $_.Extension.ToLowerInvariant() -and
+            $_.FullName -notmatch '[\\/](bin|obj|dist|\.git|Poe2OverlayCompanion\.Tests)[\\/]'
+          }
+          foreach ($f in $files) {
+            $txt = [System.IO.File]::ReadAllText($f.FullName, [System.Text.Encoding]::UTF8)
+            foreach ($rx in $secretRx) {
+              if ($txt -match $rx) {
+                $errors += "Secret pattern '$rx' matched in $($f.Name)"
+              }
+            }
+          }
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Error $_ }
+            exit 1
+          }
+          Write-Host "XAML localization audit & secret scan passed."
+
       - name: Restore & Build (Release)
         run: dotnet build Poe2OverlayCompanion.csproj -c Release
+
+      - name: Run Offline Unit & Hygiene Tests
+        run: dotnet test Poe2OverlayCompanion.Tests/Poe2OverlayCompanion.Tests.csproj -c Release --filter "Category!=Live" --verbosity normal
 
       - name: Publish Standalone Single-File EXE
         run: dotnet publish Poe2OverlayCompanion.csproj -c Release -r win-x64 --self-contained false -p:DebugType=none -p:AllowedReferenceRelatedFileExtensions=none -o dist

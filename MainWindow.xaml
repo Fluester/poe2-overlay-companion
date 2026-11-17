@@ -1309,7 +1309,7 @@
                                             <Button x:Name="BtnInstallAppUpdate" Content="Оновити зараз" Style="{StaticResource FlatButton}"
                                                     Background="#FF198754" BorderBrush="#FF198754" Foreground="#FFFFFFFF" FontWeight="SemiBold"
                                                     FontSize="10" Padding="9,3" Margin="0,0,6,3" Visibility="Collapsed" Click="InstallAppUpdate_Click"/>
-                                            <TextBlock x:Name="LblAppUpdateStatus" Text="v1.1.1" Foreground="#FFADB5BD" FontSize="10" VerticalAlignment="Center" Margin="0,0,0,3"/>
+                                            <TextBlock x:Name="LblAppUpdateStatus" Text="v1.1.2" Foreground="#FFADB5BD" FontSize="10" VerticalAlignment="Center" Margin="0,0,0,3"/>
                                         </WrapPanel>
                                     </StackPanel>
                                 </Border>

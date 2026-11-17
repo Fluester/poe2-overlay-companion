@@ -11,7 +11,7 @@ public sealed class AppUpdateInfo
 {
     public bool Ok { get; init; }
     public bool HasUpdate { get; init; }
-    public string CurrentVersion { get; init; } = "1.1.1";
+    public string CurrentVersion { get; init; } = "1.1.2";
     public string LatestTag { get; init; } = "";
     public string ReleaseUrl { get; init; } = "https://github.com/Fluester/poe2-overlay-companion/releases/latest";
     public string AssetName { get; init; } = "";

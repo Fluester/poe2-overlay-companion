@@ -736,6 +736,56 @@ public static partial class PoeAccountService
         return sum;
     }
 
+    /// <summary>
+    /// Запам'ятовує зв'язку PoeCharacterId -> BuildProfileId у локальній конфігурації.
+    /// </summary>
+    public static void BindCharacterToProfile(OverlayConfig cfg, string? profileId)
+    {
+        string charKey = !string.IsNullOrWhiteSpace(cfg.PoeCharacterId) ? cfg.PoeCharacterId.Trim() : cfg.PoeCharacterName.Trim();
+        if (string.IsNullOrWhiteSpace(charKey) || string.IsNullOrWhiteSpace(profileId)) return;
+        cfg.CharacterProfileLinks[charKey] = profileId.Trim();
+    }
+
+    /// <summary>
+    /// При перемиканні чи синхронізації персонажа підтягує прив'язаний до нього BuildProfileId (або прив'язує вільний активний профіль).
+    /// </summary>
+    public static bool TryApplyLinkedProfileForCharacter(OverlayConfig cfg, BuildProfileManager profiles)
+    {
+        string charKey = !string.IsNullOrWhiteSpace(cfg.PoeCharacterId) ? cfg.PoeCharacterId.Trim() : cfg.PoeCharacterName.Trim();
+        if (string.IsNullOrWhiteSpace(charKey)) return false;
+
+        if (cfg.CharacterProfileLinks.TryGetValue(charKey, out string? linkedId) &&
+            !string.IsNullOrWhiteSpace(linkedId) &&
+            profiles.Profiles.Any(p => p.Id.Equals(linkedId, StringComparison.OrdinalIgnoreCase)))
+        {
+            profiles.SelectProfile(linkedId);
+            cfg.ActiveProfileId = profiles.ActiveProfile?.Id ?? linkedId;
+            return true;
+        }
+
+        if (profiles.ActiveProfile is { Id: var activeId } &&
+            !string.IsNullOrWhiteSpace(activeId) &&
+            !cfg.CharacterProfileLinks.Values.Contains(activeId, StringComparer.OrdinalIgnoreCase))
+        {
+            cfg.CharacterProfileLinks[charKey] = activeId;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Видаляє з CharacterProfileLinks посилання на вилучений профіль білду.
+    /// </summary>
+    public static void UnlinkDeletedProfile(OverlayConfig cfg, string? deletedProfileId)
+    {
+        if (string.IsNullOrWhiteSpace(deletedProfileId)) return;
+        var deadKeys = cfg.CharacterProfileLinks
+            .Where(kv => kv.Value.Equals(deletedProfileId, StringComparison.OrdinalIgnoreCase))
+            .Select(kv => kv.Key)
+            .ToList();
+        foreach (var k in deadKeys)
+            cfg.CharacterProfileLinks.Remove(k);
+    }
+
     [GeneratedRegex(@"Item Class:\s*([^\r\n]+)", RegexOptions.IgnoreCase)]
     private static partial Regex WeaponClassRegex();
 }

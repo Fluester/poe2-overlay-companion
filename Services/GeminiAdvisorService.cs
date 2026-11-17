@@ -61,6 +61,7 @@ public sealed class OverlayConfig
     public DateTime PoeLastSyncUtc { get; set; } = DateTime.MinValue;
     public Dictionary<string, string> WornGearBySlot { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public List<string> PoeCharacterSkills { get; set; } = [];
+    public Dictionary<string, string> CharacterProfileLinks { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
     // Trade Helper, Command Wheel (F8) та Stash Net-Worth трекер
     public bool TradeHelperEnabled { get; set; } = true;

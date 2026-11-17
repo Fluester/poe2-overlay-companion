@@ -18,4 +18,5 @@ live_trade2_items.json
 
 # Logs & temp
 *.log
+session_log*.md
 scratch/
