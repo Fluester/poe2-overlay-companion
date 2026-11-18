@@ -223,7 +223,7 @@ public partial class MainWindow : Window
             if (_initializedTabs.Contains(NavBtnItems)) RefreshWornSlotsStrip();
             RefreshLogStatus(showZoneToast: false);
             if (_lastItemEval != null) CheckClipboard(force: true);
-            _toast.ShowToast(Loc.T("PoE 2 Акаунт", "PoE 2 Account", "PoE 2 Аккаунт"), win.ResultMessage, Color.FromRgb(0x4E, 0xCF, 0x8F), nearCursor: false, seconds: 5.0);
+            _toast.ShowToast(Loc.T("PoE 2 Акаунт", "PoE 2 Account", "PoE 2 Аккаунт"), win.ResultMessage, Color.FromRgb(0x3F, 0xB9, 0x50), nearCursor: false, seconds: 5.0);
         }
     }
 

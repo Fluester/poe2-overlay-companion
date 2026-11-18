@@ -1,6 +1,6 @@
 # PoE 2 Overlay Companion (C# / .NET 8 WPF)
 
-A clean, hardware-accelerated, non-activating Windows desktop overlay for **Path of Exile 2** (`v1.1.2`), built for **any build** with **zero hardcoded presets or bundled loot filters**.
+A clean, hardware-accelerated, non-activating Windows desktop overlay for **Path of Exile 2** (`v1.1.3`), built for **any build** with **zero hardcoded presets or bundled loot filters**.
 
 Supports **Українська / English / Русский** (both UI and build breakdowns), **batch `.build` / PoB2 / `pobb.in` / guide URL import**, an **interactive 2D Passive Tree viewer with Mobalytics-style leveling diff**, **AI Loot Filter generator & `.filter` validator**, live **`Ctrl+C` item evaluation**, **Trade 2 search**, a **Farm Session Tracker**, **comprehensive build update diffing**, and an optional **multimodal AI Advisor**.
 
@@ -52,9 +52,9 @@ Supports **Українська / English / Русский** (both UI and build 
 
 ## Quick Start (3 Release Downloads Explained)
 
-- **`Poe2OverlayCompanion_Setup_1.1.2.exe` (Windows Installer):** Checks [.NET 8 Desktop Runtime x64](https://dotnet.microsoft.com/en-us/download/dotnet/8.0), installs to `%LocalAppData%\Programs\PoE 2 Overlay Companion\`, creates Start Menu & Desktop shortcuts, adds standard Windows Uninstaller, and supports Launch with Windows.
+- **`Poe2OverlayCompanion_Setup_1.1.3.exe` (Windows Installer):** Checks [.NET 8 Desktop Runtime x64](https://dotnet.microsoft.com/en-us/download/dotnet/8.0), installs to `%LocalAppData%\Programs\PoE 2 Overlay Companion\`, creates Start Menu & Desktop shortcuts, adds standard Windows Uninstaller, and supports Launch with Windows.
 - **`Poe2OverlayCompanion.exe` (Standalone Single-File EXE):** Runs directly with 1 click without installation (stores config in `%LocalAppData%\Poe2OverlayCompanion\` unless launched with `--portable`).
-- **`Poe2OverlayCompanion_Portable_v1.1.2.zip` (Portable Archive):** Extracts anywhere with a `portable.mode` marker so config, builds, and WebView2 cache stay strictly inside `.\Data\` next to the `.exe`.
+- **`Poe2OverlayCompanion_Portable_v1.1.3.zip` (Portable Archive):** Extracts anywhere with a `portable.mode` marker so config, builds, and WebView2 cache stay strictly inside `.\Data\` next to the `.exe`.
 
 ### Option C — Build Standalone `.exe` & Installer from Source
 ```powershell

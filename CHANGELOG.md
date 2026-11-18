@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.1.3 (PoE 2 Obsidian Matte UI Theme & Palette Hygiene)
+- **PoE 2 Obsidian Matte UI Theme (`Services/UiBrushes.cs` + All Overlay Windows):**
+  - Replaced Bootstrap 5.3 Dark (`#16191D` / `#212529` / `#0D6EFD`) and neon status accents with a restrained flat matte **PoE 2 Obsidian** palette (`#121110` window canvas, `#1B1917` cards & panels, `#25221F` inputs & hover controls, `#342F2A` subtle borders, `#C89B3C` / `#D9AC4D` bronze accents with `#121110` button ink, `#ECE8E1` / `#9C958B` typography, `#B5AEA4` warm steel secondary accents, and readable matte status tones `#3FB950` / `#E05252` / `#D29922`).
+  - Updated `App.xaml`, `MainWindow.xaml`, `MiniHudWindow.xaml`, `ToastWindow.xaml`, `CommandWheelWindow.xaml`, `TradeHelperWindow.xaml`, `MobalyticsImportWindow.xaml`, `PoeAccountLoginWindow.xaml`, `PassiveTreeWindow.xaml`, and `Color.FromRgb(...)` toast/status calls across `MainWindow.*.cs` (`UiBrushes.ForColor` keeps backward mapping for all theme colors).
+- **Automated Theme Hygiene Verification (`RepoHygieneAndLocalizationTests`):**
+  - Added `UiThemeFiles_ContainNoLegacyBootstrapHexCodes` to verify that zero legacy Bootstrap or cool-slate hex codes remain in any `.xaml` file, `MainWindow*.cs`, or `Services/UiBrushes.cs` (`27/27` offline tests passing).
+
 ## v1.1.2 (Adaptive Build-Profile Item Scoring, Enable Input Focus Release, Character-Profile Binding & CI Test Suite)
 - **Adaptive Profile-Aware Item Scoring (`ItemEvaluator.ComputeSlotDiffScore`):**
   - Scores items dynamically using active build profile traits (`IsCi`, `DefenseFocus`, `DamageStyle`, and `PreferredMods`) plus `Attack/Cast Speed`, `Crit Chance / Crit Damage Bonus`, `% Increased Damage`, and `Flat Damage` on jewellery, gloves, and caster offhands/weapons (`DamageStyle` strictly filters Attack vs Spell stats).

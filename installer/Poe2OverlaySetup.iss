@@ -1,5 +1,5 @@
 #define AppName "PoE 2 Overlay Companion"
-#define AppVersion "1.1.2"
+#define AppVersion "1.1.3"
 #define AppPublisher "Poe2OverlayCompanion"
 #define AppExeName "Poe2OverlayCompanion.exe"
 

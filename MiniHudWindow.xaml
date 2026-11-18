@@ -13,29 +13,29 @@
         ShowInTaskbar="False"
         ShowActivated="False"
         ResizeMode="NoResize">
-    <Border Background="#FA212529"
-            BorderBrush="#FF495057"
+    <Border Background="#FA1B1917"
+            BorderBrush="#FF342F2A"
             BorderThickness="1"
             CornerRadius="6"
             Padding="10,4"
             MouseLeftButtonDown="Hud_MouseLeftButtonDown">
         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-            <Ellipse Width="7" Height="7" Fill="#FF0D6EFD" Margin="0,0,7,0"/>
-            <TextBlock x:Name="HudBuildText" Text="PoE 2" Foreground="#FFDEE2E6"
+            <Ellipse Width="7" Height="7" Fill="#FFC89B3C" Margin="0,0,7,0"/>
+            <TextBlock x:Name="HudBuildText" Text="PoE 2" Foreground="#FFECE8E1"
                        FontWeight="SemiBold" FontSize="11.5" VerticalAlignment="Center"/>
-            <TextBlock x:Name="HudInfoText" Text="" Foreground="#FFADB5BD"
+            <TextBlock x:Name="HudInfoText" Text="" Foreground="#FF9C958B"
                        FontSize="11" Margin="6,0,8,0" VerticalAlignment="Center"/>
-            <TextBlock x:Name="HudBuffText" Text="" Foreground="#FF75B798"
+            <TextBlock x:Name="HudBuffText" Text="" Foreground="#FF3FB950"
                        FontWeight="SemiBold" FontSize="11" Margin="0,0,8,0" VerticalAlignment="Center"/>
 
             <Button x:Name="BtnHudAi" Content="AI F11" Focusable="False" Cursor="Hand"
-                    Background="#FF0D6EFD" Foreground="#FFFFFFFF" BorderBrush="#FF0D6EFD" BorderThickness="1"
+                    Background="#FFC89B3C" Foreground="#FF121110" BorderBrush="#FFC89B3C" BorderThickness="1"
                     FontSize="10" FontWeight="SemiBold" Padding="8,2" Margin="0,0,4,0" Click="AiClick"/>
             <Button x:Name="BtnHudLock" Content="F10" Focusable="False" Cursor="Hand"
-                    Background="#FF198754" Foreground="#FFFFFFFF" BorderBrush="#FF198754" BorderThickness="1"
+                    Background="#FF152418" Foreground="#FF3FB950" BorderBrush="#FF2A5231" BorderThickness="1"
                     FontSize="10" FontWeight="SemiBold" Padding="8,2" Margin="0,0,4,0" Click="LockClick"/>
             <Button x:Name="BtnHudExpand" Content="Expand" Focusable="False" Cursor="Hand"
-                    Background="#FF2B3035" Foreground="#FFDEE2E6" BorderBrush="#FF495057" BorderThickness="1"
+                    Background="#FF25221F" Foreground="#FFECE8E1" BorderBrush="#FF342F2A" BorderThickness="1"
                     FontSize="10" FontWeight="SemiBold" Padding="9,2" Click="ExpandClick"/>
         </StackPanel>
     </Border>

@@ -32,7 +32,7 @@ public partial class MainWindow : Window
         if (ShowStandaloneDialog(win) == true && win.ScannedStash is { Ok: true })
         {
             RefreshFarmStatsUi();
-            _toast.ShowToast(Loc.T("Вартість скрині", "Stash Net-Worth", "Стоимость тайника"), win.ResultMessage, Color.FromRgb(0x4E, 0xCF, 0x8F), nearCursor: false, seconds: 5.0);
+            _toast.ShowToast(Loc.T("Вартість скрині", "Stash Net-Worth", "Стоимость тайника"), win.ResultMessage, Color.FromRgb(0x3F, 0xB9, 0x50), nearCursor: false, seconds: 5.0);
         }
     }
 
@@ -234,7 +234,7 @@ public partial class MainWindow : Window
                 AiResponseText.Text = answer;
                 if (!_collapsed && !_clickThrough && !_miniHudMode)
                     SelectPage(NavBtnAi);
-                _toast.ShowToast("AI", answer.Length > 340 ? answer[..340] + "…" : answer, Color.FromRgb(0xD4, 0xB0, 0x6A), nearCursor: false, seconds: 7.0);
+                _toast.ShowToast("AI", answer.Length > 340 ? answer[..340] + "…" : answer, Color.FromRgb(0xC8, 0x9B, 0x3C), nearCursor: false, seconds: 7.0);
             }
             else
             {

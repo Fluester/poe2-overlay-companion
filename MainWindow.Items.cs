@@ -237,11 +237,11 @@ public partial class MainWindow : Window
         Color col = ev.Verdict == ItemVerdict.Danger
             ? GetVerdictColor(ItemVerdict.Danger)
             : isWornItself
-                ? Color.FromRgb(0x69, 0xAC, 0xEC)
+                ? Color.FromRgb(0xB5, 0xAE, 0xA4)
                 : ev.UpgradeDeltaPct >= 8
-                    ? Color.FromRgb(0x4E, 0xCF, 0x8F)
+                    ? Color.FromRgb(0x3F, 0xB9, 0x50)
                     : ev.UpgradeDeltaPct <= -8
-                        ? Color.FromRgb(0xEA, 0x61, 0x61)
+                        ? Color.FromRgb(0xE0, 0x52, 0x52)
                         : GetVerdictColor(ev.Verdict);
         var brush = UiBrushes.ForColor(col);
         string slotDisplay = PoeTermLocalizer.SlotName(_overrideCompareSlotKey ?? ev.MatchedBuildSlot);
@@ -569,7 +569,7 @@ public partial class MainWindow : Window
             _toast.ShowToast(
                 Loc.T("Команда скопійована", "Command Copied", "Команда скопирована"),
                 Loc.T($"PoE 2 не знайдено — встав у чат гри (Enter → Ctrl+V):\n{command}", $"PoE 2 window not active — paste into chat:\n{command}", $"Окно PoE 2 не активно — вставь в чат:\n{command}"),
-                Color.FromRgb(0x69, 0xAC, 0xEC), nearCursor: false, seconds: 3.5);
+                Color.FromRgb(0xB5, 0xAE, 0xA4), nearCursor: false, seconds: 3.5);
         }
     }
 
@@ -591,21 +591,21 @@ public partial class MainWindow : Window
         _toast.ShowToast(
             PoeTermLocalizer.SlotName(slot),
             Loc.T($"Збережено як твою поточну річ для порівнянь: {_lastItemEval.ItemName}", $"Saved as worn baseline: {_lastItemEval.ItemName}", $"Сохранено как твоя вещь: {_lastItemEval.ItemName}"),
-            Color.FromRgb(0x4E, 0xCF, 0x8F), nearCursor: false, seconds: 3.5);
+            Color.FromRgb(0x3F, 0xB9, 0x50), nearCursor: false, seconds: 3.5);
     }
 
     private void CopyVendorRegex_Click(object sender, RoutedEventArgs e)
     {
         string rx = RegexGeneratorService.BuildVendorRegex(_profiles.ActiveProfile);
         SetClipboardSafe(rx);
-        _toast.ShowToast(Loc.T("Regex Торгівля", "Vendor Regex", "Regex Торговец"), rx, Color.FromRgb(0xD4, 0xB0, 0x6A), nearCursor: false, seconds: 3.5);
+        _toast.ShowToast(Loc.T("Regex Торгівля", "Vendor Regex", "Regex Торговец"), rx, Color.FromRgb(0xC8, 0x9B, 0x3C), nearCursor: false, seconds: 3.5);
     }
 
     private void CopyWaystoneRegex_Click(object sender, RoutedEventArgs e)
     {
         string rx = RegexGeneratorService.BuildSafeWaystoneRegex(_profiles.ActiveProfile);
         SetClipboardSafe(rx);
-        _toast.ShowToast(Loc.T("Regex Мап", "Safe Waystone Regex", "Regex Карт"), rx, Color.FromRgb(0x4E, 0xCF, 0x8F), nearCursor: false, seconds: 3.5);
+        _toast.ShowToast(Loc.T("Regex Мап", "Safe Waystone Regex", "Regex Карт"), rx, Color.FromRgb(0x3F, 0xB9, 0x50), nearCursor: false, seconds: 3.5);
     }
 
     private void SetClipboardSafe(string text)
@@ -658,12 +658,12 @@ public partial class MainWindow : Window
 
     private static Color GetVerdictColor(ItemVerdict v) => v switch
     {
-        ItemVerdict.Great => Color.FromRgb(0x4E, 0xCF, 0x8F),
-        ItemVerdict.Good => Color.FromRgb(0x4E, 0xCF, 0x8F),
-        ItemVerdict.Ok => Color.FromRgb(0xD4, 0xB0, 0x6A),
-        ItemVerdict.Warn => Color.FromRgb(0xDF, 0xA7, 0x4A),
-        ItemVerdict.Danger => Color.FromRgb(0xEA, 0x61, 0x61),
-        _ => Color.FromRgb(0x8B, 0x93, 0xA5)
+        ItemVerdict.Great => Color.FromRgb(0x3F, 0xB9, 0x50),
+        ItemVerdict.Good => Color.FromRgb(0x3F, 0xB9, 0x50),
+        ItemVerdict.Ok => Color.FromRgb(0xC8, 0x9B, 0x3C),
+        ItemVerdict.Warn => Color.FromRgb(0xD2, 0x99, 0x22),
+        ItemVerdict.Danger => Color.FromRgb(0xE0, 0x52, 0x52),
+        _ => Color.FromRgb(0x9C, 0x95, 0x8B)
     };
 
 

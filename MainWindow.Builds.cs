@@ -469,7 +469,7 @@ public partial class MainWindow : Window
                 _toast.ShowToast(
                     Loc.T("Оновлення білдів", "Build Updates", "Обновления билдов"),
                     report.Headline,
-                    report.HasChanges ? Color.FromRgb(0xDF, 0xA7, 0x4A) : Color.FromRgb(0x4E, 0xCF, 0x8F),
+                    report.HasChanges ? Color.FromRgb(0xD2, 0x99, 0x22) : Color.FromRgb(0x3F, 0xB9, 0x50),
                     nearCursor: false, seconds: 5.5);
             }
         }
@@ -510,7 +510,7 @@ public partial class MainWindow : Window
                 _toast.ShowToast(
                     Loc.T("Оновлення PoE 2 Overlay", "PoE 2 Overlay Update", "Обновление PoE 2 Overlay"),
                     Loc.T($"Вийшла версія {info.LatestTag}. Налаштування → «Оновити» встановить її в 1 клік.", $"Release {info.LatestTag} is out! Open Settings to update in 1 click.", $"Вышла версия {info.LatestTag}. Настройки → «Обновить»."),
-                    Color.FromRgb(0x75, 0xB7, 0x98), nearCursor: false, seconds: 6.0);
+                    Color.FromRgb(0x3F, 0xB9, 0x50), nearCursor: false, seconds: 6.0);
             }
             else
             {

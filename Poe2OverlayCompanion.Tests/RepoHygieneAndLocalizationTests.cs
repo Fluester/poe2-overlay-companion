@@ -83,4 +83,30 @@ public sealed class RepoHygieneAndLocalizationTests
             }
         }
     }
+
+    [Fact]
+    public void UiThemeFiles_ContainNoLegacyBootstrapHexCodes()
+    {
+        string root = FindRepoRoot();
+        string[] legacyHexes = [
+            "0D6EFD", "0B5ED7", "0A58CA", "084298", "031633", "6EA8FE",
+            "16191D", "212529", "2B3035", "343A40", "495057", "1B1F23",
+            "198754", "DC3545", "051B11", "0F5132", "75B798",
+            "2C0B0E", "842029", "EA868F", "332701", "664D03", "FFDA6A",
+            "032830", "087990", "6EDFF6",
+            "0C0E12", "141820", "101319", "0F1218", "E6E8ED", "8B93A5", "C8A25A"
+        ];
+        var hexPattern = new Regex($@"#(?:FF|FA|CC|80|00)?(?:{string.Join('|', legacyHexes)})\b", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        var filesToCheck = Directory.GetFiles(root, "*.xaml", SearchOption.TopDirectoryOnly)
+            .Concat(Directory.GetFiles(root, "MainWindow*.cs", SearchOption.TopDirectoryOnly))
+            .Append(Path.Combine(root, "Services", "UiBrushes.cs"));
+
+        foreach (string file in filesToCheck)
+        {
+            string txt = File.ReadAllText(file, Encoding.UTF8);
+            var m = hexPattern.Match(txt);
+            Assert.False(m.Success, $"Legacy Bootstrap hex '{m.Value}' found in {Path.GetRelativePath(root, file)}");
+        }
+    }
 }

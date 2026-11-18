@@ -5,7 +5,7 @@
         Title="PoE 2 Account Connect — pathofexile2.com"
         Width="1040" Height="740" MinWidth="780" MinHeight="520"
         WindowStartupLocation="CenterScreen"
-        Background="#FF16191D" Foreground="#FFDEE2E6" FontFamily="Segoe UI">
+        Background="#FF121110" Foreground="#FFECE8E1" FontFamily="Segoe UI">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -15,62 +15,62 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- Рядок 1: Вибір персонажа та дії синхронізації (Bootstrap) -->
-        <Border Grid.Row="0" Background="#FF212529" BorderBrush="#FF343A40" BorderThickness="0,0,0,1" Padding="10,8">
+        <!-- Рядок 1: Вибір персонажа та дії синхронізації (PoE 2 Obsidian) -->
+        <Border Grid.Row="0" Background="#FF1B1917" BorderBrush="#FF342F2A" BorderThickness="0,0,0,1" Padding="10,8">
             <WrapPanel VerticalAlignment="Center">
-                <TextBlock Text="PoE 2 Account" Foreground="#FF6EA8FE" FontWeight="SemiBold" FontSize="12"
+                <TextBlock Text="PoE 2 Account" Foreground="#FFC89B3C" FontWeight="SemiBold" FontSize="12"
                            VerticalAlignment="Center" Margin="0,2,10,2"/>
 
-                <ComboBox x:Name="CharCombo" Width="260" Height="28" Background="#FF16191D" Foreground="#FFDEE2E6"
-                          BorderBrush="#FF495057" VerticalContentAlignment="Center" Margin="0,2,8,2"/>
+                <ComboBox x:Name="CharCombo" Width="260" Height="28" Background="#FF25221F" Foreground="#FFECE8E1"
+                          BorderBrush="#FF342F2A" VerticalContentAlignment="Center" Margin="0,2,8,2"/>
 
                 <Button x:Name="BtnFetchChars" Content="Завантажити персонажів" Padding="10,5" Margin="0,2,6,2"
-                        Background="#FF2B3035" Foreground="#FFDEE2E6" BorderBrush="#FF495057" Cursor="Hand" Click="FetchCharacters_Click"/>
+                        Background="#FF25221F" Foreground="#FFECE8E1" BorderBrush="#FF342F2A" Cursor="Hand" Click="FetchCharacters_Click"/>
 
                 <Button x:Name="BtnSyncSelected" Content="Синхронізувати (Рівень + Шмот + Скіли)" Padding="10,5" Margin="0,2,6,2"
-                        Background="#FF0D6EFD" Foreground="#FFFFFFFF" FontWeight="SemiBold" BorderBrush="#FF0D6EFD" Cursor="Hand" Click="SyncSelected_Click"/>
+                        Background="#FFC89B3C" Foreground="#FF121110" FontWeight="SemiBold" BorderBrush="#FFC89B3C" Cursor="Hand" Click="SyncSelected_Click"/>
 
                 <Button x:Name="BtnScanStash" Content="Оцінити скриню (Stash)" Padding="10,5" Margin="0,2,8,2"
-                        Background="#FF198754" Foreground="#FFFFFFFF" FontWeight="SemiBold" BorderBrush="#FF198754" Cursor="Hand" Click="ScanStash_Click"/>
+                        Background="#FF152418" Foreground="#FF3FB950" FontWeight="SemiBold" BorderBrush="#FF2A5231" Cursor="Hand" Click="ScanStash_Click"/>
 
                 <TextBlock x:Name="TxtSyncNote" Text="Оновлює персонажа (рівень, екіп, скіли) без перезапису білду"
-                           Foreground="#FFADB5BD" FontSize="10.5" VerticalAlignment="Center" Margin="2,2,0,2"/>
+                           Foreground="#FF9C958B" FontSize="10.5" VerticalAlignment="Center" Margin="2,2,0,2"/>
             </WrapPanel>
         </Border>
 
         <!-- Рядок 2: Навігація браузера -->
-        <Border Grid.Row="1" Background="#FF1B1F23" BorderBrush="#FF343A40" BorderThickness="0,0,0,1" Padding="10,5">
+        <Border Grid.Row="1" Background="#FF1B1917" BorderBrush="#FF342F2A" BorderThickness="0,0,0,1" Padding="10,5">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="0,0,6,0">
                     <Button Content="←" ToolTip="Back" Width="28" Padding="0,3" Margin="0,0,4,0"
-                            Background="#FF2B3035" Foreground="#FFDEE2E6" BorderBrush="#FF495057" Cursor="Hand" Click="NavBack_Click"/>
+                            Background="#FF25221F" Foreground="#FFECE8E1" BorderBrush="#FF342F2A" Cursor="Hand" Click="NavBack_Click"/>
                     <Button Content="↻" ToolTip="Reload" Width="28" Padding="0,3" Margin="0,0,4,0"
-                            Background="#FF2B3035" Foreground="#FFDEE2E6" BorderBrush="#FF495057" Cursor="Hand" Click="NavReload_Click"/>
+                            Background="#FF25221F" Foreground="#FFECE8E1" BorderBrush="#FF342F2A" Cursor="Hand" Click="NavReload_Click"/>
                     <Button x:Name="BtnGoLogin" Content="Sign In" Padding="9,3" Margin="0,0,4,0"
-                            Background="#FF0D6EFD" Foreground="#FFFFFFFF" BorderBrush="#FF0D6EFD" Cursor="Hand" Click="GoSignIn_Click"/>
+                            Background="#FFC89B3C" Foreground="#FF121110" FontWeight="SemiBold" BorderBrush="#FFC89B3C" Cursor="Hand" Click="GoSignIn_Click"/>
                     <Button x:Name="BtnGoChars" Content="Персонажі" Padding="9,3" Margin="0,0,4,0"
-                            Background="#FF2B3035" Foreground="#FFDEE2E6" BorderBrush="#FF495057" Cursor="Hand" Click="GoCharacters_Click"/>
+                            Background="#FF25221F" Foreground="#FFECE8E1" BorderBrush="#FF342F2A" Cursor="Hand" Click="GoCharacters_Click"/>
                     <Button x:Name="BtnGoTrade" Content="Trade 2" Padding="9,3" Margin="0,0,4,0"
-                            Background="#FF2B3035" Foreground="#FFADB5BD" BorderBrush="#FF495057" Cursor="Hand" Click="GoTrade2_Click"/>
+                            Background="#FF25221F" Foreground="#FF9C958B" BorderBrush="#FF342F2A" Cursor="Hand" Click="GoTrade2_Click"/>
                 </StackPanel>
                 <Button x:Name="BtnOpenExternal" DockPanel.Dock="Right" Content="Браузер" Padding="9,3" Margin="6,0,0,0"
-                        Background="#FF2B3035" Foreground="#FFADB5BD" BorderBrush="#FF495057" Cursor="Hand" Click="OpenExternalBrowser_Click"/>
-                <TextBox x:Name="UrlBox" Height="26" Background="#FF16191D" Foreground="#FFDEE2E6" BorderBrush="#FF495057"
+                        Background="#FF25221F" Foreground="#FF9C958B" BorderBrush="#FF342F2A" Cursor="Hand" Click="OpenExternalBrowser_Click"/>
+                <TextBox x:Name="UrlBox" Height="26" Background="#FF25221F" Foreground="#FFECE8E1" BorderBrush="#FF342F2A"
                          Padding="8,3" FontSize="10.5" VerticalContentAlignment="Center" KeyDown="UrlBox_KeyDown"/>
             </DockPanel>
         </Border>
 
         <!-- Рядок 3: Статус -->
-        <Border Grid.Row="2" Background="#FF16191D" BorderBrush="#FF343A40" BorderThickness="0,0,0,1" Padding="10,5">
+        <Border Grid.Row="2" Background="#FF121110" BorderBrush="#FF342F2A" BorderThickness="0,0,0,1" Padding="10,5">
             <TextBlock x:Name="StatusText"
                        Text="Натисни Sign In на pathofexile2.com нижче, увійди в акаунт PoE 2, потім відкрий «Персонажі» → «Завантажити персонажів»."
-                       Foreground="#FFADB5BD" FontSize="10.5" TextWrapping="Wrap"/>
+                       Foreground="#FF9C958B" FontSize="10.5" TextWrapping="Wrap"/>
         </Border>
 
         <Grid Grid.Row="3" ClipToBounds="True">
             <wv2:WebView2 x:Name="HiddenStashWebView" Width="1" Height="1" Margin="-12,-12,0,0"
                           HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False" Panel.ZIndex="0"/>
-            <wv2:WebView2 x:Name="WebView" DefaultBackgroundColor="#FF16191D" Panel.ZIndex="1"/>
+            <wv2:WebView2 x:Name="WebView" DefaultBackgroundColor="#FF121110" Panel.ZIndex="1"/>
         </Grid>
     </Grid>
 </Window>

@@ -34,7 +34,7 @@
                                     <Thumb>
                                         <Thumb.Template>
                                             <ControlTemplate TargetType="Thumb">
-                                                <Border Background="#FF495057" CornerRadius="3" Margin="1,2"/>
+                                                <Border Background="#FF342F2A" CornerRadius="3" Margin="1,2"/>
                                             </ControlTemplate>
                                         </Thumb.Template>
                                     </Thumb>
@@ -46,12 +46,12 @@
             </Setter>
         </Style>
 
-        <!-- Bootstrap .btn-outline-secondary -->
+        <!-- PoE 2 Obsidian .btn-outline-secondary -->
         <Style TargetType="Button" x:Key="FlatButton">
-            <Setter Property="Background" Value="#FF2B3035"/>
-            <Setter Property="Foreground" Value="#FFDEE2E6"/>
+            <Setter Property="Background" Value="#FF25221F"/>
+            <Setter Property="Foreground" Value="#FFECE8E1"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="#FF495057"/>
+            <Setter Property="BorderBrush" Value="#FF342F2A"/>
             <Setter Property="Padding" Value="10,5"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Focusable" Value="False"/>
@@ -69,8 +69,8 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#FF343A40"/>
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="#FF6C757D"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#FF2F2B27"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#FF4A433B"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Bd" Property="Opacity" Value="0.82"/>
@@ -81,11 +81,11 @@
             </Setter>
         </Style>
 
-        <!-- Bootstrap .btn-primary (#0D6EFD) -->
+        <!-- PoE 2 Obsidian .btn-primary (#C89B3C) -->
         <Style TargetType="Button" x:Key="BrassButton" BasedOn="{StaticResource FlatButton}">
-            <Setter Property="Background" Value="#FF0D6EFD"/>
-            <Setter Property="BorderBrush" Value="#FF0D6EFD"/>
-            <Setter Property="Foreground" Value="#FFFFFFFF"/>
+            <Setter Property="Background" Value="#FFC89B3C"/>
+            <Setter Property="BorderBrush" Value="#FFC89B3C"/>
+            <Setter Property="Foreground" Value="#FF121110"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -101,8 +101,8 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#FF0B5ED7"/>
-                                <Setter TargetName="Bd" Property="BorderBrush" Value="#FF0A58CA"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#FFD9AC4D"/>
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="#FFD9AC4D"/>
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="Bd" Property="Opacity" Value="0.85"/>
@@ -113,10 +113,10 @@
             </Setter>
         </Style>
 
-        <!-- Bootstrap .nav-pills .nav-link -->
+        <!-- PoE 2 Obsidian .nav-pills .nav-link -->
         <Style TargetType="Button" x:Key="NavButton">
             <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="#FFADB5BD"/>
+            <Setter Property="Foreground" Value="#FF9C958B"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="HorizontalContentAlignment" Value="Left"/>
             <Setter Property="Padding" Value="9,7"/>
@@ -139,7 +139,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#FF2B3035"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#FF25221F"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -147,12 +147,12 @@
             </Setter>
         </Style>
 
-        <!-- Bootstrap .form-control -->
+        <!-- PoE 2 Obsidian .form-control -->
         <Style TargetType="TextBox" x:Key="DarkBox">
-            <Setter Property="Background" Value="#FF16191D"/>
-            <Setter Property="Foreground" Value="#FFDEE2E6"/>
-            <Setter Property="CaretBrush" Value="#FF6EA8FE"/>
-            <Setter Property="BorderBrush" Value="#FF495057"/>
+            <Setter Property="Background" Value="#FF25221F"/>
+            <Setter Property="Foreground" Value="#FFECE8E1"/>
+            <Setter Property="CaretBrush" Value="#FFC89B3C"/>
+            <Setter Property="BorderBrush" Value="#FF342F2A"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="9,5"/>
             <Setter Property="FontSize" Value="11.5"/>
@@ -172,24 +172,24 @@
         </Style>
 
         <Style TargetType="CheckBox" x:Key="DarkCheck">
-            <Setter Property="Foreground" Value="#FFDEE2E6"/>
+            <Setter Property="Foreground" Value="#FFECE8E1"/>
             <Setter Property="FontSize" Value="11"/>
             <Setter Property="Focusable" Value="False"/>
             <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
 
         <Style TargetType="TextBlock" x:Key="SectionLabel">
-            <Setter Property="Foreground" Value="#FFADB5BD"/>
+            <Setter Property="Foreground" Value="#FF9C958B"/>
             <Setter Property="FontSize" Value="10.5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Margin" Value="0,0,0,6"/>
         </Style>
 
-        <!-- Bootstrap .form-select для ComboBox (без білого системного фону Aero) -->
+        <!-- PoE 2 Obsidian .form-select для ComboBox (без білого системного фону Aero) -->
         <Style TargetType="ComboBox">
-            <Setter Property="Background" Value="#FF16191D"/>
-            <Setter Property="Foreground" Value="#FFDEE2E6"/>
-            <Setter Property="BorderBrush" Value="#FF495057"/>
+            <Setter Property="Background" Value="#FF25221F"/>
+            <Setter Property="Foreground" Value="#FFECE8E1"/>
+            <Setter Property="BorderBrush" Value="#FF342F2A"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Padding" Value="9,4"/>
             <Setter Property="Focusable" Value="False"/>
@@ -201,14 +201,14 @@
                                           Focusable="False" ClickMode="Press" Cursor="Hand">
                                 <ToggleButton.Template>
                                     <ControlTemplate TargetType="ToggleButton">
-                                        <Border Background="#FF16191D" BorderBrush="#FF495057" BorderThickness="1" CornerRadius="6" Padding="9,4">
+                                        <Border Background="#FF25221F" BorderBrush="#FF342F2A" BorderThickness="1" CornerRadius="6" Padding="9,4">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*"/>
                                                     <ColumnDefinition Width="16"/>
                                                 </Grid.ColumnDefinitions>
                                                 <Path Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                      Data="M 0,0 L 4,4 L 8,0" Stroke="#FFADB5BD" StrokeThickness="1.5"/>
+                                                      Data="M 0,0 L 4,4 L 8,0" Stroke="#FF9C958B" StrokeThickness="1.5"/>
                                             </Grid>
                                         </Border>
                                     </ControlTemplate>
@@ -217,7 +217,7 @@
                             <TextBox x:Name="PART_EditableTextBox"
                                      Margin="9,2,26,2"
                                      Background="Transparent" BorderThickness="0"
-                                     Foreground="#FFDEE2E6" CaretBrush="#FF6EA8FE"
+                                     Foreground="#FFECE8E1" CaretBrush="#FFC89B3C"
                                      VerticalAlignment="Center" IsReadOnly="{TemplateBinding IsReadOnly}"
                                      Visibility="Visible"/>
                             <ContentPresenter x:Name="ContentSite" IsHitTestVisible="False"
@@ -226,7 +226,7 @@
                                               Margin="9,2,26,2" VerticalAlignment="Center" Visibility="Collapsed"/>
                             <Popup Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
                                 <Border MinWidth="{TemplateBinding ActualWidth}" MaxHeight="200"
-                                        Background="#FF212529" BorderBrush="#FF495057" BorderThickness="1" CornerRadius="6" Padding="3">
+                                        Background="#FF1B1917" BorderBrush="#FF342F2A" BorderThickness="1" CornerRadius="6" Padding="3">
                                     <ScrollViewer SnapsToDevicePixels="True">
                                         <StackPanel IsItemsHost="True"/>
                                     </ScrollViewer>
@@ -245,7 +245,7 @@
         </Style>
 
         <Style TargetType="ComboBoxItem">
-            <Setter Property="Foreground" Value="#FFDEE2E6"/>
+            <Setter Property="Foreground" Value="#FFECE8E1"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Padding" Value="8,5"/>
             <Setter Property="Template">
@@ -256,8 +256,8 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsHighlighted" Value="True">
-                                <Setter TargetName="Bd" Property="Background" Value="#FF0D6EFD"/>
-                                <Setter Property="Foreground" Value="#FFFFFFFF"/>
+                                <Setter TargetName="Bd" Property="Background" Value="#FFC89B3C"/>
+                                <Setter Property="Foreground" Value="#FF121110"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -267,8 +267,8 @@
     </Window.Resources>
 
     <Border x:Name="RootBorder"
-            Background="#FF16191D"
-            BorderBrush="#FF343A40"
+            Background="#FF121110"
+            BorderBrush="#FF342F2A"
             BorderThickness="1"
             CornerRadius="6">
         <Grid>
@@ -277,10 +277,10 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <!-- ЧИСТИЙ BOOTSTRAP NAVBAR -->
+            <!-- ЧИСТИЙ PoE 2 OBSIDIAN NAVBAR -->
             <Border x:Name="NavbarBorder" Grid.Row="0"
-                    Background="#FF212529"
-                    BorderBrush="#FF343A40"
+                    Background="#FF1B1917"
+                    BorderBrush="#FF342F2A"
                     BorderThickness="0,0,0,1"
                     CornerRadius="5,5,0,0"
                     MouseLeftButtonDown="Header_MouseLeftButtonDown">
@@ -291,26 +291,26 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Background="#FF0D6EFD" CornerRadius="5" Padding="6,2" Margin="0,0,6,0" VerticalAlignment="Center">
-                            <TextBlock Text="PoE 2" Foreground="#FFFFFFFF" FontWeight="Bold" FontSize="10"/>
+                        <Border Background="#FFC89B3C" CornerRadius="5" Padding="6,2" Margin="0,0,6,0" VerticalAlignment="Center">
+                            <TextBlock Text="PoE 2" Foreground="#FF121110" FontWeight="Bold" FontSize="10"/>
                         </Border>
-                        <Border Background="#FF2B3035" BorderBrush="#FF495057" BorderThickness="1"
+                        <Border Background="#FF25221F" BorderBrush="#FF342F2A" BorderThickness="1"
                                 CornerRadius="5" Padding="7,2" Margin="0,0,6,0" MaxWidth="145">
-                            <TextBlock x:Name="HeaderBuildBadge" Text="PoE 2" Foreground="#FFDEE2E6"
+                            <TextBlock x:Name="HeaderBuildBadge" Text="PoE 2" Foreground="#FFECE8E1"
                                        FontWeight="SemiBold" FontSize="10.5" TextTrimming="CharacterEllipsis"/>
                         </Border>
-                        <!-- Bootstrap .btn-group для рівня -->
-                        <Border Background="#FF2B3035" BorderBrush="#FF495057" BorderThickness="1" CornerRadius="5" Padding="2,1" Margin="0,0,6,0">
+                        <!-- PoE 2 Obsidian .btn-group для рівня -->
+                        <Border Background="#FF25221F" BorderBrush="#FF342F2A" BorderThickness="1" CornerRadius="5" Padding="2,1" Margin="0,0,6,0">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <Button Content="−" Style="{StaticResource FlatButton}" BorderThickness="0" Padding="5,0" FontSize="10.5" Click="LevelDec_Click"/>
-                                <TextBlock x:Name="StatusText" Text="Lvl 1" Foreground="#FFDEE2E6" FontWeight="SemiBold" FontSize="10.5" Margin="4,0" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="StatusText" Text="Lvl 1" Foreground="#FFECE8E1" FontWeight="SemiBold" FontSize="10.5" Margin="4,0" VerticalAlignment="Center"/>
                                 <Button Content="+" Style="{StaticResource FlatButton}" BorderThickness="0" Padding="5,0" FontSize="10.5" Click="LevelInc_Click"/>
                             </StackPanel>
                         </Border>
                         <Button x:Name="HeaderLeagueBtn" Content="Forbidden Rites" Style="{StaticResource FlatButton}"
-                                Foreground="#FF75B798" BorderBrush="#FF0F5132" Background="#FF051B11"
+                                Foreground="#FF3FB950" BorderBrush="#FF2A5231" Background="#FF152418"
                                 FontSize="10" Padding="7,2" Margin="0,0,6,0" Click="GoToSettingsTab_Click"/>
-                        <TextBlock x:Name="BuffTimerText" Text="" Foreground="#FF75B798"
+                        <TextBlock x:Name="BuffTimerText" Text="" Foreground="#FF3FB950"
                                    FontWeight="SemiBold" FontSize="10.5" VerticalAlignment="Center"/>
                     </StackPanel>
 
@@ -318,13 +318,13 @@
                         <Button x:Name="BtnMiniHud" Content="HUD" ToolTip="Mini-HUD" Style="{StaticResource FlatButton}"
                                 FontSize="10" Margin="0,0,4,0" Padding="8,3" Click="SwitchToMiniHud_Click"/>
                         <Button x:Name="LockBtn" Content="F10" Style="{StaticResource FlatButton}"
-                                Background="#FF051B11" BorderBrush="#FF0F5132" Foreground="#FF75B798"
+                                Background="#FF152418" BorderBrush="#FF2A5231" Foreground="#FF3FB950"
                                 FontSize="10" FontWeight="SemiBold" Margin="0,0,4,0" Padding="8,3" Click="ToggleClickThrough_Click"/>
                         <Button x:Name="CollapseBtn" Content="F9" Style="{StaticResource FlatButton}"
                                 FontSize="10" FontWeight="SemiBold"
                                 Margin="0,0,4,0" Padding="8,3" Click="ToggleCollapse_Click"/>
                         <Button Content="×" Style="{StaticResource FlatButton}"
-                                Background="#FFDC3545" BorderBrush="#FFDC3545" Foreground="#FFFFFFFF"
+                                Background="#FF2A1616" BorderBrush="#FF632A2A" Foreground="#FFE05252"
                                 FontSize="12" FontWeight="Bold" Padding="7,1" Click="Close_Click"/>
                     </StackPanel>
                 </Grid>
@@ -338,8 +338,8 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- БІЧНА ПАНЕЛЬ (7 ЧИСТИХ BOOTSTRAP NAV-PILLS) -->
-                <Border Grid.Column="0" Background="#FF212529" BorderBrush="#FF343A40"
+                <!-- БІЧНА ПАНЕЛЬ (7 PoE 2 OBSIDIAN NAV-PILLS) -->
+                <Border Grid.Column="0" Background="#FF1B1917" BorderBrush="#FF342F2A"
                         BorderThickness="1" CornerRadius="6" Padding="6">
                     <StackPanel x:Name="NavStack">
                         <Button x:Name="NavBtnOverview" Style="{StaticResource NavButton}" Click="NavClick">
@@ -399,8 +399,8 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <!-- Bootstrap Header Card -->
-                        <Border x:Name="OverviewHeaderCard" Grid.Row="0" Background="#FF212529" BorderBrush="#FF343A40"
+                        <!-- PoE 2 Obsidian Header Card -->
+                        <Border x:Name="OverviewHeaderCard" Grid.Row="0" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                 BorderThickness="1" CornerRadius="6" Padding="12,9" Margin="0,0,0,8">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -408,20 +408,20 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock x:Name="OverviewBuildTitle" Text="Білди не додано" Foreground="#FFDEE2E6"
+                                    <TextBlock x:Name="OverviewBuildTitle" Text="Білди не додано" Foreground="#FFECE8E1"
                                                FontSize="13.5" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                                    <TextBlock x:Name="OverviewBuildMeta" Text="" Foreground="#FFADB5BD" FontSize="11" Margin="0,2,0,0"/>
+                                    <TextBlock x:Name="OverviewBuildMeta" Text="" Foreground="#FF9C958B" FontSize="11" Margin="0,2,0,0"/>
                                 </StackPanel>
                                 <StackPanel x:Name="OverviewStageNav" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Visibility="Collapsed">
                                     <Button Content="‹" Style="{StaticResource FlatButton}" Padding="9,3" Click="OverviewPrevStage_Click"/>
-                                    <TextBlock x:Name="OverviewStageLabel" Text="" Foreground="#FFDEE2E6" FontSize="11" FontWeight="SemiBold"
+                                    <TextBlock x:Name="OverviewStageLabel" Text="" Foreground="#FFECE8E1" FontSize="11" FontWeight="SemiBold"
                                                Margin="8,0" VerticalAlignment="Center" MaxWidth="170" TextTrimming="CharacterEllipsis"/>
                                     <Button Content="›" Style="{StaticResource FlatButton}" Padding="9,3" Click="OverviewNextStage_Click"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
 
-                        <!-- Bootstrap Nav Pills -->
+                        <!-- PoE 2 Obsidian Nav Pills -->
                         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
                             <Button x:Name="BtnSubOverviewMain" Content="Огляд" Style="{StaticResource BrassButton}"
                                     FontSize="11" Padding="11,5" Margin="0,0,6,0" Click="ShowOverviewMainSubtab_Click"/>
@@ -431,20 +431,20 @@
                                     FontSize="11" Padding="11,5" Click="ShowOverviewGearSubtab_Click"/>
                         </StackPanel>
 
-                        <!-- Bootstrap Alert (Success) для поточної локації -->
-                        <Border x:Name="ZoneTipBanner" Grid.Row="2" Background="#FF051B11" BorderBrush="#FF0F5132"
+                        <!-- PoE 2 Obsidian Alert (Success) для поточної локації -->
+                        <Border x:Name="ZoneTipBanner" Grid.Row="2" Background="#FF152418" BorderBrush="#FF2A5231"
                                 BorderThickness="1" CornerRadius="6" Padding="10,7" Margin="0,0,0,8" Visibility="Collapsed">
-                            <TextBlock x:Name="ZoneTipText" Foreground="#FF75B798" FontSize="11" TextWrapping="Wrap"/>
+                            <TextBlock x:Name="ZoneTipText" Foreground="#FF3FB950" FontSize="11" TextWrapping="Wrap"/>
                         </Border>
 
                         <!-- Підвкладка 1а: Основні картки -->
                         <Grid x:Name="OverviewMainSubPanel" Grid.Row="3">
-                            <Border x:Name="OverviewEmptyCard" Background="#FF212529" BorderBrush="#FF343A40"
+                            <Border x:Name="OverviewEmptyCard" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                     BorderThickness="1" CornerRadius="6" Padding="20" Visibility="Visible">
                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="460">
                                     <TextBlock x:Name="OverviewEmptyTitle" Text="Поки що немає активного білду"
-                                               Foreground="#FFDEE2E6" FontSize="14.5" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                                    <TextBlock x:Name="OverviewEmptyBody" Text="" Foreground="#FFADB5BD" FontSize="11.5"
+                                               Foreground="#FFECE8E1" FontSize="14.5" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                    <TextBlock x:Name="OverviewEmptyBody" Text="" Foreground="#FF9C958B" FontSize="11.5"
                                                TextAlignment="Center" TextWrapping="Wrap" LineHeight="18" Margin="0,8,0,14"/>
                                     <WrapPanel HorizontalAlignment="Center">
                                         <Button x:Name="BtnOnboardMobalytics" Content="+ Mobalytics" Style="{StaticResource BrassButton}"
@@ -465,8 +465,8 @@
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
 
-                                <!-- Інспектор (Bootstrap Primary Subtle Alert) -->
-                                <Border x:Name="OverviewInspectorCard" Grid.Row="0" Background="#FF031633" BorderBrush="#FF084298"
+                                <!-- Інспектор (PoE 2 Obsidian Bronze Subtle Alert) -->
+                                <Border x:Name="OverviewInspectorCard" Grid.Row="0" Background="#FF2E2618" BorderBrush="#FF5C4822"
                                         BorderThickness="1" CornerRadius="6" Padding="11,9" Margin="0,0,0,8" Visibility="Collapsed">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -474,9 +474,9 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0">
-                                            <TextBlock x:Name="InspectorTitleText" Text="" Foreground="#FF6EA8FE" FontWeight="SemiBold" FontSize="12.5" TextWrapping="Wrap"/>
-                                            <TextBlock x:Name="InspectorMetaText" Text="" Foreground="#FF75B798" FontSize="10.5" Margin="0,2,0,3" TextWrapping="Wrap"/>
-                                            <TextBlock x:Name="InspectorBodyText" Text="" Foreground="#FFDEE2E6" FontSize="11" TextWrapping="Wrap" LineHeight="16"/>
+                                            <TextBlock x:Name="InspectorTitleText" Text="" Foreground="#FFC89B3C" FontWeight="SemiBold" FontSize="12.5" TextWrapping="Wrap"/>
+                                            <TextBlock x:Name="InspectorMetaText" Text="" Foreground="#FF3FB950" FontSize="10.5" Margin="0,2,0,3" TextWrapping="Wrap"/>
+                                            <TextBlock x:Name="InspectorBodyText" Text="" Foreground="#FFECE8E1" FontSize="11" TextWrapping="Wrap" LineHeight="16"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Top">
                                             <Button x:Name="BtnInspectorClose" Content="✕" Style="{StaticResource FlatButton}" Padding="8,2" FontSize="10" Margin="0,0,0,4" Click="CloseInspector_Click"/>
@@ -497,7 +497,7 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <Border Grid.Row="0" Background="#FF212529" BorderBrush="#FF343A40"
+                            <Border Grid.Row="0" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                     BorderThickness="1" CornerRadius="6" Padding="9,8" Margin="0,0,0,8">
                                 <StackPanel>
                                     <Grid Margin="0,0,0,6">
@@ -541,7 +541,7 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <Border Grid.Row="0" Background="#FF212529" BorderBrush="#FF343A40"
+                        <Border Grid.Row="0" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                 BorderThickness="1" CornerRadius="6" Padding="8,6" Margin="0,0,0,6">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -551,9 +551,9 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock x:Name="LblTreeStage" Text="Етап:" Foreground="#FFADB5BD" FontSize="10.5" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                    <TextBlock x:Name="LblTreeStage" Text="Етап:" Foreground="#FF9C958B" FontSize="10.5" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                     <Button Content="‹" Style="{StaticResource FlatButton}" Padding="7,2" Click="TreePrevStage_Click"/>
-                                    <TextBlock x:Name="TreeStageTitle" Text="—" Foreground="#FFDEE2E6" FontSize="11" FontWeight="SemiBold"
+                                    <TextBlock x:Name="TreeStageTitle" Text="—" Foreground="#FFECE8E1" FontSize="11" FontWeight="SemiBold"
                                                Margin="6,0" VerticalAlignment="Center" MaxWidth="105" TextTrimming="CharacterEllipsis"/>
                                     <Button Content="›" Style="{StaticResource FlatButton}" Padding="7,2" Click="TreeNextStage_Click"/>
                                     <CheckBox x:Name="ChkComparePrevStage" Content="Diff" IsChecked="True" Margin="7,0,0,0"
@@ -574,13 +574,13 @@
                                     <Button x:Name="BtnPopoutTree" Content="⛶" ToolTip="Open Passive Tree Window" Style="{StaticResource BrassButton}"
                                             FontSize="10.5" Padding="7,2" Margin="0,0,3,0" Click="PopoutTreeWindow_Click"/>
                                     <Button x:Name="BtnTreeAiExplain" Content="AI" Style="{StaticResource FlatButton}"
-                                            Foreground="#FF6EA8FE" BorderBrush="#FF084298" Background="#FF031633"
+                                            Foreground="#FFC89B3C" BorderBrush="#FF5C4822" Background="#FF2E2618"
                                             FontSize="10" Padding="8,2" Click="TreeExplainAi_Click"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
 
-                        <Border Grid.Row="1" Background="#FF212529" BorderBrush="#FF343A40"
+                        <Border Grid.Row="1" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                 BorderThickness="1" CornerRadius="6" Padding="8,5" Margin="0,0,0,6">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -589,9 +589,9 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock x:Name="LblTreeSteps" Text="Крок:" Foreground="#FFADB5BD" FontSize="10.5" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                    <TextBlock x:Name="LblTreeSteps" Text="Крок:" Foreground="#FF9C958B" FontSize="10.5" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                     <Button Content="-" Style="{StaticResource FlatButton}" Padding="7,0" FontSize="11" Click="TreeStepDec_Click"/>
-                                    <TextBlock x:Name="TreeStepLabel" Text="0 / 0" Foreground="#FFDEE2E6" FontSize="10.5" FontWeight="SemiBold"
+                                    <TextBlock x:Name="TreeStepLabel" Text="0 / 0" Foreground="#FFECE8E1" FontSize="10.5" FontWeight="SemiBold"
                                                Margin="6,0" VerticalAlignment="Center" MinWidth="46" TextAlignment="Center"/>
                                     <Button Content="+" Style="{StaticResource FlatButton}" Padding="7,0" FontSize="11" Click="TreeStepInc_Click"/>
                                 </StackPanel>
@@ -599,12 +599,12 @@
                                         IsSnapToTickEnabled="True" TickFrequency="1" VerticalAlignment="Center" Margin="8,0"
                                         Focusable="False" ValueChanged="TreeStepSlider_Changed"/>
                                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Ellipse Width="6" Height="6" Fill="#FF75B798" Margin="0,0,3,0"/>
-                                    <TextBlock x:Name="LblLegendAdd" Text="+" Foreground="#FF75B798" FontSize="10" Margin="0,0,6,0"/>
-                                    <Ellipse Width="6" Height="6" Fill="#FF6EA8FE" Margin="0,0,3,0"/>
-                                    <TextBlock x:Name="LblLegendKeep" Text="=" Foreground="#FF6EA8FE" FontSize="10" Margin="0,0,6,0"/>
-                                    <Ellipse Width="6" Height="6" Fill="#FFEA868F" Margin="0,0,3,0"/>
-                                    <TextBlock x:Name="LblLegendRespec" Text="-" Foreground="#FFEA868F" FontSize="10"/>
+                                    <Ellipse Width="6" Height="6" Fill="#FF3FB950" Margin="0,0,3,0"/>
+                                    <TextBlock x:Name="LblLegendAdd" Text="+" Foreground="#FF3FB950" FontSize="10" Margin="0,0,6,0"/>
+                                    <Ellipse Width="6" Height="6" Fill="#FFC89B3C" Margin="0,0,3,0"/>
+                                    <TextBlock x:Name="LblLegendKeep" Text="=" Foreground="#FFC89B3C" FontSize="10" Margin="0,0,6,0"/>
+                                    <Ellipse Width="6" Height="6" Fill="#FFE05252" Margin="0,0,3,0"/>
+                                    <TextBlock x:Name="LblLegendRespec" Text="-" Foreground="#FFE05252" FontSize="10"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
@@ -616,14 +616,14 @@
                                 <ColumnDefinition x:Name="TreeListCol" Width="0"/>
                             </Grid.ColumnDefinitions>
 
-                            <Border Grid.Column="0" Background="#FF000000" BorderBrush="#FF343A40"
+                            <Border Grid.Column="0" Background="#FF000000" BorderBrush="#FF342F2A"
                                     BorderThickness="1" CornerRadius="6" ClipToBounds="True">
                                 <Grid>
                                     <controls:PassiveTreeView x:Name="TreeCanvas"/>
-                                    <Border Background="#CC212529" BorderBrush="#FF495057" BorderThickness="1" CornerRadius="5"
+                                    <Border Background="#CC1B1917" BorderBrush="#FF342F2A" BorderThickness="1" CornerRadius="5"
                                             Padding="8,4" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="8" IsHitTestVisible="False">
                                         <TextBlock x:Name="LblTreeCanvasHint" Text="ЛКМ = рух · Колесо = зум · ПКМ = центр"
-                                                   Foreground="#FFADB5BD" FontSize="10"/>
+                                                   Foreground="#FF9C958B" FontSize="10"/>
                                     </Border>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="8">
                                         <Button Content="+" Style="{StaticResource FlatButton}" Padding="9,3" FontWeight="Bold" FontSize="12" Margin="0,0,4,0" Click="TreeZoomIn_Click"/>
@@ -633,7 +633,7 @@
                                 </Grid>
                             </Border>
 
-                            <Border Grid.Column="2" Background="#FF212529" BorderBrush="#FF343A40"
+                            <Border Grid.Column="2" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                     BorderThickness="1" CornerRadius="6" Padding="8">
                                 <Grid>
                                     <Grid.RowDefinitions>
@@ -681,16 +681,16 @@
                             </Grid.RowDefinitions>
 
                             <!-- Панель дій -->
-                            <Border Grid.Row="0" Background="#FF212529" BorderBrush="#FF343A40"
+                            <Border Grid.Row="0" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                     BorderThickness="1" CornerRadius="6" Padding="9,7" Margin="0,0,0,7">
                                 <WrapPanel>
                                     <Button x:Name="BtnCheckClipboard" Content="Перевірити" Style="{StaticResource BrassButton}"
                                             FontSize="10.5" Padding="9,4" Margin="0,0,5,3" Click="CheckClipboardNow_Click"/>
                                     <Button x:Name="BtnEquipWornSlot" Content="Це на мені" Style="{StaticResource FlatButton}"
-                                            Foreground="#FF75B798" BorderBrush="#FF0F5132" Background="#FF051B11"
+                                            Foreground="#FF3FB950" BorderBrush="#FF2A5231" Background="#FF152418"
                                             FontSize="10.5" Padding="9,4" Margin="0,0,5,3" Click="EquipCopiedItemToSlot_Click"/>
                                     <Button x:Name="BtnTradeLastItem" Content="Trade 2" Style="{StaticResource FlatButton}"
-                                            Foreground="#FF6EA8FE" FontSize="10.5" Padding="9,4" Margin="0,0,5,3" Click="TradeLastItem_Click"/>
+                                            Foreground="#FFC89B3C" FontSize="10.5" Padding="9,4" Margin="0,0,5,3" Click="TradeLastItem_Click"/>
                                     <Button x:Name="BtnOpenWiki" Content="PoE2DB" Style="{StaticResource FlatButton}"
                                             FontSize="10.5" Padding="8,4" Margin="0,0,5,3" Click="OpenWikiLastItem_Click"/>
                                     <Button x:Name="BtnOpenTradeHelper" Content="Трейди" Style="{StaticResource FlatButton}"
@@ -703,43 +703,43 @@
                                 </WrapPanel>
                             </Border>
 
-                            <!-- Bootstrap Alert для вердикту -->
-                            <Border x:Name="ItemVerdictBorder" Grid.Row="1" Background="#FF212529" BorderBrush="#FF343A40"
+                            <!-- PoE 2 Obsidian Alert для вердикту -->
+                            <Border x:Name="ItemVerdictBorder" Grid.Row="1" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                     BorderThickness="1" CornerRadius="6" Padding="11,8" Margin="0,0,0,7">
                                 <TextBlock x:Name="ItemVerdictText" Text="Наведи на предмет у PoE 2 і натисни Ctrl+C"
-                                           Foreground="#FFADB5BD" FontWeight="SemiBold" FontSize="12.5" TextWrapping="Wrap"/>
+                                           Foreground="#FF9C958B" FontWeight="SemiBold" FontSize="12.5" TextWrapping="Wrap"/>
                             </Border>
 
-                            <Border Grid.Row="2" Background="#FF212529" BorderBrush="#FF343A40"
+                            <Border Grid.Row="2" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                     BorderThickness="1" CornerRadius="6" Padding="11" Margin="0,0,0,7">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                                     <StackPanel x:Name="ItemDetailsPanel">
                                         <WrapPanel Margin="0,0,0,6">
-                                            <Border x:Name="ItemUpgradeBadge" Background="#FF031633" BorderBrush="#FF084298"
+                                            <Border x:Name="ItemUpgradeBadge" Background="#FF2E2618" BorderBrush="#FF5C4822"
                                                     BorderThickness="1" CornerRadius="5" Padding="8,3" Margin="0,0,5,4" Visibility="Collapsed">
-                                                <TextBlock x:Name="ItemUpgradeBadgeText" Foreground="#FF6EA8FE" FontWeight="SemiBold" FontSize="10.5"/>
+                                                <TextBlock x:Name="ItemUpgradeBadgeText" Foreground="#FFC89B3C" FontWeight="SemiBold" FontSize="10.5"/>
                                             </Border>
-                                            <Border x:Name="ItemPriceBadge" Background="#FF051B11" BorderBrush="#FF0F5132"
+                                            <Border x:Name="ItemPriceBadge" Background="#FF152418" BorderBrush="#FF2A5231"
                                                     BorderThickness="1" CornerRadius="5" Padding="8,3" Margin="0,0,5,4" Visibility="Collapsed">
-                                                <TextBlock x:Name="ItemPriceBadgeText" Foreground="#FF75B798" FontWeight="SemiBold" FontSize="10.5"/>
+                                                <TextBlock x:Name="ItemPriceBadgeText" Foreground="#FF3FB950" FontWeight="SemiBold" FontSize="10.5"/>
                                             </Border>
-                                            <Border x:Name="ItemProfitBadge" Background="#FF332701" BorderBrush="#FF664D03"
+                                            <Border x:Name="ItemProfitBadge" Background="#FF292112" BorderBrush="#FF5E4719"
                                                     BorderThickness="1" CornerRadius="5" Padding="8,3" Margin="0,0,5,4" Visibility="Collapsed">
-                                                <TextBlock x:Name="ItemProfitBadgeText" Foreground="#FFFFDA6A" FontWeight="SemiBold" FontSize="10.5"/>
+                                                <TextBlock x:Name="ItemProfitBadgeText" Foreground="#FFD29922" FontWeight="SemiBold" FontSize="10.5"/>
                                             </Border>
-                                            <Border x:Name="ItemAffixBadge" Background="#FF2B3035" BorderBrush="#FF495057"
+                                            <Border x:Name="ItemAffixBadge" Background="#FF25221F" BorderBrush="#FF342F2A"
                                                     BorderThickness="1" CornerRadius="5" Padding="8,3" Margin="0,0,0,4" Visibility="Collapsed">
-                                                <TextBlock x:Name="ItemAffixBadgeText" Foreground="#FFDEE2E6" FontWeight="SemiBold" FontSize="10.5"/>
+                                                <TextBlock x:Name="ItemAffixBadgeText" Foreground="#FFECE8E1" FontWeight="SemiBold" FontSize="10.5"/>
                                             </Border>
                                         </WrapPanel>
 
-                                        <!-- Порівняння в оверлеї (Bootstrap 2-col card) -->
-                                        <Border x:Name="SideBySideCompareBox" Background="#FF16191D" BorderBrush="#FF343A40"
+                                        <!-- Порівняння в оверлеї (PoE 2 Obsidian 2-col card) -->
+                                        <Border x:Name="SideBySideCompareBox" Background="#FF121110" BorderBrush="#FF342F2A"
                                                 BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,8" Visibility="Collapsed">
                                             <StackPanel>
                                                 <DockPanel Margin="0,0,0,6">
                                                     <TextBlock x:Name="LblSideCompareTitle" Text="ПОРІВНЯННЯ В ОВЕРЛЕЇ"
-                                                               Foreground="#FFADB5BD" FontWeight="SemiBold" FontSize="10" VerticalAlignment="Center"/>
+                                                               Foreground="#FF9C958B" FontWeight="SemiBold" FontSize="10" VerticalAlignment="Center"/>
                                                     <Button x:Name="BtnToggleCompareAgainstLast" Content="⇄ Порівняти з буфером"
                                                             DockPanel.Dock="Right" HorizontalAlignment="Right"
                                                             Style="{StaticResource FlatButton}" FontSize="9.5" Padding="7,2"
@@ -751,61 +751,61 @@
                                                         <ColumnDefinition Width="8"/>
                                                         <ColumnDefinition Width="*"/>
                                                     </Grid.ColumnDefinitions>
-                                                    <Border Grid.Column="0" Background="#FF212529" BorderBrush="#FF084298" BorderThickness="1" CornerRadius="6" Padding="8,6">
+                                                    <Border Grid.Column="0" Background="#FF1B1917" BorderBrush="#FF5C4822" BorderThickness="1" CornerRadius="6" Padding="8,6">
                                                         <StackPanel>
-                                                            <TextBlock x:Name="CompareNewTitle" Text="Оцінюваний предмет" Foreground="#FF6EA8FE" FontWeight="SemiBold" FontSize="11" TextWrapping="Wrap"/>
-                                                            <TextBlock x:Name="CompareNewBody" Foreground="#FFDEE2E6" FontSize="10" TextWrapping="Wrap" Margin="0,4,0,0" LineHeight="15"/>
+                                                            <TextBlock x:Name="CompareNewTitle" Text="Оцінюваний предмет" Foreground="#FFC89B3C" FontWeight="SemiBold" FontSize="11" TextWrapping="Wrap"/>
+                                                            <TextBlock x:Name="CompareNewBody" Foreground="#FFECE8E1" FontSize="10" TextWrapping="Wrap" Margin="0,4,0,0" LineHeight="15"/>
                                                         </StackPanel>
                                                     </Border>
-                                                    <Border Grid.Column="2" Background="#FF212529" BorderBrush="#FF0F5132" BorderThickness="1" CornerRadius="6" Padding="8,6">
+                                                    <Border Grid.Column="2" Background="#FF1B1917" BorderBrush="#FF2A5231" BorderThickness="1" CornerRadius="6" Padding="8,6">
                                                         <StackPanel>
-                                                            <TextBlock x:Name="CompareWornTitle" Text="На тобі зараз" Foreground="#FF75B798" FontWeight="SemiBold" FontSize="11" TextWrapping="Wrap"/>
-                                                            <TextBlock x:Name="CompareWornBody" Foreground="#FFDEE2E6" FontSize="10" TextWrapping="Wrap" Margin="0,4,0,0" LineHeight="15"/>
+                                                            <TextBlock x:Name="CompareWornTitle" Text="На тобі зараз" Foreground="#FF3FB950" FontWeight="SemiBold" FontSize="11" TextWrapping="Wrap"/>
+                                                            <TextBlock x:Name="CompareWornBody" Foreground="#FFECE8E1" FontSize="10" TextWrapping="Wrap" Margin="0,4,0,0" LineHeight="15"/>
                                                         </StackPanel>
                                                     </Border>
                                                 </Grid>
                                             </StackPanel>
                                         </Border>
 
-                                        <TextBlock x:Name="ItemDetailsText" Foreground="#FFDEE2E6" FontSize="11.5" TextWrapping="Wrap" LineHeight="17.5"/>
+                                        <TextBlock x:Name="ItemDetailsText" Foreground="#FFECE8E1" FontSize="11.5" TextWrapping="Wrap" LineHeight="17.5"/>
 
                                         <!-- Смужка вдягнутого екіпу -->
-                                        <Border x:Name="WornGearQuickBox" Background="#FF16191D" BorderBrush="#FF343A40"
+                                        <Border x:Name="WornGearQuickBox" Background="#FF121110" BorderBrush="#FF342F2A"
                                                 BorderThickness="1" CornerRadius="6" Padding="9,7" Margin="0,8,0,0" Visibility="Collapsed">
                                             <StackPanel>
                                                 <TextBlock x:Name="LblWornQuickTitle" Text="Твої вдягнуті предмети (клік — переглянути або порівняти):"
-                                                           Foreground="#FFADB5BD" FontWeight="SemiBold" FontSize="10" Margin="0,0,0,5"/>
+                                                           Foreground="#FF9C958B" FontWeight="SemiBold" FontSize="10" Margin="0,0,0,5"/>
                                                 <WrapPanel x:Name="WornSlotsStripPanel"/>
                                             </StackPanel>
                                         </Border>
 
-                                        <Border x:Name="WaystoneModsBox" Background="#FF16191D" BorderBrush="#FF343A40"
+                                        <Border x:Name="WaystoneModsBox" Background="#FF121110" BorderBrush="#FF342F2A"
                                                 BorderThickness="1" CornerRadius="6" Padding="9,7" Margin="0,8,0,0" Visibility="Collapsed">
                                             <StackPanel>
                                                 <TextBlock x:Name="LblWaystoneModsTitle" Text="Моди Waystone / карти:"
-                                                           Foreground="#FFADB5BD" FontWeight="SemiBold" FontSize="10" Margin="0,0,0,4"/>
+                                                           Foreground="#FF9C958B" FontWeight="SemiBold" FontSize="10" Margin="0,0,0,4"/>
                                                 <StackPanel x:Name="WaystoneModsPanel"/>
                                             </StackPanel>
                                         </Border>
 
-                                        <Border x:Name="ItemModFilterBox" Background="#FF16191D" BorderBrush="#FF343A40"
+                                        <Border x:Name="ItemModFilterBox" Background="#FF121110" BorderBrush="#FF342F2A"
                                                 BorderThickness="1" CornerRadius="6" Padding="9,7" Margin="0,8,0,0" Visibility="Collapsed">
                                             <StackPanel>
                                                 <TextBlock x:Name="LblModFiltersTitle" Text="Прайс-чек за вибраними модами:"
-                                                           Foreground="#FFADB5BD" FontWeight="SemiBold" FontSize="10" Margin="0,0,0,5"/>
+                                                           Foreground="#FF9C958B" FontWeight="SemiBold" FontSize="10" Margin="0,0,0,5"/>
                                                 <StackPanel x:Name="ItemModChecksPanel" Margin="0,0,0,6"/>
                                                 <WrapPanel>
                                                     <Button x:Name="BtnRecheckPriceByMods" Content="Ціна по модах" Style="{StaticResource BrassButton}"
                                                             FontSize="10" Padding="9,4" Margin="0,0,5,0" Click="RecheckPriceByMods_Click"/>
                                                     <Button x:Name="BtnOpenTradeByMods" Content="Відкрити Trade 2" Style="{StaticResource FlatButton}"
-                                                            Foreground="#FF6EA8FE" FontSize="10" Padding="9,4" Click="OpenTradeByMods_Click"/>
+                                                            Foreground="#FFC89B3C" FontSize="10" Padding="9,4" Click="OpenTradeByMods_Click"/>
                                                 </WrapPanel>
-                                                <Border x:Name="LiveListingsBox" Background="#FF212529" BorderBrush="#FF343A40"
+                                                <Border x:Name="LiveListingsBox" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                                         BorderThickness="1" CornerRadius="6" Padding="8,5" Margin="0,7,0,0" Visibility="Collapsed">
                                                     <StackPanel>
                                                         <TextBlock x:Name="LblLiveListingsTitle" Text="Останні лоти Trade 2:"
-                                                                   Foreground="#FFADB5BD" FontWeight="SemiBold" FontSize="9.5" Margin="0,0,0,2"/>
-                                                        <TextBlock x:Name="LiveListingsText" Foreground="#FFDEE2E6" FontSize="10.5" TextWrapping="Wrap" LineHeight="15"/>
+                                                                   Foreground="#FF9C958B" FontWeight="SemiBold" FontSize="9.5" Margin="0,0,0,2"/>
+                                                        <TextBlock x:Name="LiveListingsText" Foreground="#FFECE8E1" FontSize="10.5" TextWrapping="Wrap" LineHeight="15"/>
                                                     </StackPanel>
                                                 </Border>
                                             </StackPanel>
@@ -815,15 +815,15 @@
                             </Border>
 
                             <!-- Нижня панель Trade / Regex (розгортається через Trade / Моди ▾) -->
-                            <Border x:Name="TradeShortcutsBox" Grid.Row="3" Background="#FF212529" BorderBrush="#FF343A40"
+                            <Border x:Name="TradeShortcutsBox" Grid.Row="3" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                     BorderThickness="1" CornerRadius="6" Padding="9,6" Visibility="Collapsed">
                                 <StackPanel>
                                     <DockPanel Margin="0,0,0,4">
-                                        <TextBlock x:Name="LblTradeTitle" Text="Trade 2 &amp; Regex" Foreground="#FFADB5BD" FontWeight="SemiBold" FontSize="10" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="LblTradeTitle" Text="Trade 2 &amp; Regex" Foreground="#FF9C958B" FontWeight="SemiBold" FontSize="10" VerticalAlignment="Center"/>
                                         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
                                             <Button x:Name="BtnCopyVendorRegex" Content="Regex Торг" Style="{StaticResource FlatButton}" FontSize="9.5" Padding="7,2" Margin="0,0,4,0" Click="CopyVendorRegex_Click"/>
                                             <Button x:Name="BtnCopyWaystoneRegex" Content="Regex Мап" Style="{StaticResource FlatButton}" FontSize="9.5" Padding="7,2" Margin="0,0,6,0" Click="CopyWaystoneRegex_Click"/>
-                                            <TextBlock x:Name="LblLeague" Text="Ліга:" Foreground="#FFADB5BD" FontSize="9.5" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                            <TextBlock x:Name="LblLeague" Text="Ліга:" Foreground="#FF9C958B" FontSize="9.5" VerticalAlignment="Center" Margin="0,0,4,0"/>
                                             <TextBox x:Name="TradeLeagueBox" Style="{StaticResource DarkBox}" Width="98" Padding="6,2" FontSize="10" Text="Forbidden Rites"/>
                                         </StackPanel>
                                     </DockPanel>
@@ -840,11 +840,11 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
-                            <Border Grid.Row="0" Background="#FF212529" BorderBrush="#FF343A40"
+                            <Border Grid.Row="0" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                     BorderThickness="1" CornerRadius="6" Padding="10" Margin="0,0,0,7">
                                 <StackPanel>
                                     <DockPanel Margin="0,0,0,6">
-                                        <TextBlock x:Name="LblFilterInstalled" Text="Фільтри в PoE 2:" Foreground="#FFADB5BD" FontSize="10.5" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="420"/>
+                                        <TextBlock x:Name="LblFilterInstalled" Text="Фільтри в PoE 2:" Foreground="#FF9C958B" FontSize="10.5" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="420"/>
                                         <Button x:Name="FilterTypeBtn" Content="Режим вводу" DockPanel.Dock="Right" HorizontalAlignment="Right"
                                                 Style="{StaticResource FlatButton}" FontSize="9.5" Padding="8,2" Click="ToggleTyping_Click"/>
                                     </DockPanel>
@@ -857,7 +857,7 @@
                                             <ColumnDefinition Width="8"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-                                        <TextBlock x:Name="LblFilterName" Text="Файл:" Foreground="#FFADB5BD" FontSize="10.5" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="LblFilterName" Text="Файл:" Foreground="#FF9C958B" FontSize="10.5" VerticalAlignment="Center"/>
                                         <TextBox x:Name="FilterNameBox" Grid.Column="2" Style="{StaticResource DarkBox}" FontSize="10.5" Padding="7,4" Text="Custom_Build"/>
                                         <StackPanel Grid.Column="4" Orientation="Horizontal" HorizontalAlignment="Right">
                                             <Button x:Name="BtnStrict1" Content="1 Starter" Style="{StaticResource FlatButton}" FontSize="9.5" Padding="7,3" Margin="0,0,3,0" Click="SetFilterStrict1_Click"/>
@@ -881,20 +881,20 @@
                                         <Button x:Name="BtnAiGenerateFilter" Grid.Column="2" Content="AI-генерувати" Style="{StaticResource BrassButton}"
                                                 FontSize="10" Padding="9,4" Click="GenerateFilterWithAi_Click"/>
                                         <Button x:Name="BtnLoadCustomFilter" Grid.Column="4" Content="Завантажити .filter" Style="{StaticResource FlatButton}"
-                                                Foreground="#FF6EA8FE" FontSize="10" Padding="8,4" Click="InstallFilter_Click"/>
+                                                Foreground="#FFC89B3C" FontSize="10" Padding="8,4" Click="InstallFilter_Click"/>
                                         <Button x:Name="BtnSaveFilterToGame" Grid.Column="6" Content="Зберегти в PoE 2" Style="{StaticResource FlatButton}"
-                                                Foreground="#FF75B798" BorderBrush="#FF0F5132" Background="#FF051B11" FontSize="10" Padding="8,4" Click="SaveFilterEditorToGame_Click"/>
+                                                Foreground="#FF3FB950" BorderBrush="#FF2A5231" Background="#FF152418" FontSize="10" Padding="8,4" Click="SaveFilterEditorToGame_Click"/>
                                     </Grid>
                                 </StackPanel>
                             </Border>
 
                             <TextBlock x:Name="FilterStatusText" Grid.Row="1" Text="Згенеруй під білд через AI або завантаж власний .filter."
-                                       Foreground="#FFADB5BD" FontSize="10.5" Margin="2,0,0,5" TextWrapping="Wrap"/>
+                                       Foreground="#FF9C958B" FontSize="10.5" Margin="2,0,0,5" TextWrapping="Wrap"/>
 
-                            <Border Grid.Row="2" Background="#FF212529" BorderBrush="#FF343A40"
+                            <Border Grid.Row="2" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                     BorderThickness="1" CornerRadius="6" Padding="8">
                                 <TextBox x:Name="FilterEditorBox" Background="Transparent" BorderThickness="0"
-                                         Foreground="#FFDEE2E6" CaretBrush="#FF6EA8FE" FontFamily="Consolas" FontSize="10.5"
+                                         Foreground="#FFECE8E1" CaretBrush="#FFC89B3C" FontFamily="Consolas" FontSize="10.5"
                                          AcceptsReturn="True" TextWrapping="NoWrap"
                                          VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"/>
                             </Border>
@@ -908,7 +908,7 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <!-- Bootstrap Sub-Pills для керування білдами -->
+                        <!-- PoE 2 Obsidian Sub-Pills для керування білдами -->
                         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
                             <Button x:Name="BtnSubBuildsImport" Content="Профілі та імпорт" Style="{StaticResource BrassButton}"
                                     FontSize="11" Padding="11,5" Margin="0,0,6,0" Click="ShowBuildsMainSubtab_Click"/>
@@ -925,27 +925,27 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
-                            <Border Grid.Row="0" Background="#FF212529" BorderBrush="#FF343A40"
+                            <Border Grid.Row="0" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                     BorderThickness="1" CornerRadius="6" Padding="11,9" Margin="0,0,0,8">
                                 <StackPanel>
                                     <DockPanel Margin="0,0,0,6">
-                                        <TextBlock x:Name="LblProfilesTitle" Text="Профілі білдів" Foreground="#FFDEE2E6" FontWeight="SemiBold" FontSize="11.5"/>
+                                        <TextBlock x:Name="LblProfilesTitle" Text="Профілі білдів" Foreground="#FFECE8E1" FontWeight="SemiBold" FontSize="11.5"/>
                                         <Button x:Name="BtnDeleteProfile" Content="Видалити" DockPanel.Dock="Right"
                                                 HorizontalAlignment="Right" Style="{StaticResource FlatButton}"
-                                                Foreground="#FFEA868F" BorderBrush="#FF842029" Background="#FF2C0B0E"
+                                                Foreground="#FFE05252" BorderBrush="#FF632A2A" Background="#FF2A1616"
                                                 FontSize="10" Padding="9,3" Click="DeleteProfile_Click"/>
                                     </DockPanel>
                                     <WrapPanel x:Name="ProfilesPillsPanel"/>
                                 </StackPanel>
                             </Border>
 
-                            <Border Grid.Row="1" Background="#FF212529" BorderBrush="#FF343A40"
+                            <Border Grid.Row="1" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                     BorderThickness="1" CornerRadius="6" Padding="11,9">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                                     <StackPanel>
                                         <DockPanel Margin="0,0,0,7">
                                             <TextBlock x:Name="LblBatchImportTitle" Text="Імпорт білдів (.build / Mobalytics / PoB2 / URL)"
-                                                       Foreground="#FF6EA8FE" FontWeight="SemiBold" FontSize="11"/>
+                                                       Foreground="#FFC89B3C" FontWeight="SemiBold" FontSize="11"/>
                                             <Button x:Name="PobTypeToggleBtn" Content="Режим вводу" DockPanel.Dock="Right"
                                                     HorizontalAlignment="Right" Style="{StaticResource FlatButton}"
                                                     FontSize="9.5" Padding="8,2" Click="ToggleTyping_Click"/>
@@ -957,7 +957,7 @@
                                                 <ColumnDefinition Width="8"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock x:Name="LblProfileName" Text="Назва:" Foreground="#FFADB5BD" FontSize="10.5" VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="LblProfileName" Text="Назва:" Foreground="#FF9C958B" FontSize="10.5" VerticalAlignment="Center"/>
                                             <TextBox x:Name="NewProfileNameBox" Grid.Column="2" Style="{StaticResource DarkBox}" FontSize="11" Text=""/>
                                         </Grid>
 
@@ -970,16 +970,16 @@
                                             <Button x:Name="BtnBatchFiles" Content="+ Файли .build" Style="{StaticResource FlatButton}"
                                                     FontSize="10.5" Margin="0,0,5,5" Click="BatchImportFiles_Click"/>
                                             <Button x:Name="BtnBatchFolder" Content="+ Папка" Style="{StaticResource FlatButton}"
-                                                    Foreground="#FF75B798" FontSize="10.5" Margin="0,0,5,5" Click="BatchImportFolder_Click"/>
+                                                    Foreground="#FF3FB950" FontSize="10.5" Margin="0,0,5,5" Click="BatchImportFolder_Click"/>
                                             <Button x:Name="BtnPastePob" Content="З буфера" Style="{StaticResource FlatButton}"
-                                                    Foreground="#FF6EA8FE" FontSize="10.5" Margin="0,0,5,5" Click="PastePob_Click"/>
+                                                    Foreground="#FFC89B3C" FontSize="10.5" Margin="0,0,5,5" Click="PastePob_Click"/>
                                             <Button x:Name="BtnImportMultiText" Content="+ PoB2 / URL" Style="{StaticResource FlatButton}"
                                                     FontSize="10.5" Margin="0,0,0,5" Click="BatchImportLines_Click"/>
                                         </WrapPanel>
 
                                         <TextBox x:Name="PobInputBox" Style="{StaticResource DarkBox}" Height="80"
                                                  TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
-                                        <TextBlock x:Name="ImportStatusText" Text="" Foreground="#FFADB5BD" FontSize="10.5" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                                        <TextBlock x:Name="ImportStatusText" Text="" Foreground="#FF9C958B" FontSize="10.5" Margin="0,6,0,0" TextWrapping="Wrap"/>
                                     </StackPanel>
                                 </ScrollViewer>
                             </Border>
@@ -996,19 +996,19 @@
 
                             <WrapPanel x:Name="PlannerFilesPanel" Grid.Row="0" Margin="0,0,0,6"/>
 
-                            <Border Grid.Row="1" Background="#FF212529" BorderBrush="#FF343A40"
+                            <Border Grid.Row="1" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                     BorderThickness="1" CornerRadius="6" Padding="10,7" Margin="0,0,0,7">
                                 <DockPanel>
                                     <CheckBox x:Name="ChkPlannerFilterByLevel" Content="Фільтр за моїм рівнем"
                                               IsChecked="True" Style="{StaticResource DarkCheck}"
                                               Checked="PlannerFilterChanged" Unchecked="PlannerFilterChanged"/>
                                     <TextBlock x:Name="PlannerMetaText" Text="" DockPanel.Dock="Right"
-                                               HorizontalAlignment="Right" Foreground="#FF6EA8FE" FontSize="11"
+                                               HorizontalAlignment="Right" Foreground="#FFC89B3C" FontSize="11"
                                                FontWeight="SemiBold" VerticalAlignment="Center"/>
                                 </DockPanel>
                             </Border>
 
-                            <Border Grid.Row="2" Background="#FF212529" BorderBrush="#FF343A40"
+                            <Border Grid.Row="2" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                     BorderThickness="1" CornerRadius="6" Padding="10">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                                     <StackPanel x:Name="PlannerCardsPanel"/>
@@ -1040,7 +1040,7 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
-                            <Border Grid.Row="0" Background="#FF212529" BorderBrush="#FF343A40"
+                            <Border Grid.Row="0" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                     BorderThickness="1" CornerRadius="6" Padding="10" Margin="0,0,0,7">
                                 <StackPanel>
                                     <WrapPanel Margin="0,0,0,7">
@@ -1068,9 +1068,9 @@
                                         <Button x:Name="BtnCheckUpdatesNow" Grid.Column="0" Content="Перевірити всі"
                                                 Style="{StaticResource BrassButton}" FontSize="10" Click="CheckUpdatesNow_Click"/>
                                         <Button x:Name="BtnOpenGuideUpd" Grid.Column="2" Content="Гайд"
-                                                Style="{StaticResource FlatButton}" FontSize="10" Foreground="#FF6EA8FE" Click="OpenGuideUrl_Click"/>
+                                                Style="{StaticResource FlatButton}" FontSize="10" Foreground="#FFC89B3C" Click="OpenGuideUrl_Click"/>
                                         <Button x:Name="BtnDiffClipboard" Grid.Column="4" Content="Diff буфера"
-                                                Style="{StaticResource FlatButton}" FontSize="10" Foreground="#FF75B798" Click="DiffClipboardGuide_Click"/>
+                                                Style="{StaticResource FlatButton}" FontSize="10" Foreground="#FF3FB950" Click="DiffClipboardGuide_Click"/>
                                         <Button x:Name="BtnAiDiff" Grid.Column="6" Content="AI Diff"
                                                 Style="{StaticResource FlatButton}" FontSize="10" Click="CompareGuideWithAi_Click"/>
                                     </Grid>
@@ -1079,9 +1079,9 @@
 
                             <TextBlock x:Name="UpdateStatusText" Grid.Row="1"
                                        Text="Відслідковування змін у .build, PoB2 і посиланнях."
-                                       Foreground="#FFADB5BD" FontSize="10.5" Margin="2,0,0,6" TextWrapping="Wrap"/>
+                                       Foreground="#FF9C958B" FontSize="10.5" Margin="2,0,0,6" TextWrapping="Wrap"/>
 
-                            <Border Grid.Row="2" Background="#FF212529" BorderBrush="#FF343A40"
+                            <Border Grid.Row="2" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                     BorderThickness="1" CornerRadius="6" Padding="10">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                                     <StackPanel x:Name="UpdateHistoryPanel"/>
@@ -1098,7 +1098,7 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <Border Grid.Row="0" Background="#FF212529" BorderBrush="#FF343A40"
+                        <Border Grid.Row="0" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                 BorderThickness="1" CornerRadius="6" Padding="11,8" Margin="0,0,0,8">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -1106,70 +1106,70 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock x:Name="LblFarmHeader" Text="Статистика сесії (Client.txt)"
-                                           Foreground="#FFDEE2E6" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
+                                           Foreground="#FFECE8E1" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center"/>
                                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                                     <Button x:Name="BtnScanStashNetWorth" Content="Оцінити скриню (Stash)" Style="{StaticResource BrassButton}"
                                             FontSize="10.5" Padding="10,4" Margin="0,0,6,0" Click="ScanStashNetWorth_Click"/>
                                     <Button x:Name="BtnResetFarm" Content="Скинути" Style="{StaticResource FlatButton}"
-                                            Foreground="#FFEA868F" BorderBrush="#FF842029" Background="#FF2C0B0E"
+                                            Foreground="#FFE05252" BorderBrush="#FF632A2A" Background="#FF2A1616"
                                             FontSize="10.5" Padding="9,4" Click="ResetFarmSession_Click"/>
                                 </StackPanel>
                             </Grid>
                         </Border>
 
-                        <!-- 2x2 Bootstrap KPI Cards -->
+                        <!-- 2x2 PoE 2 Obsidian KPI Cards -->
                         <UniformGrid Grid.Row="1" Columns="2" Rows="2" Margin="0,0,0,8">
-                            <Border Background="#FF212529" BorderBrush="#FF343A40" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,6,6">
+                            <Border Background="#FF1B1917" BorderBrush="#FF342F2A" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,6,6">
                                 <StackPanel>
-                                    <TextBlock x:Name="LblKpiSession" Text="Час сесії" Foreground="#FFADB5BD" FontSize="10.5"/>
-                                    <TextBlock x:Name="ValKpiSession" Text="0 min" Foreground="#FFDEE2E6" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                                    <TextBlock x:Name="LblKpiSession" Text="Час сесії" Foreground="#FF9C958B" FontSize="10.5"/>
+                                    <TextBlock x:Name="ValKpiSession" Text="0 min" Foreground="#FFECE8E1" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"/>
                                 </StackPanel>
                             </Border>
-                            <Border Background="#FF212529" BorderBrush="#FF343A40" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,0,6">
+                            <Border Background="#FF1B1917" BorderBrush="#FF342F2A" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,0,6">
                                 <StackPanel>
-                                    <TextBlock x:Name="LblKpiZone" Text="Поточна локація" Foreground="#FFADB5BD" FontSize="10.5"/>
-                                    <TextBlock x:Name="ValKpiZone" Text="—" Foreground="#FF6EA8FE" FontSize="15" FontWeight="SemiBold" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock x:Name="LblKpiZone" Text="Поточна локація" Foreground="#FF9C958B" FontSize="10.5"/>
+                                    <TextBlock x:Name="ValKpiZone" Text="—" Foreground="#FFC89B3C" FontSize="15" FontWeight="SemiBold" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
                                 </StackPanel>
                             </Border>
-                            <Border Background="#FF212529" BorderBrush="#FF343A40" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,6,0">
+                            <Border Background="#FF1B1917" BorderBrush="#FF342F2A" BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,6,0">
                                 <StackPanel>
-                                    <TextBlock x:Name="LblKpiMaps" Text="Мапи / Середній час" Foreground="#FFADB5BD" FontSize="10.5"/>
-                                    <TextBlock x:Name="ValKpiMaps" Text="0 (0s)" Foreground="#FF75B798" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                                    <TextBlock x:Name="LblKpiMaps" Text="Мапи / Середній час" Foreground="#FF9C958B" FontSize="10.5"/>
+                                    <TextBlock x:Name="ValKpiMaps" Text="0 (0s)" Foreground="#FF3FB950" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"/>
                                 </StackPanel>
                             </Border>
-                            <Border Background="#FF212529" BorderBrush="#FF343A40" BorderThickness="1" CornerRadius="6" Padding="12">
+                            <Border Background="#FF1B1917" BorderBrush="#FF342F2A" BorderThickness="1" CornerRadius="6" Padding="12">
                                 <StackPanel>
-                                    <TextBlock x:Name="LblKpiEncounters" Text="Енкаунтери / Смерті" Foreground="#FFADB5BD" FontSize="10.5"/>
-                                    <TextBlock x:Name="ValKpiEncounters" Text="0 / 0" Foreground="#FF6EDFF6" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                                    <TextBlock x:Name="LblKpiEncounters" Text="Енкаунтери / Смерті" Foreground="#FF9C958B" FontSize="10.5"/>
+                                    <TextBlock x:Name="ValKpiEncounters" Text="0 / 0" Foreground="#FFB5AEA4" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"/>
                                 </StackPanel>
                             </Border>
                         </UniformGrid>
 
-                        <Border Grid.Row="2" Background="#FF212529" BorderBrush="#FF343A40"
+                        <Border Grid.Row="2" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                 BorderThickness="1" CornerRadius="6" Padding="11">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel>
-                                    <TextBlock x:Name="FarmStatsBodyText" Foreground="#FFADB5BD" FontSize="11" TextWrapping="Wrap" LineHeight="18"/>
-                                    <Border Background="#FF16191D" BorderBrush="#FF343A40" BorderThickness="1" CornerRadius="6" Padding="9,7" Margin="0,8,0,0">
+                                    <TextBlock x:Name="FarmStatsBodyText" Foreground="#FF9C958B" FontSize="11" TextWrapping="Wrap" LineHeight="18"/>
+                                    <Border Background="#FF121110" BorderBrush="#FF342F2A" BorderThickness="1" CornerRadius="6" Padding="9,7" Margin="0,8,0,0">
                                         <DockPanel>
                                             <Button x:Name="BtnRefreshCurrencyRates" DockPanel.Dock="Right" Content="↻ Курси"
                                                     Style="{StaticResource FlatButton}" FontSize="10" Padding="8,3" Margin="6,0,0,0"
                                                     Click="RefreshCurrencyRates_Click"/>
                                             <StackPanel>
                                                 <TextBlock x:Name="LblCurrencyRatesTitle" Text="Живі курси валют Trade 2"
-                                                           Foreground="#FFDEE2E6" FontWeight="SemiBold" FontSize="10.5"/>
+                                                           Foreground="#FFECE8E1" FontWeight="SemiBold" FontSize="10.5"/>
                                                 <TextBlock x:Name="CurrencyRatesText" Text="Натисни «↻ Курси» для завантаження Divine / Chaos → Ex."
-                                                           Foreground="#FFADB5BD" FontSize="10.5" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                                           Foreground="#FF9C958B" FontSize="10.5" TextWrapping="Wrap" Margin="0,2,0,0"/>
                                             </StackPanel>
                                         </DockPanel>
                                     </Border>
-                                    <Border Background="#FF16191D" BorderBrush="#FF343A40" BorderThickness="1" CornerRadius="6" Padding="9,7" Margin="0,8,0,0">
+                                    <Border Background="#FF121110" BorderBrush="#FF342F2A" BorderThickness="1" CornerRadius="6" Padding="9,7" Margin="0,8,0,0">
                                         <StackPanel>
                                             <DockPanel>
-                                                <TextBlock x:Name="LblStashHeader" Text="Скриня (Net-Worth)" Foreground="#FFDEE2E6" FontWeight="SemiBold" FontSize="11"/>
-                                                <TextBlock x:Name="ValStashNetWorth" DockPanel.Dock="Right" HorizontalAlignment="Right" Text="—" Foreground="#FF75B798" FontWeight="Bold" FontSize="11.5"/>
+                                                <TextBlock x:Name="LblStashHeader" Text="Скриня (Net-Worth)" Foreground="#FFECE8E1" FontWeight="SemiBold" FontSize="11"/>
+                                                <TextBlock x:Name="ValStashNetWorth" DockPanel.Dock="Right" HorizontalAlignment="Right" Text="—" Foreground="#FF3FB950" FontWeight="Bold" FontSize="11.5"/>
                                             </DockPanel>
-                                            <TextBlock x:Name="StashBreakdownText" Text="Натисни «Оцінити скриню (Stash)»." Foreground="#FFADB5BD" FontSize="10.5" TextWrapping="Wrap" Margin="0,3,0,0"/>
+                                            <TextBlock x:Name="StashBreakdownText" Text="Натисни «Оцінити скриню (Stash)»." Foreground="#FF9C958B" FontSize="10.5" TextWrapping="Wrap" Margin="0,3,0,0"/>
                                         </StackPanel>
                                     </Border>
                                 </StackPanel>
@@ -1185,12 +1185,12 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <Border Grid.Row="0" Background="#FF212529" BorderBrush="#FF343A40"
+                        <Border Grid.Row="0" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                 BorderThickness="1" CornerRadius="6" Padding="11" Margin="0,0,0,8">
                             <StackPanel>
                                 <DockPanel Margin="0,0,0,7">
                                     <TextBlock x:Name="AiStatusText" Text="AI: ready"
-                                               Foreground="#FF75B798" FontWeight="SemiBold" FontSize="11.5"/>
+                                               Foreground="#FF3FB950" FontWeight="SemiBold" FontSize="11.5"/>
                                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
                                         <Button x:Name="BtnToggleApiDrawer" Content="API Ключ" Style="{StaticResource FlatButton}"
                                                 FontSize="10" Padding="8,3" Margin="0,0,5,0" Click="GoToSettingsTab_Click"/>
@@ -1209,7 +1209,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBox x:Name="AiQuestionBox" Grid.Column="0" Style="{StaticResource DarkBox}" Height="34" Text=""/>
                                     <Button x:Name="BtnAiAsk" Grid.Column="2" Content="Запитати" Style="{StaticResource FlatButton}"
-                                            Foreground="#FF6EA8FE" FontSize="11" FontWeight="SemiBold" Click="AiAskText_Click"/>
+                                            Foreground="#FFC89B3C" FontSize="11" FontWeight="SemiBold" Click="AiAskText_Click"/>
                                     <Button x:Name="BtnAiScreen" Grid.Column="4" Content="Скрін + AI (F11)" Style="{StaticResource BrassButton}"
                                             FontSize="11" Click="AiScanNow_Click"/>
                                 </Grid>
@@ -1217,12 +1217,12 @@
                         </Border>
 
                         <TextBlock x:Name="AiMetaText" Grid.Row="1" Text="Натисни F11 у грі для аналізу екрану."
-                                   Foreground="#FFADB5BD" FontSize="10.5" Margin="2,0,0,6"/>
+                                   Foreground="#FF9C958B" FontSize="10.5" Margin="2,0,0,6"/>
 
-                        <Border Grid.Row="2" Background="#FF212529" BorderBrush="#FF343A40"
+                        <Border Grid.Row="2" Background="#FF1B1917" BorderBrush="#FF342F2A"
                                 BorderThickness="1" CornerRadius="6" Padding="12">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                <TextBlock x:Name="AiResponseText" Foreground="#FFDEE2E6" FontSize="12"
+                                <TextBlock x:Name="AiResponseText" Foreground="#FFECE8E1" FontSize="12"
                                            TextWrapping="Wrap" LineHeight="18.5"/>
                             </ScrollViewer>
                         </Border>
@@ -1233,10 +1233,10 @@
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
                             <StackPanel>
                                 <!-- Картка 1: Акаунт PoE 2 + Ліга -->
-                                <Border Background="#FF212529" BorderBrush="#FF343A40" BorderThickness="1" CornerRadius="6" Padding="11" Margin="0,0,0,8">
+                                <Border Background="#FF1B1917" BorderBrush="#FF342F2A" BorderThickness="1" CornerRadius="6" Padding="11" Margin="0,0,0,8">
                                     <StackPanel>
                                         <DockPanel Margin="0,0,0,7">
-                                            <TextBlock x:Name="LblSettingsAccountTitle" Text="Акаунт PoE 2 та ліга" Foreground="#FFDEE2E6" FontWeight="SemiBold" FontSize="11.5"/>
+                                            <TextBlock x:Name="LblSettingsAccountTitle" Text="Акаунт PoE 2 та ліга" Foreground="#FFECE8E1" FontWeight="SemiBold" FontSize="11.5"/>
                                             <Button x:Name="SettingsTypeBtn" Content="Режим вводу" DockPanel.Dock="Right" HorizontalAlignment="Right"
                                                     Style="{StaticResource FlatButton}" FontSize="9.5" Padding="8,2" Click="ToggleTyping_Click"/>
                                         </DockPanel>
@@ -1244,7 +1244,7 @@
                                         <WrapPanel Margin="0,0,0,8">
                                             <Button x:Name="BtnConnectPoeAccount" Content="Підключити PoE 2 акаунт" Style="{StaticResource BrassButton}"
                                                     FontSize="10.5" Padding="10,5" Margin="0,0,8,4" Click="ConnectPoeAccount_Click"/>
-                                            <TextBlock x:Name="LblPoeAccountStatus" Text="Не підключено" Foreground="#FFADB5BD" FontSize="10.5" VerticalAlignment="Center" Margin="0,0,0,4" TextWrapping="Wrap"/>
+                                            <TextBlock x:Name="LblPoeAccountStatus" Text="Не підключено" Foreground="#FF9C958B" FontSize="10.5" VerticalAlignment="Center" Margin="0,0,0,4" TextWrapping="Wrap"/>
                                         </WrapPanel>
 
                                         <Grid>
@@ -1255,9 +1255,9 @@
                                                 <ColumnDefinition Width="6"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock x:Name="LblSettingsLeague" Text="Ліга:" Foreground="#FFADB5BD" FontSize="11" VerticalAlignment="Center"/>
-                                            <ComboBox x:Name="LeagueCombo" Grid.Column="2" IsEditable="True" Background="#FF16191D" Foreground="#FFDEE2E6"
-                                                      BorderBrush="#FF495057" FontSize="11" Height="28" SelectionChanged="LeagueCombo_Changed"/>
+                                            <TextBlock x:Name="LblSettingsLeague" Text="Ліга:" Foreground="#FF9C958B" FontSize="11" VerticalAlignment="Center"/>
+                                            <ComboBox x:Name="LeagueCombo" Grid.Column="2" IsEditable="True" Background="#FF25221F" Foreground="#FFECE8E1"
+                                                      BorderBrush="#FF342F2A" FontSize="11" Height="28" SelectionChanged="LeagueCombo_Changed"/>
                                             <Button x:Name="BtnRefreshLeagues" Grid.Column="4" Content="↻ Ліги" Style="{StaticResource FlatButton}"
                                                     FontSize="10.5" Padding="9,4" Click="RefreshLeagues_Click"/>
                                         </Grid>
@@ -1265,12 +1265,12 @@
                                 </Border>
 
                                 <!-- Картка 2: Інтерфейс, Мова, Розмір, Швидкі інструменти -->
-                                <Border Background="#FF212529" BorderBrush="#FF343A40" BorderThickness="1" CornerRadius="6" Padding="11" Margin="0,0,0,8">
+                                <Border Background="#FF1B1917" BorderBrush="#FF342F2A" BorderThickness="1" CornerRadius="6" Padding="11" Margin="0,0,0,8">
                                     <StackPanel>
-                                        <TextBlock x:Name="LblAppSettingsTitle" Text="Мова, вигляд та поведінка" Foreground="#FFDEE2E6" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                                        <TextBlock x:Name="LblAppSettingsTitle" Text="Мова, вигляд та поведінка" Foreground="#FFECE8E1" FontSize="11.5" FontWeight="SemiBold" Margin="0,0,0,8"/>
 
                                         <WrapPanel Margin="0,0,0,7">
-                                            <Border Background="#FF16191D" BorderBrush="#FF495057" BorderThickness="1" CornerRadius="6" Padding="2" Margin="0,0,8,3">
+                                            <Border Background="#FF121110" BorderBrush="#FF342F2A" BorderThickness="1" CornerRadius="6" Padding="2" Margin="0,0,8,3">
                                                 <StackPanel Orientation="Horizontal">
                                                     <Button x:Name="LangBtnUk" Content="UA" Style="{StaticResource FlatButton}" BorderThickness="0" Padding="7,3" FontSize="10" FontWeight="SemiBold" Click="LangUk_Click"/>
                                                     <Button x:Name="LangBtnEn" Content="EN" Style="{StaticResource FlatButton}" BorderThickness="0" Padding="7,3" FontSize="10" FontWeight="SemiBold" Click="LangEn_Click"/>
@@ -1278,11 +1278,11 @@
                                                 </StackPanel>
                                             </Border>
                                             <Button x:Name="AlphaBtn" Content="Прозорість: 95%" Style="{StaticResource FlatButton}" FontSize="10" Padding="9,4" Margin="0,0,6,3" Click="CycleAlpha_Click"/>
-                                            <TextBlock x:Name="LblPortableStatus" Text="" Foreground="#FF75B798" FontSize="10" VerticalAlignment="Center" Margin="2,0,0,3"/>
+                                            <TextBlock x:Name="LblPortableStatus" Text="" Foreground="#FF3FB950" FontSize="10" VerticalAlignment="Center" Margin="2,0,0,3"/>
                                         </WrapPanel>
 
                                         <WrapPanel Margin="0,0,0,7">
-                                            <TextBlock x:Name="LblOverlaySize" Text="Розмір:" Foreground="#FFADB5BD" FontSize="11" VerticalAlignment="Center" Margin="0,0,7,0"/>
+                                            <TextBlock x:Name="LblOverlaySize" Text="Розмір:" Foreground="#FF9C958B" FontSize="11" VerticalAlignment="Center" Margin="0,0,7,0"/>
                                             <Button x:Name="BtnSizeS" Content="S (460×360)" Style="{StaticResource FlatButton}" FontSize="10" Padding="8,3" Margin="0,0,4,2" Click="SetSizeS_Click"/>
                                             <Button x:Name="BtnSizeM" Content="M (560×430)" Style="{StaticResource BrassButton}" FontSize="10" Padding="8,3" Margin="0,0,4,2" Click="SetSizeM_Click"/>
                                             <Button x:Name="BtnSizeL" Content="L (740×560)" Style="{StaticResource FlatButton}" FontSize="10" Padding="8,3" Margin="0,0,0,2" Click="SetSizeL_Click"/>
@@ -1307,19 +1307,19 @@
                                             <Button x:Name="BtnCheckAppUpdate" Content="↻ Оновлення (GitHub)" Style="{StaticResource FlatButton}"
                                                     FontSize="10" Padding="8,3" Margin="0,0,6,3" Click="CheckAppUpdate_Click"/>
                                             <Button x:Name="BtnInstallAppUpdate" Content="Оновити зараз" Style="{StaticResource FlatButton}"
-                                                    Background="#FF198754" BorderBrush="#FF198754" Foreground="#FFFFFFFF" FontWeight="SemiBold"
+                                                    Background="#FF152418" BorderBrush="#FF2A5231" Foreground="#FF3FB950" FontWeight="SemiBold"
                                                     FontSize="10" Padding="9,3" Margin="0,0,6,3" Visibility="Collapsed" Click="InstallAppUpdate_Click"/>
-                                            <TextBlock x:Name="LblAppUpdateStatus" Text="v1.1.2" Foreground="#FFADB5BD" FontSize="10" VerticalAlignment="Center" Margin="0,0,0,3"/>
+                                            <TextBlock x:Name="LblAppUpdateStatus" Text="v1.1.3" Foreground="#FF9C958B" FontSize="10" VerticalAlignment="Center" Margin="0,0,0,3"/>
                                         </WrapPanel>
                                     </StackPanel>
                                 </Border>
 
                                 <!-- Картка 3: AI API -->
-                                <Border Background="#FF212529" BorderBrush="#FF343A40" BorderThickness="1" CornerRadius="6" Padding="11" Margin="0,0,0,8">
+                                <Border Background="#FF1B1917" BorderBrush="#FF342F2A" BorderThickness="1" CornerRadius="6" Padding="11" Margin="0,0,0,8">
                                     <StackPanel x:Name="ApiConfigDrawer">
                                         <DockPanel Margin="0,0,0,7">
-                                            <TextBlock x:Name="LblSettingsAiTitle" Text="AI API (Gemini / OpenAI)" Foreground="#FFDEE2E6" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                            <TextBlock x:Name="LblSettingsAiStatus" DockPanel.Dock="Right" HorizontalAlignment="Right" Text="" Foreground="#FF75B798" FontSize="10" VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="LblSettingsAiTitle" Text="AI API (Gemini / OpenAI)" Foreground="#FFECE8E1" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="LblSettingsAiStatus" DockPanel.Dock="Right" HorizontalAlignment="Right" Text="" Foreground="#FF3FB950" FontSize="10" VerticalAlignment="Center"/>
                                         </DockPanel>
                                         <WrapPanel Margin="0,0,0,7">
                                             <Button x:Name="BtnProvGemini" Content="Google Gemini" Style="{StaticResource FlatButton}"
@@ -1340,7 +1340,7 @@
                                                 <ColumnDefinition Width="6"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="Key:" Foreground="#FFADB5BD" FontSize="10.5" VerticalAlignment="Center"/>
+                                            <TextBlock Text="Key:" Foreground="#FF9C958B" FontSize="10.5" VerticalAlignment="Center"/>
                                             <TextBox x:Name="ApiKeyBox" Grid.Column="1" Style="{StaticResource DarkBox}" FontSize="10.5"/>
                                             <TextBox x:Name="AiModelBox" Grid.Column="3" Style="{StaticResource DarkBox}" FontSize="10.5" Text="gemini-3.5-flash-lite"/>
                                             <Button x:Name="BtnSaveApi" Grid.Column="5" Content="Зберегти" Style="{StaticResource BrassButton}"
@@ -1351,7 +1351,7 @@
                                                 <ColumnDefinition Width="52"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Text="URL:" Foreground="#FFADB5BD" FontSize="10.5" VerticalAlignment="Center"/>
+                                            <TextBlock Text="URL:" Foreground="#FF9C958B" FontSize="10.5" VerticalAlignment="Center"/>
                                             <TextBox x:Name="OpenAiUrlBox" Grid.Column="1" Style="{StaticResource DarkBox}" FontSize="10.5"
                                                      Text="https://api.openai.com/v1/chat/completions"/>
                                         </Grid>
@@ -1359,11 +1359,11 @@
                                 </Border>
 
                                 <!-- Картка 4: Таймер бафу та команди F8 -->
-                                <Border Background="#FF212529" BorderBrush="#FF343A40" BorderThickness="1" CornerRadius="6" Padding="11">
+                                <Border Background="#FF1B1917" BorderBrush="#FF342F2A" BorderThickness="1" CornerRadius="6" Padding="11">
                                     <StackPanel>
                                         <DockPanel Margin="0,0,0,7">
-                                            <TextBlock x:Name="LblSettingsHotkeysTitle" Text="Таймер бафу та гарячі клавіші" Foreground="#FFDEE2E6" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                                            <TextBlock x:Name="LblSettingsHotkeyHint" DockPanel.Dock="Right" HorizontalAlignment="Right" Text="F8 · F9 · F10 · F11" Foreground="#FF6C757D" FontSize="10" VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="LblSettingsHotkeysTitle" Text="Таймер бафу та гарячі клавіші" Foreground="#FFECE8E1" FontSize="11.5" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="LblSettingsHotkeyHint" DockPanel.Dock="Right" HorizontalAlignment="Right" Text="F8 · F9 · F10 · F11" Foreground="#FF9C958B" FontSize="10" VerticalAlignment="Center"/>
                                         </DockPanel>
                                         <Grid Margin="0,0,0,7">
                                             <Grid.ColumnDefinitions>
@@ -1393,7 +1393,7 @@
                                                 <ColumnDefinition Width="5"/>
                                                 <ColumnDefinition Width="*"/>
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock x:Name="LblCustomCmds" Text="F8 команди:" Foreground="#FFADB5BD" FontSize="10.5" VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="LblCustomCmds" Text="F8 команди:" Foreground="#FF9C958B" FontSize="10.5" VerticalAlignment="Center"/>
                                             <TextBox x:Name="CustomCmd1Box" Grid.Column="2" Style="{StaticResource DarkBox}" FontSize="10.5" Padding="6,3" Text="/hideout"/>
                                             <TextBox x:Name="CustomCmd2Box" Grid.Column="4" Style="{StaticResource DarkBox}" FontSize="10.5" Padding="6,3" Text="/remaining"/>
                                         </Grid>
@@ -1412,7 +1412,7 @@
                 <Thumb.Template>
                     <ControlTemplate TargetType="Thumb">
                         <Border Background="Transparent">
-                            <Path Data="M 11,2 L 2,11 M 11,6 L 6,11" Stroke="#FF6EA8FE" StrokeThickness="1.3"/>
+                            <Path Data="M 11,2 L 2,11 M 11,6 L 6,11" Stroke="#FFC89B3C" StrokeThickness="1.3"/>
                         </Border>
                     </ControlTemplate>
                 </Thumb.Template>
